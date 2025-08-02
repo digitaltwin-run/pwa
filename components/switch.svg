@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xhtml="http://www.w3.org/1999/xhtml"
+     width="40"
+     height="40"
+     viewBox="0 0 40 40">
+
+    <title>Switch Component</title>
+    <desc>Interactive switch component for digital twin</desc>
+
+    <metadata>
+        {
+        "id": "switch-001",
+        "name": "Toggle Switch",
+        "type": "switch",
+        "parameters": {
+            "label": "Switch",
+            "state": false,
+            "color": "#3498db",
+            "size": 40,
+            "isActive": true
+            }
+        }
+    </metadata>
+
+    <!-- Background -->
+    <rect x="5" y="10" width="30" height="20" rx="3" ry="3" fill="#2c3e50" stroke="#1a252f" stroke-width="1"/>
+    
+    <!-- Switch track -->
+    <rect class="switch-track" x="8" y="15" width="24" height="10" rx="5" ry="5" fill="#7f8c8d"/>
+    
+    <!-- Switch handle -->
+    <circle class="switch-handle" cx="15" cy="20" r="6" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+    
+    <!-- Label -->
+    <text class="switch-label" x="20" y="36" font-size="8" text-anchor="middle" fill="#bdc3c7">Switch</text>
+
+    <defs>
+    <!-- Internal SVG script -->
+    <script><![CDATA[
+      (function() {
+        // Function to read metadata
+        function getMetadata(svgElement) {
+          const metadataNode = svgElement.querySelector('metadata');
+          if (metadataNode && metadataNode.textContent.trim()) {
+            try {
+              return JSON.parse(metadataNode.textContent);
+            } catch (e) {
+              console.warn('Error parsing metadata:', e);
+              return {};
+            }
+          }
+          return {};
+        }
+
+        // Function to update switch appearance
+        function updateSwitch(svgElement) {
+          const metadata = getMetadata(svgElement);
+          const params = metadata.parameters || {};
+          
+          const switchHandle = svgElement.querySelector('.switch-handle');
+          const switchTrack = svgElement.querySelector('.switch-track');
+          const labelEl = svgElement.querySelector('.switch-label');
+
+          if (!switchHandle || !switchTrack || !params.isActive) {
+            if (switchTrack) switchTrack.setAttribute('fill', '#555');
+            return;
+          }
+
+          // Update label
+          if (labelEl && params.label) {
+            labelEl.textContent = params.label;
+          }
+
+          // Update switch position and colors
+          if (params.state) {
+            switchHandle.setAttribute('cx', '27');
+            switchTrack.setAttribute('fill', params.color || '#3498db');
+          } else {
+            switchHandle.setAttribute('cx', '13');
+            switchTrack.setAttribute('fill', '#7f8c8d');
+          }
+        }
+
+        // Initialize
+        const svgElement = document.querySelector('svg:not([data-switch-initialized="true"])');
+        if (svgElement) {
+          svgElement.setAttribute('data-switch-initialized', 'true');
+          
+          // Initial update
+          updateSwitch(svgElement);
+
+          // Poll for changes
+          svgElement.pollingInterval = setInterval(() => {
+            const metadata = getMetadata(svgElement);
+            const params = metadata.parameters || {};
+            const currentState = svgElement.currentParams?.state;
+            const currentColor = svgElement.currentParams?.color;
+
+            if (params.state !== currentState || 
+                params.color !== currentColor || 
+                params.isActive !== (svgElement.currentParams?.isActive)) {
+              svgElement.currentParams = { ...params };
+              updateSwitch(svgElement);
+            }
+          }, 500);
+
+          // Cleanup on removal
+          window.addEventListener('beforeunload', () => {
+            if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
+          });
+        }
+      })();
+    ]]></script>
+    </defs>
+</svg>

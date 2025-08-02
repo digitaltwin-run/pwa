@@ -98,7 +98,7 @@
             overflow: auto;
             position: relative;
         }
-        
+
         #svg-canvas {
             width: 100%;
             height: 100%;
@@ -271,7 +271,7 @@
     <!-- Prawa: Właściwości -->
     <aside class="sidebar right">
         <h3>⚙️ Właściwości</h3>
-        <div id="property-editor">
+        <div id="properties-panel">
             <p>Wybierz komponent, aby edytować.</p>
         </div>
     </aside>
@@ -280,12 +280,13 @@
 <script>
     // Lista komponentów – ścieżka, nazwa, opcjonalnie ikona (jeśli inna)
     const COMPONENTS = [
-        { svg: "components/sensor.svg", name: "Czujnik", id: "sensor" },
         { svg: "components/motor.svg", name: "Silnik", id: "motor" },
         { svg: "components/led.svg", name: "Diody LED", id: "led" },
         { svg: "components/switch.svg", name: "Przełącznik", id: "switch" },
         { svg: "components/relay.svg", name: "Przekaźnik", id: "relay" },
         { svg: "components/button.svg", name: "Przycisk", id: "button" },
+        { svg: "components/knob.svg", name: "Pokrętło", id: "knob" },
+        { svg: "components/slider.svg", name: "Suwak", id: "slider" },
         { svg: "components/sensor.svg", name: "Czujnik temperatury", id: "temp-sensor" },
         { svg: "components/display.svg", name: "Wyświetlacz", id: "display" },
     ];
@@ -297,11 +298,11 @@
     let connectionStart = null;
     let selectedComponent = null;
     let simulationInterval = null;
-    
+
     // Pobierz kontener SVG
     const svgCanvas = document.getElementById('svg-canvas');
     const workspace = document.getElementById('workspace');
-    
+
     // Inicjalizacja rozmiarów SVG
     function updateSvgSize() {
         const rect = workspace.getBoundingClientRect();
@@ -309,7 +310,7 @@
         svgCanvas.setAttribute('height', rect.height);
         svgCanvas.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
     }
-    
+
     // Aktualizuj rozmiar przy zmianie okna
     window.addEventListener('resize', updateSvgSize);
     updateSvgSize();
@@ -343,13 +344,13 @@
     svgCanvas.addEventListener('drop', async (e) => {
         e.preventDefault();
         svgCanvas.classList.remove('drag-over');
-        
+
         const svgUrl = e.dataTransfer.getData("text/plain");
         if (!svgUrl) {
             console.error("Brak danych SVG podczas upuszczenia");
             return;
         }
-        
+
         const canvasX = e.offsetX;
         const canvasY = e.offsetY;
 
@@ -358,21 +359,21 @@
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const svgText = await response.text();
             if (!svgText || !svgText.trim().startsWith('<svg') && !svgText.trim().startsWith('<?xml')) {
                 throw new Error("Nieprawidłowy format SVG");
             }
-            
+
             const parser = new DOMParser();
             const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
-            
+
             // Sprawdź błędy parsowania
             const parserError = svgDoc.querySelector("parsererror");
             if (parserError) {
                 throw new Error("Błąd parsowania SVG");
             }
-            
+
             const svgElement = svgDoc.documentElement;
             if (!svgElement || svgElement.nodeName !== 'svg') {
                 throw new Error("Nie znaleziono elementu SVG");
@@ -430,7 +431,7 @@
             });
 
             makeDraggable(svgElement);
-            
+
             if (svgCanvas) {
                 svgCanvas.appendChild(svgElement);
                 // Odśwież panel symulacji
@@ -448,13 +449,13 @@
     function selectComponent(el) {
         // Sprawdź, czy element istnieje
         if (!el) return;
-        
+
         const propertiesPanel = document.getElementById('properties-panel');
         if (!propertiesPanel) {
             console.error("Nie znaleziono panelu właściwości (properties-panel)");
             return;
         }
-        
+
         // Jeśli kliknięto w to samo, odznacz
         if (selectedComponent === el) {
             el.style.outline = '';
@@ -462,16 +463,16 @@
             propertiesPanel.style.display = 'none';
             return;
         }
-        
+
         // Usuń zaznaczenie z poprzedniego komponentu
         if (selectedComponent) {
             selectedComponent.style.outline = '';
         }
-        
+
         // Zaznacz nowy komponent
         selectedComponent = el;
         el.style.outline = '2px solid #3498db';
-        
+
         // Pokaż właściwości
         showProperties(el);
     }
@@ -480,20 +481,20 @@
     function showProperties(svgElement) {
         // Sprawdź, czy element istnieje
         if (!svgElement) return;
-        
+
         const propertiesPanel = document.getElementById("properties-panel");
         if (!propertiesPanel) {
             console.error("Nie znaleziono panelu właściwości (properties-panel)");
             return;
         }
-        
+
         propertiesPanel.style.display = "block";
         propertiesPanel.innerHTML = "<h3>Właściwości</h3>";
 
         // Pobierz ID komponentu
         const id = svgElement.getAttribute('data-id');
         if (!id) return;
-        
+
         // Pobierz metadane
         const metadataNode = svgElement.querySelector("metadata");
         if (!metadataNode) return;
@@ -524,12 +525,12 @@
             Object.entries(params).forEach(([key, value]) => {
                 const paramDiv = document.createElement("div");
                 paramDiv.className = "property";
-                
+
                 const label = document.createElement("label");
                 label.textContent = formatLabel(key) + ": ";
-                
+
                 let input;
-                
+
                 if (typeof value === 'boolean') {
                     input = document.createElement("input");
                     input.type = "checkbox";
@@ -551,12 +552,12 @@
                     input.value = value;
                     input.onchange = (e) => updateParam(id, key, e.target.value, 'string');
                 }
-                
+
                 paramDiv.appendChild(label);
                 paramDiv.appendChild(input);
                 propertiesPanel.appendChild(paramDiv);
             });
-            
+
             // Dodaj przycisk dodawania nowego parametru
             const addParamBtn = document.createElement("button");
             addParamBtn.textContent = "Dodaj parametr";
@@ -767,21 +768,21 @@
                         if (!response.ok) {
                             throw new Error(`HTTP error! status: ${response.status}`);
                         }
-                        
+
                         const svgText = await response.text();
                         if (!svgText || !svgText.trim().startsWith('<svg') && !svgText.trim().startsWith('<?xml')) {
                             throw new Error("Nieprawidłowy format SVG");
                         }
-                        
+
                         const parser = new DOMParser();
                         const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
-                        
+
                         // Sprawdź błędy parsowania
                         const parserError = svgDoc.querySelector("parsererror");
                         if (parserError) {
                             throw new Error("Błąd parsowania SVG");
                         }
-                        
+
                         const svgElement = svgDoc.documentElement;
                         if (!svgElement || svgElement.nodeName !== 'svg') {
                             throw new Error("Nie znaleziono elementu SVG");
@@ -875,47 +876,47 @@
         // Tymczasowo ukryj elementy interfejsu, których nie chcemy na zrzucie
         const uiElements = document.querySelectorAll('.toolbar, .sidebar, #properties-panel');
         const originalDisplays = [];
-        
+
         // Zapisz oryginalne style i ukryj elementy interfejsu
         uiElements.forEach(el => {
             originalDisplays.push(el.style.display);
             el.style.display = 'none';
         });
-        
+
         // Utwórz nowy canvas do renderowania SVG
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        
+
         // Ustaw rozmiar canvas na rozmiar obszaru roboczego
         const workspace = document.getElementById('workspace');
         canvas.width = workspace.offsetWidth;
         canvas.height = workspace.offsetHeight;
-        
+
         // Wypełnij tło białym kolorem
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
+
         // Konwertuj SVG na obraz i rysuj na canvas
         const svgData = new XMLSerializer().serializeToString(svgCanvas);
         const img = new Image();
-        
+
         img.onload = function() {
             // Narysuj obraz na canvas
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            
+
             // Konwertuj canvas na obraz PNG i pobierz
             const dataURL = canvas.toDataURL('image/png');
             const downloadLink = document.createElement('a');
             downloadLink.download = 'digital-twin-export.png';
             downloadLink.href = dataURL;
             downloadLink.click();
-            
+
             // Przywróć elementy interfejsu
             uiElements.forEach((el, index) => {
                 el.style.display = originalDisplays[index];
             });
         };
-        
+
         // Ustaw źródło obrazu jako zakodowane w base64 dane SVG
         img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
     }
@@ -923,18 +924,18 @@
     window.exportAsSVG = () => {
         // Pobierz zawartość SVG
         const svgData = new XMLSerializer().serializeToString(svgCanvas);
-        
+
         // Utwórz link do pobrania
         const blob = new Blob([svgData], { type: 'image/svg+xml' });
         const url = URL.createObjectURL(blob);
-        
+
         // Utwórz i kliknij link do pobrania
         const a = document.createElement('a');
         a.href = url;
         a.download = 'digital-twin-export.svg';
         document.body.appendChild(a);
         a.click();
-        
+
         // Posprzątaj
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
@@ -1054,7 +1055,7 @@
         // Pobierz metadane
         let metadata = {};
         let metadataNode = svgElement.querySelector('metadata');
-        
+
         if (metadataNode && metadataNode.textContent.trim()) {
             try {
                 metadata = JSON.parse(metadataNode.textContent);
@@ -1066,34 +1067,34 @@
             metadataNode = document.createElement('metadata');
             svgElement.appendChild(metadataNode);
         }
-        
+
         // Zaktualizuj wartość w ścieżce (np. 'parameters.speed')
         const keys = path.split('.');
         let current = metadata;
-        
+
         for (let i = 0; i < keys.length - 1; i++) {
             if (current[keys[i]] === undefined) {
                 current[keys[i]] = {};
             }
             current = current[keys[i]];
         }
-        
+
         current[keys[keys.length - 1]] = value;
-        
+
         // Zapisz zaktualizowane metadane
         metadataNode.textContent = JSON.stringify(metadata, null, 2);
-        
+
         // Zastosuj zmiany do wizualizacji
         applyParameterToSVG(svgElement, path, value);
     }
 
     function applyParameterToSVG(svgElement, paramKey, value) {
         if (!svgElement) return;
-        
+
         // Pobierz metadane
         const metadataNode = svgElement.querySelector('metadata');
         if (!metadataNode) return;
-        
+
         let metadata;
         try {
             metadata = JSON.parse(metadataNode.textContent);
@@ -1101,10 +1102,10 @@
             console.warn('Błąd parsowania metadanych:', e);
             return;
         }
-        
+
         const componentType = metadata.type || 'default';
         const instanceId = svgElement.getAttribute('data-id');
-        
+
         // Obsłuż różne typy komponentów
         switch (componentType) {
             case 'led':
@@ -1112,11 +1113,11 @@
                 const ledCore = svgElement.querySelector('#led-core');
                 const labelEl = svgElement.querySelector('#label');
                 const params = metadata.parameters || {};
-                
+
                 if (paramKey === 'parameters.label' && labelEl) {
                     labelEl.textContent = value;
                 }
-                
+
                 if (ledCore) {
                     if (paramKey === 'parameters.color' || paramKey === 'parameters.isOn' || paramKey === 'parameters.isBlinking') {
                         // Zatrzymaj istniejące miganie
@@ -1124,7 +1125,7 @@
                             clearInterval(svgElement.blinkInterval);
                             svgElement.blinkInterval = null;
                         }
-                        
+
                         // Ustaw nowy kolor lub stan
                         if (params.isBlinking && params.isOn) {
                             let on = true;
@@ -1138,9 +1139,92 @@
                     }
                 }
                 break;
+
+            case 'knob':
+                // Obsługa pokrętła
+                const knobBody = svgElement.querySelector('.knob-body');
+                const knobIndicator = svgElement.querySelector('.knob-indicator');
+                const knobLabel = svgElement.querySelector('.knob-label');
+                const knobValue = svgElement.querySelector('.knob-value');
+                const knobParams = metadata.parameters || {};
                 
+                if (paramKey === 'parameters.label' && knobLabel) {
+                    knobLabel.textContent = value;
+                }
+                
+                if (paramKey === 'parameters.color' && knobBody) {
+                    knobBody.setAttribute('fill', value);
+                }
+                
+                if ((paramKey === 'parameters.value' || 
+                     paramKey === 'parameters.min' || 
+                     paramKey === 'parameters.max') && knobIndicator) {
+                    // Oblicz kąt obrotu na podstawie wartości
+                    const min = knobParams.min || 0;
+                    const max = knobParams.max || 100;
+                    const val = Math.min(Math.max(knobParams.value, min), max);
+                    const percentage = (val - min) / (max - min);
+                    const angle = percentage * 270 - 135; // -135° do +135°
+
+                    // Zastosuj obrót do wskaźnika
+                    knobIndicator.setAttribute('transform', `rotate(${angle} 20 20)`);
+
+                    // Aktualizuj tekst wartości
+                    if (knobValue) {
+                        knobValue.textContent = val;
+                    }
+                }
+                break;
+
+            case 'slider':
+                // Obsługa suwaka
+                const sliderTrack = svgElement.querySelector('.slider-track');
+                const sliderProgress = svgElement.querySelector('.slider-progress');
+                const sliderHandle = svgElement.querySelector('.slider-handle');
+                const sliderLabel = svgElement.querySelector('.slider-label');
+                const sliderValue = svgElement.querySelector('.slider-value');
+                const sliderParams = metadata.parameters || {};
+                
+                if (paramKey === 'parameters.label' && sliderLabel) {
+                    sliderLabel.textContent = value;
+                }
+                
+                if (paramKey === 'parameters.color' && sliderProgress) {
+                    sliderProgress.setAttribute('fill', value);
+                }
+                
+                if ((paramKey === 'parameters.value' || 
+                     paramKey === 'parameters.min' || 
+                     paramKey === 'parameters.max') && sliderHandle) {
+                    // Oblicz pozycję na podstawie wartości
+                    const min = sliderParams.min || 0;
+                    const max = sliderParams.max || 100;
+                    const val = Math.min(Math.max(sliderParams.value, min), max);
+                    const percentage = (val - min) / (max - min);
+                    
+                    // Szerokość toru
+                    const trackWidth = 40;
+                    const startX = 10;
+                    const handleX = startX + percentage * trackWidth;
+                    
+                    // Aktualizuj pozycję uchwytu
+                    sliderHandle.setAttribute('cx', handleX);
+                    
+                    // Aktualizuj szerokość paska postępu
+                    if (sliderProgress) {
+                        const progressWidth = percentage * trackWidth;
+                        sliderProgress.setAttribute('width', progressWidth);
+                    }
+                    
+                    // Aktualizuj tekst wartości
+                    if (sliderValue) {
+                        sliderValue.textContent = val;
+                    }
+                }
+                break;
+
             // Dodaj inne typy komponentów tutaj
-            
+
             default:
                 // Domyślna obsługa dla nieznanych typów
                 const element = svgElement.querySelector(`#${paramKey}`);
@@ -1159,13 +1243,13 @@
     function updateParam(id, paramKey, value, type) {
         if (type === 'number') value = parseFloat(value);
         if (type === 'boolean') value = value === true || value === 'true';
-        
+
         const svgElement = document.querySelector(`[data-id="${id}"]`);
         if (!svgElement) return;
-        
+
         // Aktualizuj metadane
         updateMetadataInSVG(svgElement, `parameters.${paramKey}`, value);
-        
+
         // Zastosuj zmiany do wizualizacji
         applyParameterToSVG(svgElement, paramKey, value);
     }
@@ -1173,7 +1257,7 @@
     function removeComponent(id) {
         const component = components.get(id);
         if (!component) return;
-        
+
         // Zatrzymaj wszystkie interwały związane z tym komponentem
         if (component.element.blinkInterval) {
             clearInterval(component.element.blinkInterval);
@@ -1181,24 +1265,24 @@
         if (component.element.pollingInterval) {
             clearInterval(component.element.pollingInterval);
         }
-        
+
         // Usuń element z DOM
         if (component.element && component.element.parentNode) {
             component.element.parentNode.removeChild(component.element);
         }
-        
+
         // Usuń z mapy komponentów
         components.delete(id);
-        
+
         // Usuń połączenia związane z tym komponentem
         updateConnections(id, true);
-        
+
         // Wyczyść panel właściwości
         const propertiesPanel = document.getElementById('properties-panel');
         if (propertiesPanel) {
             propertiesPanel.style.display = 'none';
         }
-        
+
         if (selectedComponent && selectedComponent.getAttribute('data-id') === id) {
             selectedComponent = null;
         }
@@ -1274,7 +1358,7 @@
             console.error("Nie znaleziono kontenera biblioteki komponentów (component-library)");
             return;
         }
-        
+
         container.innerHTML = ""; // wyczyść
 
         for (const comp of COMPONENTS) {
@@ -1283,21 +1367,21 @@
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                
+
                 const svgText = await response.text();
                 if (!svgText || !svgText.trim().startsWith('<svg') && !svgText.trim().startsWith('<?xml')) {
                     throw new Error("Nieprawidłowy format SVG");
                 }
-                
+
                 const parser = new DOMParser();
                 const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
-                
+
                 // Sprawdź błędy parsowania
                 const parserError = svgDoc.querySelector("parsererror");
                 if (parserError) {
                     throw new Error("Błąd parsowania SVG");
                 }
-                
+
                 const svgElement = svgDoc.documentElement;
                 if (!svgElement || svgElement.nodeName !== 'svg') {
                     throw new Error("Nie znaleziono elementu SVG");
@@ -1307,7 +1391,7 @@
                 svgElement.setAttribute("width", "32");
                 svgElement.setAttribute("height", "32");
                 svgElement.removeAttribute("id");
-                
+
                 // Używamy setAttribute zamiast style.display
                 svgElement.setAttribute("style", "display: block;");
 
@@ -1345,7 +1429,7 @@
                 fallbackButton.dataset.svg = comp.svg;
                 fallbackButton.innerHTML = `<span>⚠️ ${comp.name}</span>`;
                 fallbackButton.title = "Błąd ładowania ikony";
-                
+
                 // Sprawdź czy kontener istnieje przed dodaniem przycisku awaryjnego
                 const componentLibrary = document.getElementById("component-library");
                 if (componentLibrary) {

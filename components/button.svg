@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xhtml="http://www.w3.org/1999/xhtml"
+     width="40"
+     height="40"
+     viewBox="0 0 40 40">
+
+    <title>Button Component</title>
+    <desc>Interactive button component for digital twin</desc>
+
+    <metadata>
+        {
+        "id": "button-001",
+        "name": "Push Button",
+        "type": "button",
+        "parameters": {
+            "label": "Button",
+            "pressed": false,
+            "color": "#9b59b6",
+            "size": 40,
+            "momentary": true,
+            "isActive": true
+            }
+        }
+    </metadata>
+
+    <!-- Button base -->
+    <circle cx="20" cy="20" r="15" fill="#34495e" stroke="#2c3e50" stroke-width="1.5"/>
+    
+    <!-- Button surface -->
+    <circle class="button-surface" cx="20" cy="20" r="10" fill="#9b59b6" stroke="#8e44ad" stroke-width="1"/>
+    
+    <!-- Button shadow -->
+    <circle class="button-shadow" cx="20" cy="20" r="12" fill="none" stroke="#2c3e50" stroke-width="1" opacity="0.3"/>
+    
+    <!-- Label -->
+    <text class="button-label" x="20" y="36" font-size="8" text-anchor="middle" fill="#bdc3c7">Button</text>
+
+    <defs>
+    <!-- Internal SVG script -->
+    <script><![CDATA[
+      (function() {
+        // Function to read metadata
+        function getMetadata(svgElement) {
+          const metadataNode = svgElement.querySelector('metadata');
+          if (metadataNode && metadataNode.textContent.trim()) {
+            try {
+              return JSON.parse(metadataNode.textContent);
+            } catch (e) {
+              console.warn('Error parsing metadata:', e);
+              return {};
+            }
+          }
+          return {};
+        }
+
+        // Function to update button appearance
+        function updateButton(svgElement) {
+          const metadata = getMetadata(svgElement);
+          const params = metadata.parameters || {};
+          
+          const buttonSurface = svgElement.querySelector('.button-surface');
+          const buttonShadow = svgElement.querySelector('.button-shadow');
+          const labelEl = svgElement.querySelector('.button-label');
+
+          if (!buttonSurface || !params.isActive) {
+            if (buttonSurface) buttonSurface.setAttribute('fill', '#555');
+            return;
+          }
+
+          // Update label
+          if (labelEl && params.label) {
+            labelEl.textContent = params.label;
+          }
+
+          // Update button color
+          buttonSurface.setAttribute('fill', params.color || '#9b59b6');
+          
+          // Update pressed state
+          if (params.pressed) {
+            buttonSurface.setAttribute('cy', '22');  // Move down slightly
+            buttonSurface.setAttribute('r', '9');    // Smaller when pressed
+            buttonShadow.setAttribute('opacity', '0.1');
+          } else {
+            buttonSurface.setAttribute('cy', '20');
+            buttonSurface.setAttribute('r', '10');
+            buttonShadow.setAttribute('opacity', '0.3');
+          }
+          
+          // If momentary, automatically release after 300ms
+          if (params.pressed && params.momentary && !svgElement.releaseTimeout) {
+            svgElement.releaseTimeout = setTimeout(() => {
+              // Update metadata to release button
+              const newMetadata = getMetadata(svgElement);
+              if (newMetadata && newMetadata.parameters) {
+                newMetadata.parameters.pressed = false;
+                svgElement.querySelector('metadata').textContent = 
+                  JSON.stringify(newMetadata, null, 2);
+                
+                // Update appearance
+                updateButton(svgElement);
+                svgElement.releaseTimeout = null;
+              }
+            }, 300);
+          }
+        }
+
+        // Initialize
+        const svgElement = document.querySelector('svg:not([data-button-initialized="true"])');
+        if (svgElement) {
+          svgElement.setAttribute('data-button-initialized', 'true');
+          
+          // Initial update
+          updateButton(svgElement);
+
+          // Poll for changes
+          svgElement.pollingInterval = setInterval(() => {
+            const metadata = getMetadata(svgElement);
+            const params = metadata.parameters || {};
+            const currentPressed = svgElement.currentParams?.pressed;
+            const currentColor = svgElement.currentParams?.color;
+
+            if (params.pressed !== currentPressed || 
+                params.color !== currentColor || 
+                params.isActive !== (svgElement.currentParams?.isActive)) {
+              svgElement.currentParams = { ...params };
+              updateButton(svgElement);
+            }
+          }, 500);
+
+          // Cleanup on removal
+          window.addEventListener('beforeunload', () => {
+            if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
+            if (svgElement.releaseTimeout) clearTimeout(svgElement.releaseTimeout);
+          });
+        }
+      })();
+    ]]></script>
+    </defs>
+</svg>

@@ -1,0 +1,251 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f0f1;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Pasek narzędzi na górze */
+.toolbar {
+    background: #2c3e50;
+    padding: 10px;
+    text-align: right;
+    color: white;
+    font-size: 14px;
+    border-bottom: 1px solid #34495e;
+}
+
+.toolbar button {
+    margin: 0 5px;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+/* Główny kontener – flex z trzema kolumnami */
+.container {
+    display: flex;
+    flex: 1; /* Wypełnia całą dostępną wysokość po toolbarze */
+    height: calc(100vh - 50px); /* Różnica dla toolbara */
+    overflow: hidden;
+}
+
+/* Boczne panele – stała szerokość */
+.sidebar {
+    width: 260px;
+    background: #2c3e50;
+    color: white;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar h3 {
+    margin: 0;
+    padding: 15px;
+    font-size: 16px;
+    border-bottom: 1px solid #34495e;
+    background: #34495e;
+}
+
+.component-list {
+    padding: 10px;
+    flex: 1;
+}
+
+.component-item {
+    padding: 10px;
+    background: #3498db;
+    margin: 6px 0;
+    border-radius: 6px;
+    cursor: grab;
+    user-select: none;
+    font-size: 14px;
+    text-align: center;
+    transition: background 0.2s;
+}
+
+.component-item:hover {
+    background: #2980b9;
+}
+
+/* Plansza centralna – zajmuje całą resztę */
+.workspace {
+    flex: 1;
+    background: #ecf0f1;
+    border-left: 1px solid #bdc3c7;
+    border-right: 1px solid #bdc3c7;
+    overflow: auto;
+    position: relative;
+}
+
+#svg-canvas {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    background-color: #fff;
+}
+
+#canvas {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    cursor: default;
+    background: white;
+}
+
+/* Panel właściwości – prawy sidebar */
+#property-editor {
+    padding: 10px;
+    color: #333;
+    font-size: 14px;
+}
+
+#property-editor label {
+    display: block;
+    margin-top: 12px;
+    font-weight: 600;
+    color: #ecf0f1;
+    font-size: 13px;
+}
+
+#property-editor input {
+    width: 100%;
+    padding: 6px;
+    margin-top: 4px;
+    border: 1px solid #34495e;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+#property-editor input[type="color"] {
+    height: 30px;
+}
+
+#property-editor button {
+    margin-top: 15px;
+    padding: 8px;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+}
+
+/* Panel symulacji – na dole */
+.simulation-panel {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    border-top: 1px solid #333;
+}
+
+.simulation-panel h3 {
+    margin: 0 0 10px 0;
+    font-size: 15px;
+}
+
+.simulation-panel p {
+    margin: 5px 0;
+    font-size: 13px;
+    color: #ccc;
+}
+
+.component-button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 8px 10px;
+    margin: 6px 0;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: grab;
+    user-select: none;
+    font-size: 14px;
+    transition: background 0.2s, transform 0.1s;
+    gap: 12px;
+    text-align: left;
+}
+
+.component-button:hover {
+    background: #2980b9;
+    transform: translateY(-1px);
+}
+
+.component-button:active {
+    transform: translateY(0);
+}
+
+.component-button svg {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #fff;
+    border-radius: 6px;
+    background: white;
+    padding: 2px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.component-button span {
+    font-size: 14px;
+    font-weight: 500;
+    flex: 1;
+    margin-left: 4px;
+}
+
+/* SVG Component Styles */
+.svg-component {
+    cursor: move;
+    user-select: none;
+}
+
+.svg-component-selected {
+    outline: 2px solid #3498db;
+    outline-offset: 2px;
+}
+
+/* Connection styles */
+.connection-line {
+    stroke: #2c3e50;
+    stroke-width: 2;
+    fill: none;
+}
+
+.connection-handle {
+    fill: #3498db;
+    stroke: #2c3e50;
+    stroke-width: 1;
+    cursor: pointer;
+}
+
+/* Drag-over styles */
+.drag-over {
+    outline: 2px dashed #3498db;
+    outline-offset: -2px;
+}
+
+/* Component specific styles */
+.led-core {
+    transition: fill 0.3s ease;
+}
+
+.led-label {
+    pointer-events: none;
+    user-select: none;
+}
