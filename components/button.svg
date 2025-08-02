@@ -104,6 +104,38 @@
             }, 300);
           }
         }
+        
+        // Function to press the button
+        function pressButton(svgElement) {
+          const metadata = getMetadata(svgElement);
+          if (metadata && metadata.parameters) {
+            // Set pressed state to true
+            metadata.parameters.pressed = true;
+            
+            // Update metadata
+            svgElement.querySelector('metadata').textContent = 
+              JSON.stringify(metadata, null, 2);
+            
+            // Update appearance immediately
+            updateButton(svgElement);
+          }
+        }
+        
+        // Function to release the button (for non-momentary buttons)
+        function releaseButton(svgElement) {
+          const metadata = getMetadata(svgElement);
+          if (metadata && metadata.parameters && !metadata.parameters.momentary) {
+            // Only manually release if it's not a momentary button
+            metadata.parameters.pressed = false;
+            
+            // Update metadata
+            svgElement.querySelector('metadata').textContent = 
+              JSON.stringify(metadata, null, 2);
+            
+            // Update appearance immediately
+            updateButton(svgElement);
+          }
+        }
 
         // Initialize
         const svgElement = document.querySelector('svg:not([data-button-initialized="true"])');
@@ -112,6 +144,85 @@
           
           // Initial update
           updateButton(svgElement);
+          
+          // Add button event listeners
+          const buttonSurface = svgElement.querySelector('.button-surface');
+          const buttonShadow = svgElement.querySelector('.button-shadow');
+          
+          if (buttonSurface) {
+            // For momentary buttons
+            buttonSurface.addEventListener('mousedown', function(e) {
+              pressButton(svgElement);
+              e.stopPropagation(); // Prevent event bubbling
+            });
+            
+            buttonSurface.addEventListener('mouseup', function(e) {
+              const metadata = getMetadata(svgElement);
+              // For non-momentary buttons, manually release on mouseup
+              if (metadata && metadata.parameters && !metadata.parameters.momentary) {
+                releaseButton(svgElement);
+              }
+              e.stopPropagation(); // Prevent event bubbling
+            });
+            
+            // Handle touch events for mobile
+            buttonSurface.addEventListener('touchstart', function(e) {
+              pressButton(svgElement);
+              e.preventDefault(); // Prevent scrolling
+              e.stopPropagation();
+            });
+            
+            buttonSurface.addEventListener('touchend', function(e) {
+              const metadata = getMetadata(svgElement);
+              if (metadata && metadata.parameters && !metadata.parameters.momentary) {
+                releaseButton(svgElement);
+              }
+              e.preventDefault();
+              e.stopPropagation();
+            });
+            
+            // Handle click event for simpler interaction
+            buttonSurface.addEventListener('click', function(e) {
+              // Click events already handled by mousedown/mouseup for desktop
+              // Just prevent bubbling
+              e.stopPropagation();
+            });
+          }
+          
+          if (buttonShadow) {
+            // Add the same listeners to the button shadow for better UX
+            buttonShadow.addEventListener('mousedown', function(e) {
+              pressButton(svgElement);
+              e.stopPropagation();
+            });
+            
+            buttonShadow.addEventListener('mouseup', function(e) {
+              const metadata = getMetadata(svgElement);
+              if (metadata && metadata.parameters && !metadata.parameters.momentary) {
+                releaseButton(svgElement);
+              }
+              e.stopPropagation();
+            });
+            
+            buttonShadow.addEventListener('touchstart', function(e) {
+              pressButton(svgElement);
+              e.preventDefault();
+              e.stopPropagation();
+            });
+            
+            buttonShadow.addEventListener('touchend', function(e) {
+              const metadata = getMetadata(svgElement);
+              if (metadata && metadata.parameters && !metadata.parameters.momentary) {
+                releaseButton(svgElement);
+              }
+              e.preventDefault();
+              e.stopPropagation();
+            });
+            
+            buttonShadow.addEventListener('click', function(e) {
+              e.stopPropagation();
+            });
+          }
 
           // Poll for changes
           svgElement.pollingInterval = setInterval(() => {

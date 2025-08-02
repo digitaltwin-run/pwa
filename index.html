@@ -287,6 +287,9 @@
         { svg: "components/button.svg", name: "Przycisk", id: "button" },
         { svg: "components/knob.svg", name: "Pokrętło", id: "knob" },
         { svg: "components/slider.svg", name: "Suwak", id: "slider" },
+        { svg: "components/gauge.svg", name: "Miernik", id: "gauge" },
+        { svg: "components/counter.svg", name: "Licznik", id: "counter" },
+        { svg: "components/toggle.svg", name: "Przycisk suwakowy", id: "toggle" },
         { svg: "components/sensor.svg", name: "Czujnik temperatury", id: "temp-sensor" },
         { svg: "components/display.svg", name: "Wyświetlacz", id: "display" },
     ];
@@ -922,11 +925,212 @@
     }
 
     window.exportAsSVG = () => {
+        // Stwórz tymczasową kopię SVG canvas
+        const tempSvgCanvas = svgCanvas.cloneNode(true);
+        
+        // Znajdź wszystkie komponenty i dodaj im unikalne identyfikatory
+        const nestedSvgs = tempSvgCanvas.querySelectorAll('svg[data-id]');
+        nestedSvgs.forEach((svg, index) => {
+            svg.setAttribute('data-export-id', `component-${index}`);
+        });
+        
+        // Dodaj skrypt inicjalizacyjny dla obsługi zdarzeń myszy
+        const scriptNode = document.createElementNS('http://www.w3.org/2000/svg', 'script');
+        scriptNode.textContent = `
+            // Funkcja inicjalizująca zdarzenia myszy dla wszystkich komponentów
+            (function() {
+                // Funkcja pomocnicza - sprawdza czy punkt jest wewnątrz elementu
+                function isPointInElement(point, element) {
+                    const rect = element.getBoundingClientRect();
+                    return (
+                        point.x >= rect.left &&
+                        point.x <= rect.right &&
+                        point.y >= rect.top &&
+                        point.y <= rect.bottom
+                    );
+                }
+                
+                // Zmienne globalne do śledzenia aktywnego komponentu
+                let activeComponentId = null;
+                let hoveredComponentId = null;
+                
+                // Funkcja do blokowania interakcji dla wszystkich komponentów poza aktywnym
+                function updateComponentsInteractivity(e) {
+                    const mousePoint = { x: e.clientX, y: e.clientY };
+                    let foundHovered = false;
+                    
+                    // Przeszukaj wszystkie komponenty od góry (z-index) do dołu
+                    const allComponents = Array.from(document.querySelectorAll('svg[data-export-id]'));
+                    
+                    // Znajdź komponent, nad którym jest kursor
+                    for (const component of allComponents) {
+                        if (isPointInElement(mousePoint, component)) {
+                            hoveredComponentId = component.getAttribute('data-export-id');
+                            component.dataset.interactive = 'true';
+                            foundHovered = true;
+                            
+                            // Zatrzymaj po znalezieniu pierwszego (najwyższego)
+                            break;
+                        } else {
+                            component.dataset.interactive = 'false';
+                        }
+                    }
+                    
+                    // Jeśli nie znaleziono, wyczyść dane
+                    if (!foundHovered) {
+                        hoveredComponentId = null;
+                        allComponents.forEach(comp => comp.dataset.interactive = 'false');
+                    }
+                }
+                
+                // Czekaj na pełne załadowanie SVG
+                document.addEventListener('DOMContentLoaded', () => {
+                    // Naprawa błędu NaN w transformacjach
+                    document.querySelectorAll('[transform]').forEach(el => {
+                        const transform = el.getAttribute('transform');
+                        if (transform && transform.includes('NaN')) {
+                            const fixedTransform = transform.replace(/rotate\\(NaN/g, 'rotate(0');
+                            el.setAttribute('transform', fixedTransform);
+                        }
+                    });
+                
+                    // Resetuj inicjalizację wszystkich komponentów
+                    document.querySelectorAll('svg[data-export-id]').forEach(svg => {
+                        // Resetuj flagi inicjalizacji, aby skrypty mogły się ponownie zainicjalizować
+                        svg.removeAttribute('data-gauge-initialized');
+                        svg.removeAttribute('data-counter-initialized');
+                        svg.removeAttribute('data-toggle-initialized');
+                        svg.removeAttribute('data-knob-initialized');
+                        svg.removeAttribute('data-slider-initialized');
+                        svg.removeAttribute('data-switch-initialized');
+                        svg.removeAttribute('data-relay-initialized');
+                        svg.removeAttribute('data-button-initialized');
+                        
+                        // Domyślnie wszystkie komponenty nieinteraktywne
+                        svg.dataset.interactive = 'false';
+                        
+                        // Ustaw zdarzenia dla tego komponentu
+                        svg.addEventListener('click', function(e) {
+                            // Sprawdź, czy ten komponent jest aktualnie aktywnym
+                            if (this.dataset.interactive !== 'true') {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                return false;
+                            }
+                        }, true);
+                    });
+                    
+                    // Ustaw nasłuchiwanie zdarzeń na całym dokumencie
+                    document.addEventListener('mousemove', updateComponentsInteractivity, true);
+                    document.addEventListener('mousedown', function(e) {
+                        if (hoveredComponentId) {
+                            activeComponentId = hoveredComponentId;
+                        } else {
+                            activeComponentId = null;
+                        }
+                    }, true);
+                    document.addEventListener('mouseup', function() {
+                        activeComponentId = null;
+                    }, true);
+                    
+                    // Specjalne obsługa przycisków i toggle'a
+                    document.querySelectorAll('.toggle-handle, .button-surface, .counter-increment-button, .counter-decrement-button').forEach(el => {
+                        el.addEventListener('click', function(e) {
+                            const parentSvg = this.closest('svg[data-export-id]');
+                            if (!parentSvg || parentSvg.dataset.interactive !== 'true') {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                return false;
+                            }
+                        }, true);
+                    });
+                    
+                    // Dla każdego skryptu w komponentach, dodaj sprawdzanie interactive
+                    document.querySelectorAll('svg[data-export-id] script').forEach(script => {
+                        const parentSvg = script.closest('svg[data-export-id]');
+                        if (parentSvg) {
+                            // Dodaj zmienną identyfikacyjną do każdego skryptu
+                            const componentId = parentSvg.getAttribute('data-export-id');
+                            let scriptContent = script.textContent;
+                            
+                            // Dodaj sprawdzanie interaktywności przed inicjalizacją
+                            scriptContent = scriptContent.replace(
+                                '(function() {', 
+                                `(function() {
+                                    // Helper function to check if component is interactive
+                                    function isComponentInteractive() {
+                                        const mySvg = document.querySelector('svg[data-export-id="\${componentId}"]');
+                                        return mySvg && mySvg.dataset.interactive === 'true';
+                                    }
+                                }`
+                            );
+                            
+                            // Dodaj sprawdzanie w każdym event listenerze
+                            scriptContent = scriptContent.replace(
+                                /addEventListener\(['"](click|mousedown|mousemove|mouseup|mouseover)['"]\s*,\s*function/g, 
+                                'addEventListener("$1", function(e) { if (!isComponentInteractive()) { e.stopPropagation(); e.preventDefault(); return false; } }'
+                            );
+                            
+                            script.textContent = scriptContent;
+                        }
+                    });
+                    
+                    // Dodaj walidację w skryptach animacji, aby uniknąć błędów NaN
+                    const validateNumeric = (val, defaultVal = 0) => {
+                        return (val !== undefined && val !== null && !isNaN(parseFloat(val))) ? parseFloat(val) : defaultVal;
+                    };
+                    
+                    // Udostępnij funkcję globalnie
+                    window.validateNumeric = validateNumeric;
+                    
+                    // Napraw błędy w animacjach obrotów
+                    document.querySelectorAll('.gauge-needle, .knob-indicator').forEach(el => {
+                        const originalSetAttribute = el.setAttribute;
+                        el.setAttribute = function(attr, val) {
+                            if (attr === 'transform' && val.includes('rotate')) {
+                                // Sprawdź, czy wartości obrotu są poprawne
+                                const rotateMatch = val.match(/rotate\\(([^,\\s]+)(?:[\\s,]+([^,\\s]+)[\\s,]+([^\\)\\s]+))?\\)/);
+                                if (rotateMatch) {
+                                    const angle = validateNumeric(rotateMatch[1]);
+                                    const x = validateNumeric(rotateMatch[2], 30);
+                                    const y = validateNumeric(rotateMatch[3], 30);
+                                    val = \`rotate(\${angle} \${x} \${y})\`;
+                                }
+                            }
+                            return originalSetAttribute.call(this, attr, val);
+                        };
+                    });
+                    
+                    // Zainicjuj interaktywność
+                    const initialEvent = new MouseEvent('mousemove', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window,
+                        clientX: -1,
+                        clientY: -1
+                    });
+                    document.dispatchEvent(initialEvent);
+                })();
+            })();
+        `;
+        
+        tempSvgCanvas.appendChild(scriptNode);
+        
         // Pobierz zawartość SVG
-        const svgData = new XMLSerializer().serializeToString(svgCanvas);
+        const svgData = new XMLSerializer().serializeToString(tempSvgCanvas);
+        
+        // Utwórz kompletny dokument SVG z przestrzenią nazw i skryptami
+        const svgDocumentWithScripts = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" 
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     xmlns:xhtml="http://www.w3.org/1999/xhtml"
+     version="1.1" width="100%" height="100%" viewBox="0 0 1000 800">
+     ${svgData}
+</svg>`;
 
         // Utwórz link do pobrania
-        const blob = new Blob([svgData], { type: 'image/svg+xml' });
+        const blob = new Blob([svgDocumentWithScripts], { type: 'image/svg+xml' });
         const url = URL.createObjectURL(blob);
 
         // Utwórz i kliknij link do pobrania
@@ -1103,140 +1307,281 @@
             return;
         }
 
+        // Pobierz typ komponentu i ID z metadanych
         const componentType = metadata.type || 'default';
         const instanceId = svgElement.getAttribute('data-id');
-
-        // Obsłuż różne typy komponentów
-        switch (componentType) {
-            case 'led':
-                // Dla LED-ów, zaktualizuj odpowiednie elementy
-                const ledCore = svgElement.querySelector('#led-core');
-                const labelEl = svgElement.querySelector('#label');
-                const params = metadata.parameters || {};
-
-                if (paramKey === 'parameters.label' && labelEl) {
-                    labelEl.textContent = value;
+        const params = metadata.parameters || {};
+        
+        // Stwórz mapowanie parametrów do elementów SVG
+        // Format: 'parameters.nazwaParam': ['.klasaElementu', 'atrybut', wartośćBezpośrednia/funkcja]
+        const paramMappings = {
+            // Ogólne parametry dla wszystkich komponentów
+            'parameters.label': ['.knob-label, .button-label, .switch-label, .relay-label, .led-label, .slider-label, .gauge-label, .counter-label, .toggle-label', 'textContent'],
+            'parameters.isActive': ['svg', 'data-active'],
+            
+            // LED
+            'parameters.color': ['.led-core, .knob-body, .slider-progress, .gauge-needle, .toggle-track', 'fill'],
+            
+            // Przełącznik
+            'parameters.state': [
+                // Handler dla state używany do transformacji
+                (elem, val) => {
+                    const switchHandle = elem.querySelector('.switch-handle');
+                    const switchTrack = elem.querySelector('.switch-track');
+                    const toggleHandle = elem.querySelector('.toggle-handle');
+                    const toggleTrack = elem.querySelector('.toggle-track');
+                    
+                    // Obsługa przełącznika
+                    if (switchHandle && switchTrack) {
+                        switchHandle.setAttribute('cx', val ? '27' : '13');
+                        switchTrack.setAttribute('fill', val ? (params.color || '#3498db') : '#7f8c8d');
+                    }
+                    
+                    // Obsługa toggle slider
+                    if (toggleHandle && toggleTrack) {
+                        toggleHandle.setAttribute('cx', val ? '27' : '13');
+                        toggleTrack.setAttribute('fill', val ? (params.color || '#2ecc71') : '#7f8c8d');
+                    }
+                    
+                    // Obsługa przekaźnika
+                    const relayIndicator = elem.querySelector('.relay-indicator');
+                    if (relayIndicator) {
+                        relayIndicator.setAttribute('fill', val ? (params.color || '#e67e22') : '#7f8c8d');
+                    }
                 }
-
-                if (ledCore) {
-                    if (paramKey === 'parameters.color' || paramKey === 'parameters.isOn' || paramKey === 'parameters.isBlinking') {
-                        // Zatrzymaj istniejące miganie
-                        if (svgElement.blinkInterval) {
-                            clearInterval(svgElement.blinkInterval);
-                            svgElement.blinkInterval = null;
+            ],
+            
+            // Przyciski
+            'parameters.pressed': [
+                (elem, val) => {
+                    const buttonSurface = elem.querySelector('.button-surface');
+                    const buttonShadow = elem.querySelector('.button-shadow');
+                    
+                    if (buttonSurface && buttonShadow) {
+                        buttonSurface.setAttribute('cy', val ? '22' : '20');
+                        buttonSurface.setAttribute('r', val ? '9' : '10');
+                        buttonShadow.setAttribute('opacity', val ? '0.1' : '0.3');
+                        
+                        // Jeśli chwilowe, zwolnij przycisk po 300ms
+                        if (val && params.momentary) {
+                            clearTimeout(elem.releaseTimeout);
+                            elem.releaseTimeout = setTimeout(() => {
+                                const newMetadata = JSON.parse(metadataNode.textContent);
+                                if (newMetadata && newMetadata.parameters) {
+                                    newMetadata.parameters.pressed = false;
+                                    metadataNode.textContent = JSON.stringify(newMetadata, null, 2);
+                                    
+                                    // Rekursywne wywołanie do aktualizacji wyglądu
+                                    applyParameterToSVG(elem, 'parameters.pressed', false);
+                                }
+                            }, 300);
                         }
-
-                        // Ustaw nowy kolor lub stan
-                        if (params.isBlinking && params.isOn) {
-                            let on = true;
-                            svgElement.blinkInterval = setInterval(() => {
-                                ledCore.setAttribute('fill', on ? (params.color || '#e74c3c') : '#333');
-                                on = !on;
-                            }, params.blinkRate || 500);
-                        } else {
-                            ledCore.setAttribute('fill', params.isOn ? (params.color || '#e74c3c') : '#333');
+                    }
+                }
+            ],
+            
+            // Pokrętło i suwak (wartości numeryczne)
+            'parameters.value': [
+                (elem, val) => {
+                    // Wspólne zmienne
+                    const min = params.min || 0;
+                    const max = params.max || 100;
+                    const safeVal = Math.min(Math.max(val, min), max);
+                    const percentage = (safeVal - min) / (max - min);
+                    
+                    // Obsługa pokrętła
+                    const knobIndicator = elem.querySelector('.knob-indicator');
+                    const knobValue = elem.querySelector('.knob-value');
+                    if (knobIndicator) {
+                        const angle = percentage * 270 - 135; // -135° do +135°
+                        knobIndicator.setAttribute('transform', `rotate(${angle} 20 20)`);
+                        if (knobValue) knobValue.textContent = safeVal;
+                    }
+                    
+                    // Obsługa suwaka
+                    const sliderHandle = elem.querySelector('.slider-handle');
+                    const sliderProgress = elem.querySelector('.slider-progress');
+                    const sliderValue = elem.querySelector('.slider-value');
+                    if (sliderHandle) {
+                        const trackWidth = 40;
+                        const startX = 10;
+                        const handleX = startX + percentage * trackWidth;
+                        
+                        sliderHandle.setAttribute('cx', handleX);
+                        if (sliderProgress) {
+                            sliderProgress.setAttribute('width', percentage * trackWidth);
                         }
-                    }
-                }
-                break;
-
-            case 'knob':
-                // Obsługa pokrętła
-                const knobBody = svgElement.querySelector('.knob-body');
-                const knobIndicator = svgElement.querySelector('.knob-indicator');
-                const knobLabel = svgElement.querySelector('.knob-label');
-                const knobValue = svgElement.querySelector('.knob-value');
-                const knobParams = metadata.parameters || {};
-                
-                if (paramKey === 'parameters.label' && knobLabel) {
-                    knobLabel.textContent = value;
-                }
-                
-                if (paramKey === 'parameters.color' && knobBody) {
-                    knobBody.setAttribute('fill', value);
-                }
-                
-                if ((paramKey === 'parameters.value' || 
-                     paramKey === 'parameters.min' || 
-                     paramKey === 'parameters.max') && knobIndicator) {
-                    // Oblicz kąt obrotu na podstawie wartości
-                    const min = knobParams.min || 0;
-                    const max = knobParams.max || 100;
-                    const val = Math.min(Math.max(knobParams.value, min), max);
-                    const percentage = (val - min) / (max - min);
-                    const angle = percentage * 270 - 135; // -135° do +135°
-
-                    // Zastosuj obrót do wskaźnika
-                    knobIndicator.setAttribute('transform', `rotate(${angle} 20 20)`);
-
-                    // Aktualizuj tekst wartości
-                    if (knobValue) {
-                        knobValue.textContent = val;
-                    }
-                }
-                break;
-
-            case 'slider':
-                // Obsługa suwaka
-                const sliderTrack = svgElement.querySelector('.slider-track');
-                const sliderProgress = svgElement.querySelector('.slider-progress');
-                const sliderHandle = svgElement.querySelector('.slider-handle');
-                const sliderLabel = svgElement.querySelector('.slider-label');
-                const sliderValue = svgElement.querySelector('.slider-value');
-                const sliderParams = metadata.parameters || {};
-                
-                if (paramKey === 'parameters.label' && sliderLabel) {
-                    sliderLabel.textContent = value;
-                }
-                
-                if (paramKey === 'parameters.color' && sliderProgress) {
-                    sliderProgress.setAttribute('fill', value);
-                }
-                
-                if ((paramKey === 'parameters.value' || 
-                     paramKey === 'parameters.min' || 
-                     paramKey === 'parameters.max') && sliderHandle) {
-                    // Oblicz pozycję na podstawie wartości
-                    const min = sliderParams.min || 0;
-                    const max = sliderParams.max || 100;
-                    const val = Math.min(Math.max(sliderParams.value, min), max);
-                    const percentage = (val - min) / (max - min);
-                    
-                    // Szerokość toru
-                    const trackWidth = 40;
-                    const startX = 10;
-                    const handleX = startX + percentage * trackWidth;
-                    
-                    // Aktualizuj pozycję uchwytu
-                    sliderHandle.setAttribute('cx', handleX);
-                    
-                    // Aktualizuj szerokość paska postępu
-                    if (sliderProgress) {
-                        const progressWidth = percentage * trackWidth;
-                        sliderProgress.setAttribute('width', progressWidth);
+                        if (sliderValue) sliderValue.textContent = safeVal;
                     }
                     
-                    // Aktualizuj tekst wartości
-                    if (sliderValue) {
-                        sliderValue.textContent = val;
+                    // Obsługa licznika
+                    const counterValue = elem.querySelector('.counter-value');
+                    if (counterValue) {
+                        animateCounterValue(counterValue, counterValue.textContent, safeVal);
+                    }
+                    
+                    // Obsługa miernika
+                    const gaugeNeedle = elem.querySelector('.gauge-needle');
+                    const gaugeValue = elem.querySelector('.gauge-value');
+                    if (gaugeNeedle) {
+                        const gaugeAngle = percentage * 180 - 90; // -90° do +90°
+                        // Animuj obrót
+                        animateNeedleRotation(gaugeNeedle, gaugeAngle);
+                        if (gaugeValue) gaugeValue.textContent = safeVal;
                     }
                 }
-                break;
-
-            // Dodaj inne typy komponentów tutaj
-
-            default:
-                // Domyślna obsługa dla nieznanych typów
-                const element = svgElement.querySelector(`#${paramKey}`);
-                if (element) {
-                    if (typeof value === 'object') {
-                        Object.entries(value).forEach(([attr, val]) => {
-                            element.setAttribute(attr, val);
-                        });
-                    } else {
-                        element.textContent = value;
-                    }
+            ]
+        };
+        
+        // Funkcja do animacji obrotów igły w mierniku
+        function animateNeedleRotation(needle, targetAngle) {
+            if (!needle) return;
+            
+            // Pobierz aktualny kąt z transformacji
+            let currentAngle = 0;
+            const transform = needle.getAttribute('transform');
+            if (transform && transform.includes('rotate')) {
+                const match = transform.match(/rotate\\(([^,]+),\\s*([^,]+),\\s*([^\\)]+)\\)/);
+                if (match && match[1]) {
+                    currentAngle = parseFloat(match[1]);
                 }
+            }
+            
+            // Anuluj poprzednią animację
+            if (needle.animation) {
+                clearInterval(needle.animation);
+            }
+            
+            // Ustaw animację
+            const steps = 10;
+            const stepDuration = 20;
+            const angleDiff = targetAngle - currentAngle;
+            let step = 0;
+            
+            needle.animation = setInterval(() => {
+                step++;
+                const progress = step / steps;
+                const newAngle = currentAngle + progress * angleDiff;
+                
+                needle.setAttribute('transform', `rotate(${newAngle} 30 30)`);
+                
+                if (step >= steps) {
+                    clearInterval(needle.animation);
+                    needle.animation = null;
+                }
+            }, stepDuration);
+        }
+        
+        // Funkcja do animacji zmiany wartości licznika
+        function animateCounterValue(element, fromValue, toValue) {
+            if (!element) return;
+            
+            // Konwersja na liczby
+            fromValue = parseFloat(fromValue) || 0;
+            toValue = parseFloat(toValue);
+            
+            // Anuluj poprzednią animację
+            if (element.animation) {
+                clearInterval(element.animation);
+            }
+            
+            // Ustawienia animacji
+            const steps = 15;
+            const stepDuration = 30;
+            const valueDiff = toValue - fromValue;
+            let step = 0;
+            
+            element.animation = setInterval(() => {
+                step++;
+                const progress = step / steps;
+                const newValue = fromValue + progress * valueDiff;
+                
+                // Aktualizuj wartość z odpowiednim formatowaniem
+                element.textContent = Math.round(newValue);
+                
+                if (step >= steps) {
+                    clearInterval(element.animation);
+                    element.animation = null;
+                    element.textContent = toValue; // Upewnij się, że końcowa wartość jest dokładna
+                }
+            }, stepDuration);
+        }
+        
+        // Funkcja do obsługi migania diody LED
+        function handleLedBlinking(ledElement) {
+            if (!ledElement) return;
+            
+            // Pobierz element jądra diody
+            const ledCore = ledElement.querySelector('.led-core');
+            if (!ledCore) return;
+            
+            // Zatrzymaj istniejące miganie
+            if (ledElement.blinkInterval) {
+                clearInterval(ledElement.blinkInterval);
+                ledElement.blinkInterval = null;
+            }
+            
+            // Ustaw nowy stan
+            if (params.isBlinking && params.isOn) {
+                let on = true;
+                ledElement.blinkInterval = setInterval(() => {
+                    ledCore.setAttribute('fill', on ? params.color : '#333');
+                    on = !on;
+                }, params.blinkRate || 500);
+            } else {
+                // Ustaw stan stały
+                ledCore.setAttribute('fill', params.isOn ? params.color : '#333');
+            }
+        }
+        
+        // Aplikuj zmiany parametrów
+        const fullParamKey = paramKey.startsWith('parameters.') ? paramKey : `parameters.${paramKey}`;
+        
+        // Sprawdź, czy mamy mapowanie dla tego parametru
+        if (paramMappings[fullParamKey]) {
+            const mapping = paramMappings[fullParamKey];
+            
+            if (typeof mapping[0] === 'function') {
+                // Funkcja niestandardowa
+                mapping[0](svgElement, value);
+            } else {
+                // Selektor CSS i atrybut
+                const elements = svgElement.querySelectorAll(mapping[0]);
+                if (elements.length > 0) {
+                    elements.forEach(el => {
+                        el[mapping[1]] = value;
+                    });
+                }
+            }
+        }
+        
+        // Specjalna obsługa dla LED
+        if (componentType === 'led' && (fullParamKey === 'parameters.isBlinking' || 
+            fullParamKey === 'parameters.isOn' || 
+            fullParamKey === 'parameters.color' || 
+            fullParamKey === 'parameters.blinkRate')) {
+            handleLedBlinking(svgElement);
+        }
+        
+        // Domyślna obsługa dla nieznanych typów i parametrów
+        if (fullParamKey.startsWith('parameters.') && !paramMappings[fullParamKey]) {
+            // Próba znalezienia elementu po ID równym nazwie parametru
+            const paramName = fullParamKey.split('.')[1];
+            const element = svgElement.querySelector(`#${paramName}`);
+            if (element) {
+                if (typeof value === 'boolean') {
+                    element.style.display = value ? 'inline' : 'none';
+                } else if (typeof value === 'string' && value.startsWith('#')) {
+                    // Prawdopodobnie kolor
+                    element.setAttribute('fill', value);
+                } else if (typeof value === 'string') {
+                    // Prawdopodobnie tekst
+                    element.textContent = value;
+                } else if (typeof value === 'number') {
+                    // Próba interpretacji jako wartości
+                    element.setAttribute('value', value);
+                }
+            }
         }
     }
 

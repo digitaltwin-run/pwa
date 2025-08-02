@@ -36,21 +36,21 @@
     <!-- Wewnętrzny skrypt SVG -->
     <script><![CDATA[
       (function() {
-        // Funkcja do odczytu metadanych
+        // Function to read metadata
         function getMetadata(svgElement) {
           const metadataNode = svgElement.querySelector('metadata');
           if (metadataNode && metadataNode.textContent.trim()) {
             try {
               return JSON.parse(metadataNode.textContent);
             } catch (e) {
-              console.warn('Błąd parsowania metadanych:', e);
+              console.warn('Error parsing metadata:', e);
               return {};
             }
           }
           return {};
         }
 
-        // Funkcja do aktualizacji wyglądu
+        // Function to update appearance
         function updateLED(svgElement) {
           const metadata = getMetadata(svgElement);
           console.log('Metadane:', metadata);
@@ -64,42 +64,90 @@
             return;
           }
 
-          // Aktualizuj etykietę
+          // Update label
           if (labelEl && params.label) {
             labelEl.textContent = params.label;
           }
 
-          // Obsługa migania
+          // Handle blinking
           if (params.isBlinking && params.isOn) {
-            if (!svgElement.blinkInterval) {
-              let on = true;
-              svgElement.blinkInterval = setInterval(() => {
-                ledCore.setAttribute('fill', on ? params.color : '#333');
-                on = !on;
-              }, params.blinkRate || 500);
-            }
-          } else {
-            // Zatrzymaj miganie
+            // Stop existing blink interval to avoid multiple intervals
             if (svgElement.blinkInterval) {
               clearInterval(svgElement.blinkInterval);
               svgElement.blinkInterval = null;
             }
-            // Ustaw stan stały
+            
+            // Create a new interval for this LED
+            let on = true;
+            svgElement.blinkInterval = setInterval(() => {
+              if (ledCore) { // Check if element still exists
+                ledCore.setAttribute('fill', on ? params.color : '#333');
+                on = !on;
+              } else {
+                // If element was removed, stop interval
+                clearInterval(svgElement.blinkInterval);
+                svgElement.blinkInterval = null;
+              }
+            }, params.blinkRate || 500);
+          } else {
+            // Stop blinking
+            if (svgElement.blinkInterval) {
+              clearInterval(svgElement.blinkInterval);
+              svgElement.blinkInterval = null;
+            }
+            // Set solid state
             ledCore.setAttribute('fill', params.isOn ? params.color : '#333');
           }
         }
+        
+        // Toggle LED function
+        function toggleLED(svgElement) {
+          const metadata = getMetadata(svgElement);
+          if (metadata && metadata.parameters) {
+            // Toggle the state
+            metadata.parameters.isOn = !metadata.parameters.isOn;
+            
+            // Update metadata
+            svgElement.querySelector('metadata').textContent = 
+              JSON.stringify(metadata, null, 2);
+            
+            // Update appearance immediately
+            updateLED(svgElement);
+          }
+        }
 
-        // Inicjalizacja
-        const svgElement = document.querySelector('svg:not([data-led-initialized="true"])');
-        if (svgElement) {
+        // Initialize
+        // Use this specific SVG instance, not a global query
+        const svgElement = document.currentScript.closest('svg');
+        if (svgElement && !svgElement.hasAttribute('data-led-initialized')) {
           svgElement.setAttribute('data-led-initialized', 'true');
+          
+          // Store a unique identifier for this LED
+          svgElement.ledInstanceId = 'led-' + Math.random().toString(36).substr(2, 9);
+          
+          // Add click event listener to toggle LED
+          const ledCore = svgElement.querySelector('.led-core');
+          if (ledCore) {
+            ledCore.addEventListener('click', function(e) {
+              toggleLED(svgElement);
+              e.stopPropagation(); // Prevent event bubbling
+            });
+          }
           
           // Initial update
           updateLED(svgElement);
 
-          // Opcjonalnie: nasłuchiwanie zmian (jeśli IDE nadpisuje metadata)
-          // Symulujemy "obserwatora" — co 500 ms sprawdzamy zmiany
+          // Optional: listen for changes (if IDE overwrites metadata)
+          // Simulate an "observer" - check for changes every 500ms
           svgElement.pollingInterval = setInterval(() => {
+            // Instead of document.body.contains, check if the element is still connected
+            if (svgElement.ownerDocument && !svgElement.isConnected) {
+              // Clean up if it's been removed
+              if (svgElement.blinkInterval) clearInterval(svgElement.blinkInterval);
+              if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
+              return;
+            }
+            
             const metadata = getMetadata(svgElement);
             const params = metadata.parameters || {};
             const currentColor = svgElement.currentParams?.color;
@@ -115,14 +163,35 @@
             }
           }, 500);
 
-          // Ewentualna oczyszczka przy usunięciu
-          window.addEventListener('beforeunload', () => {
+          // Cleanup on removal or unload
+          function cleanupLED() {
             if (svgElement.blinkInterval) clearInterval(svgElement.blinkInterval);
             if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
+          }
+          
+          window.addEventListener('beforeunload', cleanupLED);
+          
+          // For SVGs that are embedded and might be removed
+          const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+              if (Array.from(mutation.removedNodes).includes(svgElement)) {
+                cleanupLED();
+                observer.disconnect();
+              }
+            });
           });
+          
+          try {
+            // Only observe if the SVG is in a document
+            if (svgElement.parentNode) {
+              observer.observe(svgElement.parentNode, { childList: true });
+            }
+          } catch (e) {
+            // Ignore errors for standalone SVGs
+            console.warn("Could not set up observer:", e);
+          }
         }
       })();
-
   ]]></script>
     </defs>
 </svg>

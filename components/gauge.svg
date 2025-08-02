@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xhtml="http://www.w3.org/1999/xhtml"
+     width="60"
+     height="60"
+     viewBox="0 0 60 60">
+
+    <title>Gauge Component</title>
+    <desc>Interactive gauge/meter component with animated needle movement for digital twin</desc>
+
+    <metadata>
+        {
+        "id": "gauge-001",
+        "name": "Analog Gauge",
+        "type": "gauge",
+        "parameters": {
+            "label": "Gauge",
+            "value": 50,
+            "min": 0,
+            "max": 100,
+            "color": "#e74c3c",
+            "units": "%",
+            "isActive": true
+            }
+        }
+    </metadata>
+
+    <!-- Background -->
+    <circle cx="30" cy="30" r="28" fill="#34495e" stroke="#2c3e50" stroke-width="2"/>
+    
+    <!-- Gauge face -->
+    <circle cx="30" cy="30" r="24" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+    
+    <!-- Scale markings -->
+    <path d="M 18 42 A 18 18 0 0 1 42 42" stroke="#7f8c8d" stroke-width="1" fill="none"/>
+    
+    <!-- Scale marks -->
+    <line x1="30" y1="30" x2="30" y2="14" stroke="#7f8c8d" stroke-width="0.5" transform="rotate(0 30 30)"/>
+    <line x1="30" y1="30" x2="30" y2="14" stroke="#7f8c8d" stroke-width="0.5" transform="rotate(45 30 30)"/>
+    <line x1="30" y1="30" x2="30" y2="14" stroke="#7f8c8d" stroke-width="0.5" transform="rotate(90 30 30)"/>
+    <line x1="30" y1="30" x2="30" y2="14" stroke="#7f8c8d" stroke-width="0.5" transform="rotate(135 30 30)"/>
+    <line x1="30" y1="30" x2="30" y2="14" stroke="#7f8c8d" stroke-width="0.5" transform="rotate(180 30 30)"/>
+    
+    <!-- Min and Max labels -->
+    <text x="15" y="42" font-size="6" text-anchor="middle" fill="#2c3e50">0</text>
+    <text x="45" y="42" font-size="6" text-anchor="middle" fill="#2c3e50">100</text>
+    
+    <!-- Needle -->
+    <g class="gauge-needle" transform="rotate(0 30 30)">
+        <line x1="30" y1="30" x2="30" y2="14" stroke="#e74c3c" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="30" cy="30" r="3" fill="#2c3e50"/>
+    </g>
+    
+    <!-- Value display -->
+    <text class="gauge-value" x="30" y="48" font-size="10" text-anchor="middle" fill="#2c3e50">50%</text>
+    
+    <!-- Label -->
+    <text class="gauge-label" x="30" y="56" font-size="8" text-anchor="middle" fill="#bdc3c7">Gauge</text>
+
+    <defs>
+    <!-- Internal SVG script -->
+    <script><![CDATA[
+      (function() {
+        // Function to read metadata
+        function getMetadata(svgElement) {
+          const metadataNode = svgElement.querySelector('metadata');
+          if (metadataNode && metadataNode.textContent.trim()) {
+            try {
+              return JSON.parse(metadataNode.textContent);
+            } catch (e) {
+              console.warn('Error parsing metadata:', e);
+              return {};
+            }
+          }
+          return {};
+        }
+
+        // Function to update gauge appearance
+        function updateGauge(svgElement) {
+          const metadata = getMetadata(svgElement);
+          const params = metadata.parameters || {};
+          
+          const gaugeNeedle = svgElement.querySelector('.gauge-needle');
+          const gaugeValue = svgElement.querySelector('.gauge-value');
+          const labelEl = svgElement.querySelector('.gauge-label');
+
+          if (!gaugeNeedle || !params.isActive) {
+            return;
+          }
+
+          // Update label
+          if (labelEl && params.label) {
+            labelEl.textContent = params.label;
+          }
+          
+          // Calculate angle based on value, min and max
+          const min = params.min || 0;
+          const max = params.max || 100;
+          const value = Math.min(Math.max(params.value, min), max);
+          const percentage = (value - min) / (max - min);
+          const angle = percentage * 180 - 90; // -90° to +90° rotation
+          
+          // Get current angle
+          let currentAngle = 0;
+          const transform = gaugeNeedle.getAttribute('transform');
+          if (transform && transform.includes('rotate')) {
+            const match = transform.match(/rotate\(([^,]+)/);
+            if (match && match[1]) {
+              currentAngle = parseFloat(match[1]);
+            }
+          }
+          
+          // Animate the needle rotation
+          animateNeedleRotation(gaugeNeedle, currentAngle, angle);
+          
+          // Update value text
+          if (gaugeValue) {
+            gaugeValue.textContent = value + (params.units || '');
+          }
+          
+          // Update needle color if specified
+          const needleLine = gaugeNeedle.querySelector('line');
+          if (needleLine && params.color) {
+            needleLine.setAttribute('stroke', params.color);
+          }
+        }
+        
+        // Function to animate needle rotation
+        function animateNeedleRotation(needle, fromAngle, toAngle) {
+          if (!needle) return;
+          
+          // Cancel previous animation
+          if (needle.animation) {
+            clearInterval(needle.animation);
+          }
+          
+          // Animation settings
+          const steps = 10;
+          const stepDuration = 20;
+          const angleDiff = toAngle - fromAngle;
+          let step = 0;
+          
+          needle.animation = setInterval(() => {
+            step++;
+            const progress = step / steps;
+            const newAngle = fromAngle + progress * angleDiff;
+            
+            needle.setAttribute('transform', `rotate(${newAngle} 30 30)`);
+            
+            if (step >= steps) {
+              clearInterval(needle.animation);
+              needle.animation = null;
+            }
+          }, stepDuration);
+        }
+
+        // Initialize
+        const svgElement = document.querySelector('svg:not([data-gauge-initialized="true"])');
+        if (svgElement) {
+          svgElement.setAttribute('data-gauge-initialized', 'true');
+          
+          // Initial update
+          updateGauge(svgElement);
+          
+          // Handle click interaction
+          svgElement.addEventListener('click', (e) => {
+            // Get current metadata
+            const metadata = getMetadata(svgElement);
+            if (!metadata.parameters) return;
+            
+            // Calculate relative click position in gauge
+            const bbox = svgElement.getBoundingClientRect();
+            const cx = bbox.width / 2;
+            const cy = bbox.height / 2;
+            
+            // Get click coordinates relative to center
+            const clickX = (e.clientX - bbox.left - cx) * (60 / bbox.width);
+            const clickY = (e.clientY - bbox.top - cy) * (60 / bbox.height);
+            
+            // Calculate angle from click position
+            let angle = Math.atan2(clickY, clickX) * 180 / Math.PI;
+            
+            // Adjust angle to fit gauge range (bottom half only)
+            if (angle < -90) angle = -90;
+            if (angle > 90) angle = 90;
+            
+            // Convert angle to value
+            const min = metadata.parameters.min || 0;
+            const max = metadata.parameters.max || 100;
+            const percentage = (angle + 90) / 180;
+            const newValue = Math.round(min + percentage * (max - min));
+            
+            // Update metadata
+            metadata.parameters.value = newValue;
+            svgElement.querySelector('metadata').textContent = JSON.stringify(metadata, null, 2);
+            
+            // Update gauge display
+            updateGauge(svgElement);
+          });
+
+          // Poll for changes
+          svgElement.pollingInterval = setInterval(() => {
+            const metadata = getMetadata(svgElement);
+            const params = metadata.parameters || {};
+            const currentValue = svgElement.currentParams?.value;
+            const currentColor = svgElement.currentParams?.color;
+            const currentUnits = svgElement.currentParams?.units;
+
+            if (params.value !== currentValue || 
+                params.color !== currentColor || 
+                params.units !== currentUnits ||
+                params.isActive !== (svgElement.currentParams?.isActive)) {
+              svgElement.currentParams = { ...params };
+              updateGauge(svgElement);
+            }
+          }, 500);
+
+          // Cleanup on removal
+          window.addEventListener('beforeunload', () => {
+            if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
+            if (svgElement.animation) clearInterval(svgElement.animation);
+          });
+        }
+      })();
+    ]]></script>
+    </defs>
+</svg>

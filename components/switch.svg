@@ -81,6 +81,22 @@
             switchTrack.setAttribute('fill', '#7f8c8d');
           }
         }
+        
+        // Function to toggle switch state
+        function toggleSwitch(svgElement) {
+          const metadata = getMetadata(svgElement);
+          if (metadata && metadata.parameters) {
+            // Toggle the state
+            metadata.parameters.state = !metadata.parameters.state;
+            
+            // Update metadata
+            svgElement.querySelector('metadata').textContent = 
+              JSON.stringify(metadata, null, 2);
+            
+            // Update appearance immediately
+            updateSwitch(svgElement);
+          }
+        }
 
         // Initialize
         const svgElement = document.querySelector('svg:not([data-switch-initialized="true"])');
@@ -89,6 +105,24 @@
           
           // Initial update
           updateSwitch(svgElement);
+          
+          // Add click event listeners to toggle the switch
+          const switchHandle = svgElement.querySelector('.switch-handle');
+          const switchTrack = svgElement.querySelector('.switch-track');
+          
+          if (switchHandle) {
+            switchHandle.addEventListener('click', function(e) {
+              toggleSwitch(svgElement);
+              e.stopPropagation(); // Prevent event bubbling
+            });
+          }
+          
+          if (switchTrack) {
+            switchTrack.addEventListener('click', function(e) {
+              toggleSwitch(svgElement);
+              e.stopPropagation(); // Prevent event bubbling
+            });
+          }
 
           // Poll for changes
           svgElement.pollingInterval = setInterval(() => {

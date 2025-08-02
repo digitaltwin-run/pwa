@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xhtml="http://www.w3.org/1999/xhtml"
+     width="60"
+     height="40"
+     viewBox="0 0 60 40">
+
+    <title>Counter Component</title>
+    <desc>Numeric counter component with animation between values</desc>
+
+    <metadata>
+        {
+        "id": "counter-001",
+        "name": "Numeric Counter",
+        "type": "counter",
+        "parameters": {
+            "label": "Counter",
+            "value": 50,
+            "min": 0,
+            "max": 999,
+            "color": "#2980b9",
+            "units": "",
+            "step": 1,
+            "isActive": true
+            }
+        }
+    </metadata>
+
+    <!-- Counter display background -->
+    <rect x="5" y="5" width="50" height="20" rx="3" ry="3" fill="#34495e" stroke="#2c3e50" stroke-width="1"/>
+    
+    <!-- LED display effect -->
+    <rect x="7" y="7" width="46" height="16" rx="2" ry="2" fill="#ecf0f1"/>
+    
+    <!-- Counter value -->
+    <text class="counter-value" x="30" y="21" font-size="16" font-family="monospace" font-weight="bold" text-anchor="middle" fill="#2980b9">50</text>
+    
+    <!-- Increment/decrement buttons -->
+    <g class="counter-increment-button">
+        <rect x="40" y="7" width="12" height="7" rx="2" ry="2" fill="#bdc3c7" stroke="#7f8c8d" stroke-width="1"/>
+        <text x="46" y="13" font-size="8" text-anchor="middle" fill="#2c3e50">+</text>
+    </g>
+    
+    <g class="counter-decrement-button">
+        <rect x="40" y="16" width="12" height="7" rx="2" ry="2" fill="#bdc3c7" stroke="#7f8c8d" stroke-width="1"/>
+        <text x="46" y="22" font-size="8" text-anchor="middle" fill="#2c3e50">-</text>
+    </g>
+    
+    <!-- Label -->
+    <text class="counter-label" x="30" y="35" font-size="8" text-anchor="middle" fill="#7f8c8d">Counter</text>
+
+    <defs>
+    <!-- Internal SVG script -->
+    <script><![CDATA[
+      (function() {
+        // Function to read metadata
+        function getMetadata(svgElement) {
+          const metadataNode = svgElement.querySelector('metadata');
+          if (metadataNode && metadataNode.textContent.trim()) {
+            try {
+              return JSON.parse(metadataNode.textContent);
+            } catch (e) {
+              console.warn('Error parsing metadata:', e);
+              return {};
+            }
+          }
+          return {};
+        }
+
+        // Function to update counter appearance
+        function updateCounter(svgElement) {
+          const metadata = getMetadata(svgElement);
+          const params = metadata.parameters || {};
+          
+          const counterValue = svgElement.querySelector('.counter-value');
+          const labelEl = svgElement.querySelector('.counter-label');
+
+          if (!counterValue || !params.isActive) {
+            return;
+          }
+
+          // Update label
+          if (labelEl && params.label) {
+            labelEl.textContent = params.label;
+          }
+          
+          // Update counter color
+          if (params.color) {
+            counterValue.setAttribute('fill', params.color);
+          }
+          
+          // Get current value
+          let currentVal = parseInt(counterValue.textContent);
+          if (isNaN(currentVal)) currentVal = 0;
+          
+          // Get target value
+          const targetVal = parseInt(params.value);
+          if (isNaN(targetVal)) return;
+          
+          // Animate value change
+          if (currentVal !== targetVal) {
+            animateCounterValue(counterValue, currentVal, targetVal);
+          }
+        }
+        
+        // Function to animate counter value change
+        function animateCounterValue(element, fromValue, toValue) {
+          if (!element) return;
+          
+          // Cancel previous animation
+          if (element.animation) {
+            clearInterval(element.animation);
+            element.animation = null;
+          }
+          
+          // Animation settings
+          const steps = 15;
+          const stepDuration = 30;
+          const valueDiff = toValue - fromValue;
+          let step = 0;
+          
+          // Store animation in element's property for proper isolation
+          element.animation = setInterval(() => {
+            step++;
+            const progress = step / steps;
+            const newValue = Math.round(fromValue + progress * valueDiff);
+            
+            // Update value
+            element.textContent = newValue;
+            
+            if (step >= steps) {
+              clearInterval(element.animation);
+              element.animation = null;
+              element.textContent = toValue; // Ensure final value is exact
+            }
+          }, stepDuration);
+        }
+
+        // Initialize - use the current SVG that contains this script
+        const svgElement = document.currentScript.closest('svg');
+        if (svgElement && !svgElement.hasAttribute('data-counter-initialized')) {
+          svgElement.setAttribute('data-counter-initialized', 'true');
+          
+          // Generate unique instance ID for this counter
+          svgElement.counterInstanceId = 'counter-' + Math.random().toString(36).substr(2, 9);
+          
+          // Initial update
+          updateCounter(svgElement);
+          
+          // Handle button clicks
+          const incrementButton = svgElement.querySelector('.counter-increment-button');
+          const decrementButton = svgElement.querySelector('.counter-decrement-button');
+          
+          if (incrementButton) {
+            incrementButton.addEventListener('click', (e) => {
+              e.stopPropagation(); // Don't trigger the whole SVG click
+              
+              // Get current metadata
+              const metadata = getMetadata(svgElement);
+              if (!metadata.parameters) return;
+              
+              const min = metadata.parameters.min || 0;
+              const max = metadata.parameters.max || 999;
+              const step = metadata.parameters.step || 1;
+              const currentVal = metadata.parameters.value || 0;
+              
+              // Calculate new value
+              let newValue = currentVal + step;
+              if (newValue > max) newValue = max;
+              
+              // Update metadata
+              metadata.parameters.value = newValue;
+              svgElement.querySelector('metadata').textContent = JSON.stringify(metadata, null, 2);
+              
+              // Animate button press
+              const rect = incrementButton.querySelector('rect');
+              if (rect) {
+                rect.setAttribute('fill', '#95a5a6');
+                setTimeout(() => {
+                  // Make sure element still exists before updating
+                  if (rect.ownerDocument && rect.ownerDocument.body.contains(rect)) {
+                    rect.setAttribute('fill', '#bdc3c7');
+                  }
+                }, 200);
+              }
+              
+              // Update counter
+              updateCounter(svgElement);
+            });
+          }
+          
+          if (decrementButton) {
+            decrementButton.addEventListener('click', (e) => {
+              e.stopPropagation(); // Don't trigger the whole SVG click
+              
+              // Get current metadata
+              const metadata = getMetadata(svgElement);
+              if (!metadata.parameters) return;
+              
+              const min = metadata.parameters.min || 0;
+              const max = metadata.parameters.max || 999;
+              const step = metadata.parameters.step || 1;
+              const currentVal = metadata.parameters.value || 0;
+              
+              // Calculate new value
+              let newValue = currentVal - step;
+              if (newValue < min) newValue = min;
+              
+              // Update metadata
+              metadata.parameters.value = newValue;
+              svgElement.querySelector('metadata').textContent = JSON.stringify(metadata, null, 2);
+              
+              // Animate button press
+              const rect = decrementButton.querySelector('rect');
+              if (rect) {
+                rect.setAttribute('fill', '#95a5a6');
+                setTimeout(() => {
+                  // Make sure element still exists before updating
+                  if (rect.ownerDocument && rect.parentNode) {
+                    rect.setAttribute('fill', '#bdc3c7');
+                  }
+                }, 200);
+              }
+              
+              // Update counter
+              updateCounter(svgElement);
+            });
+          }
+
+          // Poll for changes
+          svgElement.pollingInterval = setInterval(() => {
+            // Check if element still exists in DOM using isConnected
+            if (svgElement.ownerDocument && !svgElement.isConnected) {
+              // Clean up if it's been removed
+              if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
+              const counterValue = svgElement.querySelector('.counter-value');
+              if (counterValue && counterValue.animation) {
+                clearInterval(counterValue.animation);
+                counterValue.animation = null;
+              }
+              return;
+            }
+            
+            const metadata = getMetadata(svgElement);
+            const params = metadata.parameters || {};
+            const currentValue = svgElement.currentParams?.value;
+            const currentColor = svgElement.currentParams?.color;
+
+            if (params.value !== currentValue || 
+                params.color !== currentColor ||
+                params.isActive !== (svgElement.currentParams?.isActive)) {
+              svgElement.currentParams = { ...params };
+              updateCounter(svgElement);
+            }
+          }, 500);
+
+          // Cleanup on removal
+          function cleanupCounter() {
+            if (svgElement.pollingInterval) {
+              clearInterval(svgElement.pollingInterval);
+              svgElement.pollingInterval = null;
+            }
+            const counterValue = svgElement.querySelector('.counter-value');
+            if (counterValue && counterValue.animation) {
+              clearInterval(counterValue.animation);
+              counterValue.animation = null;
+            }
+          }
+          
+          window.addEventListener('beforeunload', cleanupCounter);
+          
+          // For SVGs that are embedded and might be removed
+          try {
+            if (typeof MutationObserver !== 'undefined' && svgElement.parentNode) {
+              const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                  if (Array.from(mutation.removedNodes).includes(svgElement)) {
+                    cleanupCounter();
+                    observer.disconnect();
+                  }
+                });
+              });
+              
+              observer.observe(svgElement.parentNode, { childList: true });
+            }
+          } catch (e) {
+            // Ignore errors for standalone SVGs
+            console.warn("Could not set up observer:", e);
+          }
+        }
+      })();
+    ]]></script>
+    </defs>
+</svg>

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xhtml="http://www.w3.org/1999/xhtml"
+     width="60"
+     height="40"
+     viewBox="0 0 60 40">
+
+    <title>Toggle Button Component</title>
+    <desc>Toggle button with sliding animation</desc>
+
+    <metadata>
+        {
+        "id": "toggle-001",
+        "name": "Toggle Button",
+        "type": "toggle",
+        "parameters": {
+            "label": "Toggle",
+            "state": false,
+            "color": "#2ecc71",
+            "isActive": true
+            }
+        }
+    </metadata>
+
+    <!-- Toggle background -->
+    <rect class="toggle-background" x="10" y="10" width="40" height="20" rx="10" ry="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+    
+    <!-- Toggle track -->
+    <rect class="toggle-track" x="12" y="12" width="28" height="16" rx="8" ry="8" fill="#7f8c8d"/>
+    
+    <!-- Toggle handle/knob with shadow effect -->
+    <circle class="toggle-handle-shadow" cx="20" cy="20" r="8" fill="#000" opacity="0.2"/>
+    <circle class="toggle-handle" cx="13" cy="20" r="7" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+    
+    <!-- Label -->
+    <text class="toggle-label" x="30" y="36" font-size="8" text-anchor="middle" fill="#7f8c8d">Toggle</text>
+
+    <defs>
+    <!-- Internal SVG script -->
+    <script><![CDATA[
+      (function() {
+        // Function to read metadata
+        function getMetadata(svgElement) {
+          const metadataNode = svgElement.querySelector('metadata');
+          if (metadataNode && metadataNode.textContent.trim()) {
+            try {
+              return JSON.parse(metadataNode.textContent);
+            } catch (e) {
+              console.warn('Error parsing metadata:', e);
+              return {};
+            }
+          }
+          return {};
+        }
+
+        // Function to update toggle appearance based on state
+        function updateToggle(svgElement) {
+          const metadata = getMetadata(svgElement);
+          const params = metadata.parameters || {};
+          
+          const toggleTrack = svgElement.querySelector('.toggle-track');
+          const toggleHandle = svgElement.querySelector('.toggle-handle');
+          const toggleHandleShadow = svgElement.querySelector('.toggle-handle-shadow');
+          const labelEl = svgElement.querySelector('.toggle-label');
+
+          if (!toggleHandle || !toggleTrack || !toggleHandleShadow || !params.isActive) {
+            return;
+          }
+
+          // Update label
+          if (labelEl && params.label) {
+            labelEl.textContent = params.label;
+          }
+          
+          // Get current position of the handle (cx attribute)
+          let currentX = parseInt(toggleHandle.getAttribute('cx'));
+          if (isNaN(currentX)) currentX = 13; // Default position
+          
+          // Calculate target position based on state
+          const targetX = params.state ? 27 : 13;
+          
+          // Track color based on state
+          const trackColor = params.state ? (params.color || '#2ecc71') : '#7f8c8d';
+          
+          // If position changed, animate the movement
+          if (currentX !== targetX) {
+            animateToggleSlide(toggleHandle, toggleHandleShadow, currentX, targetX);
+          }
+          
+          // Set track color
+          toggleTrack.setAttribute('fill', trackColor);
+        }
+        
+        // Function to animate handle sliding
+        function animateToggleSlide(handle, shadow, fromX, toX) {
+          if (!handle || !shadow) return;
+          
+          // Cancel previous animation
+          if (handle.animation) {
+            clearInterval(handle.animation);
+          }
+          
+          // Animation settings
+          const steps = 10;
+          const stepDuration = 15;
+          const xDiff = toX - fromX;
+          let step = 0;
+          
+          handle.animation = setInterval(() => {
+            step++;
+            const progress = step / steps;
+            // Use easeInOutQuad easing function for smooth movement
+            const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+            const newX = fromX + eased * xDiff;
+            
+            // Update handle and shadow positions
+            handle.setAttribute('cx', newX);
+            shadow.setAttribute('cx', newX);
+            
+            if (step >= steps) {
+              clearInterval(handle.animation);
+              handle.animation = null;
+              // Ensure final position is exact
+              handle.setAttribute('cx', toX);
+              shadow.setAttribute('cx', toX);
+            }
+          }, stepDuration);
+        }
+
+        // Initialize
+        const svgElement = document.querySelector('svg:not([data-toggle-initialized="true"])');
+        if (svgElement) {
+          svgElement.setAttribute('data-toggle-initialized', 'true');
+          
+          // Initial update
+          updateToggle(svgElement);
+          
+          // Handle click interaction
+          svgElement.addEventListener('click', (e) => {
+            // Get current metadata
+            const metadata = getMetadata(svgElement);
+            if (!metadata.parameters) return;
+            
+            // Toggle the state
+            metadata.parameters.state = !metadata.parameters.state;
+            
+            // Update metadata
+            svgElement.querySelector('metadata').textContent = JSON.stringify(metadata, null, 2);
+            
+            // Update toggle
+            updateToggle(svgElement);
+          });
+
+          // Poll for changes
+          svgElement.pollingInterval = setInterval(() => {
+            const metadata = getMetadata(svgElement);
+            const params = metadata.parameters || {};
+            const currentState = svgElement.currentParams?.state;
+            const currentColor = svgElement.currentParams?.color;
+
+            if (params.state !== currentState || 
+                params.color !== currentColor ||
+                params.isActive !== (svgElement.currentParams?.isActive)) {
+              svgElement.currentParams = { ...params };
+              updateToggle(svgElement);
+            }
+          }, 500);
+
+          // Cleanup on removal
+          window.addEventListener('beforeunload', () => {
+            if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
+            if (svgElement.querySelector('.toggle-handle').animation) {
+              clearInterval(svgElement.querySelector('.toggle-handle').animation);
+            }
+          });
+        }
+      })();
+    ]]></script>
+    </defs>
+</svg>
