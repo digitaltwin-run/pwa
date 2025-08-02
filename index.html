@@ -4,400 +4,93 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Digital Twin IDE</title>
+    
+    <!-- External Stylesheets -->
     <link rel="stylesheet" href="css/styles.css"/>
+    <link rel="stylesheet" href="css/app.css"/>
+    
+    <!-- PWA Manifest and Icons -->
     <link rel="manifest" href="manifest.json"/>
     <link rel="icon" href="assets/icons/icon-192.png"/>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f0f1;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        /* Pasek narzędzi na górze */
-        .toolbar {
-            background: #2c3e50;
-            padding: 10px;
-            text-align: right;
-            color: white;
-            font-size: 14px;
-            border-bottom: 1px solid #34495e;
-        }
-
-        .toolbar button {
-            margin: 0 5px;
-            padding: 6px 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-        }
-
-        /* Główny kontener – flex z trzema kolumnami */
-        .container {
-            display: flex;
-            flex: 1; /* Wypełnia całą dostępną wysokość po toolbarze */
-            height: calc(100vh - 50px); /* Różnica dla toolbara */
-            overflow: hidden;
-        }
-
-        /* Boczne panele – stała szerokość */
-        .sidebar {
-            width: 260px;
-            background: #2c3e50;
-            color: white;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar h3 {
-            margin: 0;
-            padding: 15px;
-            font-size: 16px;
-            border-bottom: 1px solid #34495e;
-            background: #34495e;
-        }
-
-        .component-list {
-            padding: 10px;
-            flex: 1;
-        }
-
-        .component-item {
-            padding: 10px;
-            background: #3498db;
-            margin: 6px 0;
-            border-radius: 6px;
-            cursor: grab;
-            user-select: none;
-            font-size: 14px;
-            text-align: center;
-            transition: background 0.2s;
-        }
-
-        .component-item:hover {
-            background: #2980b9;
-        }
-
-        /* Plansza centralna – zajmuje całą resztę */
-        .workspace {
-            flex: 1;
-            background: #ecf0f1;
-            border-left: 1px solid #bdc3c7;
-            border-right: 1px solid #bdc3c7;
-            overflow: auto;
-            position: relative;
-        }
-
-        #svg-canvas {
-            width: 100%;
-            height: 100%;
-            min-height: 100%;
-            background-color: #fff;
-        }
-
-        #canvas {
-            width: 100%;
-            height: 100%;
-            overflow: visible;
-            cursor: default;
-            background: white;
-        }
-
-        /* Panel właściwości – prawy sidebar */
-        #property-editor {
-            padding: 10px;
-            color: #333;
-            font-size: 14px;
-        }
-
-        #property-editor label {
-            display: block;
-            margin-top: 12px;
-            font-weight: 600;
-            color: #ecf0f1;
-            font-size: 13px;
-        }
-
-        #property-editor input {
-            width: 100%;
-            padding: 6px;
-            margin-top: 4px;
-            border: 1px solid #34495e;
-            border-radius: 4px;
-            font-size: 13px;
-        }
-
-        #property-editor input[type="color"] {
-            height: 30px;
-        }
-
-        #property-editor button {
-            margin-top: 15px;
-            padding: 8px;
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-        }
-
-        /* Panel symulacji – na dole */
-        .simulation-panel {
-            background: #1a1a1a;
-            color: #fff;
-            padding: 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            border-top: 1px solid #333;
-        }
-
-        .simulation-panel h3 {
-            margin: 0 0 10px 0;
-            font-size: 15px;
-        }
-
-        .simulation-panel p {
-            margin: 5px 0;
-            font-size: 13px;
-            color: #ccc;
-        }
-        .component-button {
-            display: flex;
-            align-items: center;
-            width: 100%;
-            padding: 8px 10px;
-            margin: 6px 0;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: grab;
-            user-select: none;
-            font-size: 14px;
-            transition: background 0.2s, transform 0.1s;
-            gap: 12px;
-            text-align: left;
-        }
-
-        .component-button:hover {
-            background: #2980b9;
-            transform: translateY(-1px);
-        }
-
-        .component-button:active {
-            transform: translateY(0);
-        }
-
-        .component-button svg {
-            flex-shrink: 0;
-            width: 36px;
-            height: 36px;
-            border: 1px solid #fff;
-            border-radius: 6px;
-            background: white;
-            padding: 2px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        }
-
-        .component-button span {
-            font-size: 14px;
-            font-weight: 500;
-            flex: 1;
-            margin-left: 4px;
-        }
-    </style>
+    
+    <!-- Meta tags for better SEO and PWA -->
+    <meta name="description" content="Digital Twin IDE - Interactive component design and simulation tool"/>
+    <meta name="theme-color" content="#2c3e50"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 </head>
 <body>
-
-<!-- Przyciski narzędzi -->
-<div class="toolbar">
-    <button onclick="exportProject()" style="background: #27ae60; color: white;">📤 Eksportuj (.dtwin)</button>
-    <button onclick="importProject()" style="background: #3498db; color: white;">📥 Importuj (.dtwin)</button>
-    <button onclick="exportAsPNG()" style="background: #e67e22; color: white;">🖼️ PNG</button>
-    <button onclick="exportAsSVG()" style="background: #3498db; color: white;">🟩 SVG</button>
-    <button onclick="toggleConnectionMode()" style="background: #8e44ad; color: white;">🔗 Łącz komponenty</button>
-</div>
-
-<!-- Panel symulacji -->
-<div class="simulation-panel">
-    <h3>📊 Symulacja Danych</h3>
-    <button onclick="startSimulation()" style="background: #27ae60; color: white;">▶️ Start</button>
-    <button onclick="stopSimulation()" style="background: #e74c3c; color: white;">⏸️ Stop</button>
-    <div id="simulation-list" style="margin-top: 10px; max-height: 150px; overflow-y: auto;">
-        <p><i>Brak komponentów do symulacji</i></p>
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <button onclick="exportProject()" style="background: #27ae60; color: white;">📤 Eksportuj (.dtwin)</button>
+        <button onclick="importProject()" style="background: #3498db; color: white;">📥 Importuj (.dtwin)</button>
+        <button onclick="exportAsPNG()" style="background: #e67e22; color: white;">🖼️ PNG</button>
+        <button onclick="exportAsSVG()" style="background: #3498db; color: white;">🟩 SVG</button>
+        <button onclick="toggleConnectionMode()" style="background: #8e44ad; color: white;">🔗 Łącz komponenty</button>
     </div>
-</div>
 
-<!-- Główny układ -->
-<div class="container">
-    <!-- Lewa kolumna: Komponenty -->
-    <aside class="sidebar left">
-        <h3>🔧 Komponenty</h3>
-        <div class="component-list" id="component-library">
-            <!-- Komponenty będą dodawane dynamicznie z ikonami -->
+    <!-- Simulation Panel -->
+    <div class="simulation-panel">
+        <h3>📊 Symulacja Danych</h3>
+        <button onclick="startSimulation()" style="background: #27ae60; color: white;">▶️ Start</button>
+        <button onclick="stopSimulation()" style="background: #e74c3c; color: white;">⏸️ Stop</button>
+        <div id="simulation-list" style="margin-top: 10px; max-height: 150px; overflow-y: auto;">
+            <p><i>Brak komponentów do symulacji</i></p>
         </div>
-    </aside>
+    </div>
 
-    <!-- Środkowa: Plansza -->
-    <div class="workspace" id="workspace">
-        <svg id="svg-canvas" xmlns="http://www.w3.org/2000/svg">
-            <!-- Definicje: siatka i strzałka -->
-            <defs>
-                <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6"
-                        orient="auto-start-reverse">
-                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#2c3e50"/>
-                </marker>
-                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#ddd" stroke-width="0.5"/>
-                </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid)"/>
-            <!-- Komponenty i linie będą dodawane tutaj -->
-        </svg>
-    </main>
+    <!-- Main Layout -->
+    <div class="container">
+        <!-- Left Sidebar: Components Library -->
+        <aside class="sidebar left">
+            <h3>🔧 Komponenty</h3>
+            <div class="component-list" id="component-library">
+                <!-- Components will be loaded dynamically -->
+                <div class="loading">Ładowanie komponentów...</div>
+            </div>
+        </aside>
 
-    <!-- Prawa: Właściwości -->
-    <aside class="sidebar right">
-        <h3>⚙️ Właściwości</h3>
-        <div id="properties-panel">
-            <p>Wybierz komponent, aby edytować.</p>
+        <!-- Center: Workspace Canvas -->
+        <div class="workspace" id="workspace">
+            <svg id="svg-canvas" xmlns="http://www.w3.org/2000/svg">
+                <!-- SVG Definitions -->
+                <defs>
+                    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" 
+                            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#2c3e50"/>
+                    </marker>
+                    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#ddd" stroke-width="0.5"/>
+                    </pattern>
+                </defs>
+                
+                <!-- Grid Background -->
+                <rect width="100%" height="100%" fill="url(#grid)"/>
+                
+                <!-- Components and connections will be added dynamically here -->
+            </svg>
         </div>
-    </aside>
-</div>
 
-<script>
-    // Lista komponentów – ścieżka, nazwa, opcjonalnie ikona (jeśli inna)
-    const COMPONENTS = [
-        { svg: "components/motor.svg", name: "Silnik", id: "motor" },
-        { svg: "components/led.svg", name: "Diody LED", id: "led" },
-        { svg: "components/switch.svg", name: "Przełącznik", id: "switch" },
-        { svg: "components/relay.svg", name: "Przekaźnik", id: "relay" },
-        { svg: "components/button.svg", name: "Przycisk", id: "button" },
-        { svg: "components/knob.svg", name: "Pokrętło", id: "knob" },
-        { svg: "components/slider.svg", name: "Suwak", id: "slider" },
-        { svg: "components/gauge.svg", name: "Miernik", id: "gauge" },
-        { svg: "components/counter.svg", name: "Licznik", id: "counter" },
-        { svg: "components/toggle.svg", name: "Przycisk suwakowy", id: "toggle" },
-        { svg: "components/sensor.svg", name: "Czujnik temperatury", id: "temp-sensor" },
-        { svg: "components/display.svg", name: "Wyświetlacz", id: "display" },
-    ];
+        <!-- Right Sidebar: Properties Panel -->
+        <aside class="sidebar right">
+            <h3>⚙️ Właściwości</h3>
+            <div id="properties-panel">
+                <p>Wybierz komponent, aby edytować właściwości.</p>
+            </div>
+        </aside>
+    </div>
 
-    // Mapa przechowująca instancje komponentów
-    const components = new Map();
-    let componentCounter = 0;
-    let isConnectionMode = false;
-    let connectionStart = null;
-    let selectedComponent = null;
-    let simulationInterval = null;
-
-    // Pobierz kontener SVG
-    const svgCanvas = document.getElementById('svg-canvas');
-    const workspace = document.getElementById('workspace');
-
-    // Inicjalizacja rozmiarów SVG
-    function updateSvgSize() {
-        const rect = workspace.getBoundingClientRect();
-        svgCanvas.setAttribute('width', rect.width);
-        svgCanvas.setAttribute('height', rect.height);
-        svgCanvas.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
-    }
-
-    // Aktualizuj rozmiar przy zmianie okna
-    window.addEventListener('resize', updateSvgSize);
-    updateSvgSize();
-
-    function formatLabel(key) {
-        return key
-            .replace(/([A-Z])/g, " $1")
-            .replace(/^./, s => s.toUpperCase())
-            .replace(/([a-z])([A-Z])/g, '$1 $2')
-            .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
-    }
-
-    // --- OBSŁUGA PRZECIĄGANIA KOMPONENTÓW ---
-    document.getElementById("component-library").addEventListener("dragstart", (e) => {
-        const target = e.target.closest(".component-item");
-        if (target) {
-            e.dataTransfer.setData("text/plain", target.dataset.svg);
-        }
-    });
-
-    svgCanvas.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'copy';
-        svgCanvas.classList.add('drag-over');
-    });
-
-    svgCanvas.addEventListener('dragleave', () => {
-        svgCanvas.classList.remove('drag-over');
-    });
-
-    svgCanvas.addEventListener('drop', async (e) => {
-        e.preventDefault();
-        svgCanvas.classList.remove('drag-over');
-
-        const svgUrl = e.dataTransfer.getData("text/plain");
-        if (!svgUrl) {
-            console.error("Brak danych SVG podczas upuszczenia");
-            return;
-        }
-
-        const canvasX = e.offsetX;
-        const canvasY = e.offsetY;
-
-        try {
-            const response = await fetch(svgUrl);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const svgText = await response.text();
-            if (!svgText || !svgText.trim().startsWith('<svg') && !svgText.trim().startsWith('<?xml')) {
-                throw new Error("Nieprawidłowy format SVG");
-            }
-
-            const parser = new DOMParser();
-            const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
-
-            // Sprawdź błędy parsowania
-            const parserError = svgDoc.querySelector("parsererror");
-            if (parserError) {
-                throw new Error("Błąd parsowania SVG");
-            }
-
-            const svgElement = svgDoc.documentElement;
-            if (!svgElement || svgElement.nodeName !== 'svg') {
-                throw new Error("Nie znaleziono elementu SVG");
-            }
-
-            // Generuj nowe ID
-            const componentId = `comp-${componentCounter++}`;
-            svgElement.setAttribute("data-id", componentId);
-            svgElement.setAttribute("data-svg-url", svgUrl);
-            svgElement.setAttribute("class", "draggable-component");
-            svgElement.setAttribute("style", "cursor: move;");
-
-            // Pobierz lub utwórz metadane
-            let metadataNode = svgElement.querySelector("metadata");
-            let metadata = {parameters: {}};
-
-            if (metadataNode) {
-                try {
-                    const metadataContent = metadataNode.textContent.trim();
-                    if (metadataContent) {
-                        metadata = JSON.parse(metadataContent);
+    <!-- JavaScript Modules -->
+    <script type="module" src="js/app.js"></script>
+    
+    <!-- Noscript fallback -->
+    <noscript>
+        <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+            <h2>JavaScript Required</h2>
+            <p>Aplikacja Digital Twin IDE wymaga włączonej obsługi JavaScript w przeglądarce.</p>
+            <p>Proszę włączyć JavaScript i odświeżyć stronę.</p>
+        </div>
+    </noscript>
                     }
                 } catch (e) {
                     console.warn("Niepoprawne metadane w oryginalnym SVG:", e);
@@ -927,13 +620,13 @@
     window.exportAsSVG = () => {
         // Stwórz tymczasową kopię SVG canvas
         const tempSvgCanvas = svgCanvas.cloneNode(true);
-        
+
         // Znajdź wszystkie komponenty i dodaj im unikalne identyfikatory
         const nestedSvgs = tempSvgCanvas.querySelectorAll('svg[data-id]');
         nestedSvgs.forEach((svg, index) => {
             svg.setAttribute('data-export-id', `component-${index}`);
         });
-        
+
         // Dodaj skrypt inicjalizacyjny dla obsługi zdarzeń myszy
         const scriptNode = document.createElementNS('http://www.w3.org/2000/svg', 'script');
         scriptNode.textContent = `
@@ -949,40 +642,40 @@
                         point.y <= rect.bottom
                     );
                 }
-                
+
                 // Zmienne globalne do śledzenia aktywnego komponentu
                 let activeComponentId = null;
                 let hoveredComponentId = null;
-                
+
                 // Funkcja do blokowania interakcji dla wszystkich komponentów poza aktywnym
                 function updateComponentsInteractivity(e) {
                     const mousePoint = { x: e.clientX, y: e.clientY };
                     let foundHovered = false;
-                    
+
                     // Przeszukaj wszystkie komponenty od góry (z-index) do dołu
                     const allComponents = Array.from(document.querySelectorAll('svg[data-export-id]'));
-                    
+
                     // Znajdź komponent, nad którym jest kursor
                     for (const component of allComponents) {
                         if (isPointInElement(mousePoint, component)) {
                             hoveredComponentId = component.getAttribute('data-export-id');
                             component.dataset.interactive = 'true';
                             foundHovered = true;
-                            
+
                             // Zatrzymaj po znalezieniu pierwszego (najwyższego)
                             break;
                         } else {
                             component.dataset.interactive = 'false';
                         }
                     }
-                    
+
                     // Jeśli nie znaleziono, wyczyść dane
                     if (!foundHovered) {
                         hoveredComponentId = null;
                         allComponents.forEach(comp => comp.dataset.interactive = 'false');
                     }
                 }
-                
+
                 // Czekaj na pełne załadowanie SVG
                 document.addEventListener('DOMContentLoaded', () => {
                     // Naprawa błędu NaN w transformacjach
@@ -993,7 +686,7 @@
                             el.setAttribute('transform', fixedTransform);
                         }
                     });
-                
+
                     // Resetuj inicjalizację wszystkich komponentów
                     document.querySelectorAll('svg[data-export-id]').forEach(svg => {
                         // Resetuj flagi inicjalizacji, aby skrypty mogły się ponownie zainicjalizować
@@ -1005,10 +698,10 @@
                         svg.removeAttribute('data-switch-initialized');
                         svg.removeAttribute('data-relay-initialized');
                         svg.removeAttribute('data-button-initialized');
-                        
+
                         // Domyślnie wszystkie komponenty nieinteraktywne
                         svg.dataset.interactive = 'false';
-                        
+
                         // Ustaw zdarzenia dla tego komponentu
                         svg.addEventListener('click', function(e) {
                             // Sprawdź, czy ten komponent jest aktualnie aktywnym
@@ -1019,7 +712,7 @@
                             }
                         }, true);
                     });
-                    
+
                     // Ustaw nasłuchiwanie zdarzeń na całym dokumencie
                     document.addEventListener('mousemove', updateComponentsInteractivity, true);
                     document.addEventListener('mousedown', function(e) {
@@ -1032,7 +725,7 @@
                     document.addEventListener('mouseup', function() {
                         activeComponentId = null;
                     }, true);
-                    
+
                     // Specjalne obsługa przycisków i toggle'a
                     document.querySelectorAll('.toggle-handle, .button-surface, .counter-increment-button, .counter-decrement-button').forEach(el => {
                         el.addEventListener('click', function(e) {
@@ -1044,7 +737,7 @@
                             }
                         }, true);
                     });
-                    
+
                     // Dla każdego skryptu w komponentach, dodaj sprawdzanie interactive
                     document.querySelectorAll('svg[data-export-id] script').forEach(script => {
                         const parentSvg = script.closest('svg[data-export-id]');
@@ -1052,10 +745,10 @@
                             // Dodaj zmienną identyfikacyjną do każdego skryptu
                             const componentId = parentSvg.getAttribute('data-export-id');
                             let scriptContent = script.textContent;
-                            
+
                             // Dodaj sprawdzanie interaktywności przed inicjalizacją
                             scriptContent = scriptContent.replace(
-                                '(function() {', 
+                                '(function() {',
                                 `(function() {
                                     // Helper function to check if component is interactive
                                     function isComponentInteractive() {
@@ -1064,25 +757,27 @@
                                     }
                                 }`
                             );
-                            
+
                             // Dodaj sprawdzanie w każdym event listenerze
                             scriptContent = scriptContent.replace(
-                                /addEventListener\(['"](click|mousedown|mousemove|mouseup|mouseover)['"]\s*,\s*function/g, 
-                                'addEventListener("$1", function(e) { if (!isComponentInteractive()) { e.stopPropagation(); e.preventDefault(); return false; } }'
+                                /addEventListener\(['"](click|mousedown|mousemove|mouseup|mouseover)['"]\s*,\s*function\s*\(([^)]*)\)\s*\{/g,
+                                'addEventListener("$1", function($2) { if (!isComponentInteractive()) { e.stopPropagation(); e.preventDefault(); return false; } else {'
                             );
-                            
+
+                            scriptContent = scriptContent + "\n}}";
+
                             script.textContent = scriptContent;
                         }
                     });
-                    
+
                     // Dodaj walidację w skryptach animacji, aby uniknąć błędów NaN
                     const validateNumeric = (val, defaultVal = 0) => {
                         return (val !== undefined && val !== null && !isNaN(parseFloat(val))) ? parseFloat(val) : defaultVal;
                     };
-                    
+
                     // Udostępnij funkcję globalnie
                     window.validateNumeric = validateNumeric;
-                    
+
                     // Napraw błędy w animacjach obrotów
                     document.querySelectorAll('.gauge-needle, .knob-indicator').forEach(el => {
                         const originalSetAttribute = el.setAttribute;
@@ -1100,7 +795,7 @@
                             return originalSetAttribute.call(this, attr, val);
                         };
                     });
-                    
+
                     // Zainicjuj interaktywność
                     const initialEvent = new MouseEvent('mousemove', {
                         bubbles: true,
@@ -1113,16 +808,16 @@
                 })();
             })();
         `;
-        
+
         tempSvgCanvas.appendChild(scriptNode);
-        
+
         // Pobierz zawartość SVG
         const svgData = new XMLSerializer().serializeToString(tempSvgCanvas);
-        
+
         // Utwórz kompletny dokument SVG z przestrzenią nazw i skryptami
         const svgDocumentWithScripts = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns="http://www.w3.org/2000/svg" 
+<svg xmlns="http://www.w3.org/2000/svg"
      xmlns:xlink="http://www.w3.org/1999/xlink"
      xmlns:xhtml="http://www.w3.org/1999/xhtml"
      version="1.1" width="100%" height="100%" viewBox="0 0 1000 800">
@@ -1311,17 +1006,17 @@
         const componentType = metadata.type || 'default';
         const instanceId = svgElement.getAttribute('data-id');
         const params = metadata.parameters || {};
-        
+
         // Stwórz mapowanie parametrów do elementów SVG
         // Format: 'parameters.nazwaParam': ['.klasaElementu', 'atrybut', wartośćBezpośrednia/funkcja]
         const paramMappings = {
             // Ogólne parametry dla wszystkich komponentów
             'parameters.label': ['.knob-label, .button-label, .switch-label, .relay-label, .led-label, .slider-label, .gauge-label, .counter-label, .toggle-label', 'textContent'],
             'parameters.isActive': ['svg', 'data-active'],
-            
+
             // LED
             'parameters.color': ['.led-core, .knob-body, .slider-progress, .gauge-needle, .toggle-track', 'fill'],
-            
+
             // Przełącznik
             'parameters.state': [
                 // Handler dla state używany do transformacji
@@ -1330,19 +1025,19 @@
                     const switchTrack = elem.querySelector('.switch-track');
                     const toggleHandle = elem.querySelector('.toggle-handle');
                     const toggleTrack = elem.querySelector('.toggle-track');
-                    
+
                     // Obsługa przełącznika
                     if (switchHandle && switchTrack) {
                         switchHandle.setAttribute('cx', val ? '27' : '13');
                         switchTrack.setAttribute('fill', val ? (params.color || '#3498db') : '#7f8c8d');
                     }
-                    
+
                     // Obsługa toggle slider
                     if (toggleHandle && toggleTrack) {
                         toggleHandle.setAttribute('cx', val ? '27' : '13');
                         toggleTrack.setAttribute('fill', val ? (params.color || '#2ecc71') : '#7f8c8d');
                     }
-                    
+
                     // Obsługa przekaźnika
                     const relayIndicator = elem.querySelector('.relay-indicator');
                     if (relayIndicator) {
@@ -1350,18 +1045,18 @@
                     }
                 }
             ],
-            
+
             // Przyciski
             'parameters.pressed': [
                 (elem, val) => {
                     const buttonSurface = elem.querySelector('.button-surface');
                     const buttonShadow = elem.querySelector('.button-shadow');
-                    
+
                     if (buttonSurface && buttonShadow) {
                         buttonSurface.setAttribute('cy', val ? '22' : '20');
                         buttonSurface.setAttribute('r', val ? '9' : '10');
                         buttonShadow.setAttribute('opacity', val ? '0.1' : '0.3');
-                        
+
                         // Jeśli chwilowe, zwolnij przycisk po 300ms
                         if (val && params.momentary) {
                             clearTimeout(elem.releaseTimeout);
@@ -1370,7 +1065,7 @@
                                 if (newMetadata && newMetadata.parameters) {
                                     newMetadata.parameters.pressed = false;
                                     metadataNode.textContent = JSON.stringify(newMetadata, null, 2);
-                                    
+
                                     // Rekursywne wywołanie do aktualizacji wyglądu
                                     applyParameterToSVG(elem, 'parameters.pressed', false);
                                 }
@@ -1379,7 +1074,7 @@
                     }
                 }
             ],
-            
+
             // Pokrętło i suwak (wartości numeryczne)
             'parameters.value': [
                 (elem, val) => {
@@ -1388,7 +1083,7 @@
                     const max = params.max || 100;
                     const safeVal = Math.min(Math.max(val, min), max);
                     const percentage = (safeVal - min) / (max - min);
-                    
+
                     // Obsługa pokrętła
                     const knobIndicator = elem.querySelector('.knob-indicator');
                     const knobValue = elem.querySelector('.knob-value');
@@ -1397,7 +1092,7 @@
                         knobIndicator.setAttribute('transform', `rotate(${angle} 20 20)`);
                         if (knobValue) knobValue.textContent = safeVal;
                     }
-                    
+
                     // Obsługa suwaka
                     const sliderHandle = elem.querySelector('.slider-handle');
                     const sliderProgress = elem.querySelector('.slider-progress');
@@ -1406,20 +1101,20 @@
                         const trackWidth = 40;
                         const startX = 10;
                         const handleX = startX + percentage * trackWidth;
-                        
+
                         sliderHandle.setAttribute('cx', handleX);
                         if (sliderProgress) {
                             sliderProgress.setAttribute('width', percentage * trackWidth);
                         }
                         if (sliderValue) sliderValue.textContent = safeVal;
                     }
-                    
+
                     // Obsługa licznika
                     const counterValue = elem.querySelector('.counter-value');
                     if (counterValue) {
                         animateCounterValue(counterValue, counterValue.textContent, safeVal);
                     }
-                    
+
                     // Obsługa miernika
                     const gaugeNeedle = elem.querySelector('.gauge-needle');
                     const gaugeValue = elem.querySelector('.gauge-value');
@@ -1432,11 +1127,11 @@
                 }
             ]
         };
-        
+
         // Funkcja do animacji obrotów igły w mierniku
         function animateNeedleRotation(needle, targetAngle) {
             if (!needle) return;
-            
+
             // Pobierz aktualny kąt z transformacji
             let currentAngle = 0;
             const transform = needle.getAttribute('transform');
@@ -1446,59 +1141,59 @@
                     currentAngle = parseFloat(match[1]);
                 }
             }
-            
+
             // Anuluj poprzednią animację
             if (needle.animation) {
                 clearInterval(needle.animation);
             }
-            
+
             // Ustaw animację
             const steps = 10;
             const stepDuration = 20;
             const angleDiff = targetAngle - currentAngle;
             let step = 0;
-            
+
             needle.animation = setInterval(() => {
                 step++;
                 const progress = step / steps;
                 const newAngle = currentAngle + progress * angleDiff;
-                
+
                 needle.setAttribute('transform', `rotate(${newAngle} 30 30)`);
-                
+
                 if (step >= steps) {
                     clearInterval(needle.animation);
                     needle.animation = null;
                 }
             }, stepDuration);
         }
-        
+
         // Funkcja do animacji zmiany wartości licznika
         function animateCounterValue(element, fromValue, toValue) {
             if (!element) return;
-            
+
             // Konwersja na liczby
             fromValue = parseFloat(fromValue) || 0;
             toValue = parseFloat(toValue);
-            
+
             // Anuluj poprzednią animację
             if (element.animation) {
                 clearInterval(element.animation);
             }
-            
+
             // Ustawienia animacji
             const steps = 15;
             const stepDuration = 30;
             const valueDiff = toValue - fromValue;
             let step = 0;
-            
+
             element.animation = setInterval(() => {
                 step++;
                 const progress = step / steps;
                 const newValue = fromValue + progress * valueDiff;
-                
+
                 // Aktualizuj wartość z odpowiednim formatowaniem
                 element.textContent = Math.round(newValue);
-                
+
                 if (step >= steps) {
                     clearInterval(element.animation);
                     element.animation = null;
@@ -1506,21 +1201,21 @@
                 }
             }, stepDuration);
         }
-        
+
         // Funkcja do obsługi migania diody LED
         function handleLedBlinking(ledElement) {
             if (!ledElement) return;
-            
+
             // Pobierz element jądra diody
             const ledCore = ledElement.querySelector('.led-core');
             if (!ledCore) return;
-            
+
             // Zatrzymaj istniejące miganie
             if (ledElement.blinkInterval) {
                 clearInterval(ledElement.blinkInterval);
                 ledElement.blinkInterval = null;
             }
-            
+
             // Ustaw nowy stan
             if (params.isBlinking && params.isOn) {
                 let on = true;
@@ -1533,14 +1228,14 @@
                 ledCore.setAttribute('fill', params.isOn ? params.color : '#333');
             }
         }
-        
+
         // Aplikuj zmiany parametrów
         const fullParamKey = paramKey.startsWith('parameters.') ? paramKey : `parameters.${paramKey}`;
-        
+
         // Sprawdź, czy mamy mapowanie dla tego parametru
         if (paramMappings[fullParamKey]) {
             const mapping = paramMappings[fullParamKey];
-            
+
             if (typeof mapping[0] === 'function') {
                 // Funkcja niestandardowa
                 mapping[0](svgElement, value);
@@ -1554,15 +1249,15 @@
                 }
             }
         }
-        
+
         // Specjalna obsługa dla LED
-        if (componentType === 'led' && (fullParamKey === 'parameters.isBlinking' || 
-            fullParamKey === 'parameters.isOn' || 
-            fullParamKey === 'parameters.color' || 
+        if (componentType === 'led' && (fullParamKey === 'parameters.isBlinking' ||
+            fullParamKey === 'parameters.isOn' ||
+            fullParamKey === 'parameters.color' ||
             fullParamKey === 'parameters.blinkRate')) {
             handleLedBlinking(svgElement);
         }
-        
+
         // Domyślna obsługa dla nieznanych typów i parametrów
         if (fullParamKey.startsWith('parameters.') && !paramMappings[fullParamKey]) {
             // Próba znalezienia elementu po ID równym nazwie parametru

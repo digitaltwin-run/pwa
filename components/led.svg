@@ -8,7 +8,7 @@
     <title>REST API Client - Interactive HTTP Request Interface</title>
     <desc>A PHP-powered SVG interface for making REST API requests with customizable HTTP methods and request bodies</desc>
 
-    <metadata>
+    <script type="application/json" id="metadata">
         {
         "id": "led-001",
         "name": "Animated LED",
@@ -22,7 +22,7 @@
             "isActive": true
             }
         }
-    </metadata>
+    </script>
 
     <!-- Obudowa -->
     <circle cx="20" cy="20" r="18" fill="#2c3e50" stroke="#1a252f" stroke-width="2"/>
@@ -38,7 +38,7 @@
       (function() {
         // Function to read metadata
         function getMetadata(svgElement) {
-          const metadataNode = svgElement.querySelector('metadata');
+          const metadataNode = svgElement.querySelector('script[type="application/json"][id="metadata"]');
           if (metadataNode && metadataNode.textContent.trim()) {
             try {
               return JSON.parse(metadataNode.textContent);
@@ -108,7 +108,7 @@
             metadata.parameters.isOn = !metadata.parameters.isOn;
             
             // Update metadata
-            svgElement.querySelector('metadata').textContent = 
+            svgElement.querySelector('script[type="application/json"][id="metadata"]').textContent = 
               JSON.stringify(metadata, null, 2);
             
             // Update appearance immediately
