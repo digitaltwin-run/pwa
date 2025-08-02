@@ -1,236 +1,285 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Digital Twin IDE</title>
-  <link rel="stylesheet" href="css/styles.css" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="assets/icons/icon-192.png" />
-  <style>
-    * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Digital Twin IDE</title>
+    <link rel="stylesheet" href="css/styles.css"/>
+    <link rel="manifest" href="manifest.json"/>
+    <link rel="icon" href="assets/icons/icon-192.png"/>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #f0f0f1;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f0f1;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
 
-/* Pasek narzędzi na górze */
-.toolbar {
-  background: #2c3e50;
-  padding: 10px;
-  text-align: right;
-  color: white;
-  font-size: 14px;
-  border-bottom: 1px solid #34495e;
-}
+        /* Pasek narzędzi na górze */
+        .toolbar {
+            background: #2c3e50;
+            padding: 10px;
+            text-align: right;
+            color: white;
+            font-size: 14px;
+            border-bottom: 1px solid #34495e;
+        }
 
-.toolbar button {
-  margin: 0 5px;
-  padding: 6px 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-}
+        .toolbar button {
+            margin: 0 5px;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
 
-/* Główny kontener – flex z trzema kolumnami */
-.container {
-  display: flex;
-  flex: 1; /* Wypełnia całą dostępną wysokość po toolbarze */
-  height: calc(100vh - 50px); /* Różnica dla toolbara */
-  overflow: hidden;
-}
+        /* Główny kontener – flex z trzema kolumnami */
+        .container {
+            display: flex;
+            flex: 1; /* Wypełnia całą dostępną wysokość po toolbarze */
+            height: calc(100vh - 50px); /* Różnica dla toolbara */
+            overflow: hidden;
+        }
 
-/* Boczne panele – stała szerokość */
-.sidebar {
-  width: 260px;
-  background: #2c3e50;
-  color: white;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
+        /* Boczne panele – stała szerokość */
+        .sidebar {
+            width: 260px;
+            background: #2c3e50;
+            color: white;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
 
-.sidebar h3 {
-  margin: 0;
-  padding: 15px;
-  font-size: 16px;
-  border-bottom: 1px solid #34495e;
-  background: #34495e;
-}
+        .sidebar h3 {
+            margin: 0;
+            padding: 15px;
+            font-size: 16px;
+            border-bottom: 1px solid #34495e;
+            background: #34495e;
+        }
 
-.component-list {
-  padding: 10px;
-  flex: 1;
-}
+        .component-list {
+            padding: 10px;
+            flex: 1;
+        }
 
-.component-item {
-  padding: 10px;
-  background: #3498db;
-  margin: 6px 0;
-  border-radius: 6px;
-  cursor: grab;
-  user-select: none;
-  font-size: 14px;
-  text-align: center;
-  transition: background 0.2s;
-}
+        .component-item {
+            padding: 10px;
+            background: #3498db;
+            margin: 6px 0;
+            border-radius: 6px;
+            cursor: grab;
+            user-select: none;
+            font-size: 14px;
+            text-align: center;
+            transition: background 0.2s;
+        }
 
-.component-item:hover {
-  background: #2980b9;
-}
+        .component-item:hover {
+            background: #2980b9;
+        }
 
-/* Plansza centralna – zajmuje całą resztę */
-.workspace {
-  flex: 1;
-  background: #ecf0f1;
-  border-left: 1px solid #bdc3c7;
-  border-right: 1px solid #bdc3c7;
-  overflow: hidden;
-  position: relative;
-}
+        /* Plansza centralna – zajmuje całą resztę */
+        .workspace {
+            flex: 1;
+            background: #ecf0f1;
+            border-left: 1px solid #bdc3c7;
+            border-right: 1px solid #bdc3c7;
+            overflow: hidden;
+            position: relative;
+        }
 
-#canvas {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  cursor: default;
-  background: white;
-}
+        #canvas {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+            cursor: default;
+            background: white;
+        }
 
-/* Panel właściwości – prawy sidebar */
-#property-editor {
-  padding: 10px;
-  color: #333;
-  font-size: 14px;
-}
+        /* Panel właściwości – prawy sidebar */
+        #property-editor {
+            padding: 10px;
+            color: #333;
+            font-size: 14px;
+        }
 
-#property-editor label {
-  display: block;
-  margin-top: 12px;
-  font-weight: 600;
-  color: #ecf0f1;
-  font-size: 13px;
-}
+        #property-editor label {
+            display: block;
+            margin-top: 12px;
+            font-weight: 600;
+            color: #ecf0f1;
+            font-size: 13px;
+        }
 
-#property-editor input {
-  width: 100%;
-  padding: 6px;
-  margin-top: 4px;
-  border: 1px solid #34495e;
-  border-radius: 4px;
-  font-size: 13px;
-}
+        #property-editor input {
+            width: 100%;
+            padding: 6px;
+            margin-top: 4px;
+            border: 1px solid #34495e;
+            border-radius: 4px;
+            font-size: 13px;
+        }
 
-#property-editor input[type="color"] {
-  height: 30px;
-}
+        #property-editor input[type="color"] {
+            height: 30px;
+        }
 
-#property-editor button {
-  margin-top: 15px;
-  padding: 8px;
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  width: 100%;
-}
+        #property-editor button {
+            margin-top: 15px;
+            padding: 8px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
 
-/* Panel symulacji – na dole */
-.simulation-panel {
-  background: #1a1a1a;
-  color: #fff;
-  padding: 10px;
-  font-family: 'Courier New', monospace;
-  font-size: 14px;
-  border-top: 1px solid #333;
-}
+        /* Panel symulacji – na dole */
+        .simulation-panel {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            border-top: 1px solid #333;
+        }
 
-.simulation-panel h3 {
-  margin: 0 0 10px 0;
-  font-size: 15px;
-}
+        .simulation-panel h3 {
+            margin: 0 0 10px 0;
+            font-size: 15px;
+        }
 
-.simulation-panel p {
-  margin: 5px 0;
-  font-size: 13px;
-  color: #ccc;
-}
-  </style>
+        .simulation-panel p {
+            margin: 5px 0;
+            font-size: 13px;
+            color: #ccc;
+        }
+        .component-button {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 8px 10px;
+            margin: 6px 0;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: grab;
+            user-select: none;
+            font-size: 14px;
+            transition: background 0.2s, transform 0.1s;
+            gap: 12px;
+            text-align: left;
+        }
+
+        .component-button:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        .component-button:active {
+            transform: translateY(0);
+        }
+
+        .component-button svg {
+            flex-shrink: 0;
+            width: 36px;
+            height: 36px;
+            border: 1px solid #fff;
+            border-radius: 6px;
+            background: white;
+            padding: 2px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .component-button span {
+            font-size: 14px;
+            font-weight: 500;
+            flex: 1;
+            margin-left: 4px;
+        }
+    </style>
 </head>
 <body>
 
-  <!-- Przyciski narzędzi -->
-  <div class="toolbar">
+<!-- Przyciski narzędzi -->
+<div class="toolbar">
     <button onclick="exportProject()" style="background: #27ae60; color: white;">📤 Eksportuj (.dtwin)</button>
     <button onclick="importProject()" style="background: #3498db; color: white;">📥 Importuj (.dtwin)</button>
     <button onclick="exportAsPNG()" style="background: #e67e22; color: white;">🖼️ PNG</button>
     <button onclick="exportAsSVG()" style="background: #3498db; color: white;">🟩 SVG</button>
     <button onclick="toggleConnectionMode()" style="background: #8e44ad; color: white;">🔗 Łącz komponenty</button>
-  </div>
+</div>
 
-  <!-- Panel symulacji -->
-  <div class="simulation-panel">
+<!-- Panel symulacji -->
+<div class="simulation-panel">
     <h3>📊 Symulacja Danych</h3>
     <button onclick="startSimulation()" style="background: #27ae60; color: white;">▶️ Start</button>
     <button onclick="stopSimulation()" style="background: #e74c3c; color: white;">⏸️ Stop</button>
     <div id="simulation-list" style="margin-top: 10px; max-height: 150px; overflow-y: auto;">
-      <p><i>Brak komponentów do symulacji</i></p>
+        <p><i>Brak komponentów do symulacji</i></p>
     </div>
-  </div>
+</div>
 
-  <!-- Główny układ -->
-  <div class="container">
+<!-- Główny układ -->
+<div class="container">
     <!-- Lewa kolumna: Komponenty -->
     <aside class="sidebar left">
-      <h3>🔧 Komponenty</h3>
-      <div class="component-list" id="component-library">
-        <div class="component-item" data-svg="components/sensor.svg" draggable="true">Czujnik</div>
-        <div class="component-item" data-svg="components/motor.svg" draggable="true">Silnik</div>
-        <div class="component-item" data-svg="components/valve.svg" draggable="true">Zawór</div>
-        <div class="component-item" data-svg="components/pump.svg" draggable="true">Pompa</div>
-        <div class="component-item" data-svg="components/display.svg" draggable="true">LCD</div>
-      </div>
+        <h3>🔧 Komponenty</h3>
+        <div class="component-list" id="component-library">
+            <!-- Komponenty będą dodawane dynamicznie z ikonami -->
+        </div>
     </aside>
 
     <!-- Środkowa: Plansza -->
     <main class="workspace" id="workspace">
-      <svg id="canvas" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-        <!-- Definicje: siatka i strzałka -->
-        <defs>
-          <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5"
-                  markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="#2c3e50" />
-          </marker>
-          <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#ddd" stroke-width="0.5"/>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#grid)" />
-        <!-- Komponenty i linie będą dodawane tutaj -->
-      </svg>
+        <svg id="canvas" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <!-- Definicje: siatka i strzałka -->
+            <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5"
+                        markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#2c3e50"/>
+                </marker>
+                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#ddd" stroke-width="0.5"/>
+                </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)"/>
+            <!-- Komponenty i linie będą dodawane tutaj -->
+        </svg>
     </main>
 
     <!-- Prawa: Właściwości -->
     <aside class="sidebar right">
-      <h3>⚙️ Właściwości</h3>
-      <div id="property-editor">
-        <p>Wybierz komponent, aby edytować.</p>
-      </div>
+        <h3>⚙️ Właściwości</h3>
+        <div id="property-editor">
+            <p>Wybierz komponent, aby edytować.</p>
+        </div>
     </aside>
-  </div>
+</div>
 
-  <script>
+<script>
+    // Lista komponentów – ścieżka, nazwa, opcjonalnie ikona (jeśli inna)
+    const COMPONENTS = [
+        { svg: "components/sensor.svg", name: "Czujnik", id: "sensor" },
+        { svg: "components/motor.svg", name: "Silnik", id: "motor" },
+        { svg: "components/valve.svg", name: "Zawór", id: "valve" },
+        { svg: "components/pump.svg", name: "Pompa", id: "pump" },
+        { svg: "components/display.svg", name: "Wyświetlacz", id: "display" }
+    ];
+
     // --- ZMIENNE GLOBALNE ---
     let selectedElement = null;
     let componentIdCounter = 0;
@@ -240,139 +289,143 @@ body {
 
     // --- OBSŁUGA PRZECIĄGANIA KOMPONENTÓW ---
     document.getElementById("component-library").addEventListener("dragstart", (e) => {
-      const target = e.target.closest(".component-item");
-      if (target) {
-        e.dataTransfer.setData("text/plain", target.dataset.svg);
-      }
+        const target = e.target.closest(".component-item");
+        if (target) {
+            e.dataTransfer.setData("text/plain", target.dataset.svg);
+        }
     });
 
     const canvas = document.getElementById("canvas");
     canvas.addEventListener("dragover", (e) => e.preventDefault());
 
     canvas.addEventListener("drop", async (e) => {
-      e.preventDefault();
-      const svgUrl = e.dataTransfer.getData("text/plain");
-      const canvasX = e.offsetX;
-      const canvasY = e.offsetY;
+        e.preventDefault();
+        const svgUrl = e.dataTransfer.getData("text/plain");
+        const canvasX = e.offsetX;
+        const canvasY = e.offsetY;
 
-      if (svgUrl) {
-        try {
-          const response = await fetch(svgUrl);
-          const svgText = await response.text();
-          const parser = new DOMParser();
-          const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
-          const svgElement = svgDoc.documentElement;
-
-          // Generuj nowe ID
-          const componentId = `comp-${componentIdCounter++}`;
-          svgElement.setAttribute("data-id", componentId);
-          svgElement.setAttribute("data-svg-url", svgUrl);
-          svgElement.setAttribute("class", "draggable-component");
-          svgElement.setAttribute("style", "cursor: move;");
-
-          // Pobierz lub utwórz metadane
-          let metadataNode = svgElement.querySelector("metadata");
-          let metadata = { parameters: {} };
-
-          if (metadataNode) {
+        if (svgUrl) {
             try {
-              metadata = JSON.parse(metadataNode.textContent);
-            } catch (e) {
-              console.warn("Niepoprawne metadane w oryginalnym SVG");
+                const response = await fetch(svgUrl);
+                const svgText = await response.text();
+                const parser = new DOMParser();
+                const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
+                const svgElement = svgDoc.documentElement;
+
+                // Generuj nowe ID
+                const componentId = `comp-${componentIdCounter++}`;
+                svgElement.setAttribute("data-id", componentId);
+                svgElement.setAttribute("data-svg-url", svgUrl);
+                svgElement.setAttribute("class", "draggable-component");
+                svgElement.setAttribute("style", "cursor: move;");
+
+                // Pobierz lub utwórz metadane
+                let metadataNode = svgElement.querySelector("metadata");
+                let metadata = {parameters: {}};
+
+                if (metadataNode) {
+                    try {
+                        metadata = JSON.parse(metadataNode.textContent);
+                    } catch (e) {
+                        console.warn("Niepoprawne metadane w oryginalnym SVG");
+                    }
+                } else {
+                    // Utwórz nowe <metadata>, jeśli nie istnieje
+                    metadataNode = svgDoc.createElementNS("http://www.w3.org/2000/svg", "metadata");
+                    svgElement.prepend(metadataNode);
+                }
+
+                // Dodaj lub zaktualizuj pozycję w metadanych
+                metadata.position = {x: canvasX, y: canvasY};
+                metadata.id = metadata.id || componentId; // Zachowaj ID z pliku lub nadaj nowe
+                metadata.instanceId = componentId; // Unikalne ID instancji
+
+                // Zapisz zaktualizowane metadane
+                metadataNode.textContent = JSON.stringify(metadata, null, 2);
+
+                // Ustaw pozycję kontenera SVG
+                svgElement.setAttribute("x", canvasX - (metadata.parameters.size || 50) / 2);
+                svgElement.setAttribute("y", canvasY - (metadata.parameters.size || 50) / 2);
+
+                // Zdarzenia
+                svgElement.addEventListener("click", (ev) => {
+                    ev.stopPropagation();
+                    if (connectionMode) {
+                        startConnection(svgElement);
+                    } else {
+                        selectComponent(svgElement);
+                    }
+                });
+
+                makeDraggable(svgElement);
+                canvas.appendChild(svgElement);
+
+                // Odśwież panel symulacji
+                setTimeout(refreshSimulationList, 100);
+            } catch (err) {
+                console.error("Błąd ładowania SVG:", err);
             }
-          } else {
-            // Utwórz nowe <metadata>, jeśli nie istnieje
-            metadataNode = svgDoc.createElementNS("http://www.w3.org/2000/svg", "metadata");
-            svgElement.prepend(metadataNode);
-          }
-
-          // Dodaj lub zaktualizuj pozycję w metadanych
-          metadata.position = { x: canvasX, y: canvasY };
-          metadata.id = metadata.id || componentId; // Zachowaj ID z pliku lub nadaj nowe
-          metadata.instanceId = componentId; // Unikalne ID instancji
-
-          // Zapisz zaktualizowane metadane
-          metadataNode.textContent = JSON.stringify(metadata, null, 2);
-
-          // Ustaw pozycję kontenera SVG
-          svgElement.setAttribute("x", canvasX - (metadata.parameters.size || 50) / 2);
-          svgElement.setAttribute("y", canvasY - (metadata.parameters.size || 50) / 2);
-
-          // Zdarzenia
-          svgElement.addEventListener("click", (ev) => {
-            ev.stopPropagation();
-            if (connectionMode) {
-              startConnection(svgElement);
-            } else {
-              selectComponent(svgElement);
-            }
-          });
-
-          makeDraggable(svgElement);
-          canvas.appendChild(svgElement);
-
-          // Odśwież panel symulacji
-          setTimeout(refreshSimulationList, 100);
-        } catch (err) {
-          console.error("Błąd ładowania SVG:", err);
         }
-      }
     });
 
 
     // --- WYBÓR KOMPONENTU ---
     function selectComponent(el) {
-      if (selectedElement) {
-        selectedElement.style.outline = "";
-      }
-      selectedElement = el;
-      el.style.outline = "2px solid red";
-      showProperties(el);
+        if (selectedElement) {
+            selectedElement.style.outline = "";
+        }
+        selectedElement = el;
+        el.style.outline = "2px solid red";
+        showProperties(el);
     }
 
     // --- EDYCJA WŁAŚCIWOŚCI ---
     function showProperties(svgInstance) {
-      const metadataNode = svgInstance.querySelector("metadata");
-      let metadata;
+        const metadataNode = svgInstance.querySelector("metadata");
+        let metadata;
 
-      try {
-        metadata = metadataNode ? JSON.parse(metadataNode.textContent) : {};
-      } catch (e) {
-        metadata = { id: "unknown", parameters: {}, position: { x: 0, y: 0 } };
-      }
-
-      const params = metadata.parameters || {};
-      const compId = metadata.instanceId;
-
-      let formHTML = `<h4>${metadata.name || "Komponent"}</h4>`;
-
-      // Edycja parametrów
-      for (const [key, value] of Object.entries(params)) {
-        formHTML += `<label>${formatLabel(key)}:</label>`;
-        if (typeof value === "string" && value.startsWith("#")) {
-          formHTML += `<input type="color" value="${value}" onchange="updateParam('${compId}', '${key}', this.value, 'string')">`;
-        } else if (typeof value === "number") {
-          const min = key.includes("min") ? "" : "min='0'";
-          const max = key.includes("max") ? "" : "max='200'";
-          formHTML += `<input type="number" ${min} ${max} value="${value}" onchange="updateParam('${compId}', '${key}', this.value, 'number')">`;
-        } else if (typeof value === "boolean") {
-          const checked = value ? "checked" : "";
-          formHTML += `<input type="checkbox" ${checked} onchange="updateParam('${compId}', '${key}', this.checked, 'boolean')">`;
-        } else {
-          formHTML += `<input type="text" value="${value}" onchange="updateParam('${compId}', '${key}', this.value, 'string')">`;
+        try {
+            metadata = metadataNode ? JSON.parse(metadataNode.textContent) : {};
+        } catch (e) {
+            metadata = {id: "unknown", parameters: {}, position: {x: 0, y: 0}};
         }
-        formHTML += `<br>`;
-      }
 
-      // Edycja pozycji (tylko do odczytu lub edycji)
-      formHTML += `
-        <label>Pozycja X:</label>
-        <input type="number" value="${Math.round(metadata.position.x)}" disabled><br>
-        <label>Pozycja Y:</label>
-        <input type="number" value="${Math.round(metadata.position.y)}" disabled><br>
-      `;
+        const params = metadata.parameters || {};
+        const compId = metadata.instanceId;
 
-      formHTML += `
+        let formHTML = `<h4>${metadata.name || "Komponent"}</h4>`;
+
+        // Edycja parametrów
+        for (const [key, value] of Object.entries(params)) {
+            formHTML += `<label>${formatLabel(key)}:</label>`;
+            if (typeof value === "string" && value.startsWith("#")) {
+                formHTML += `<input type="color" value="${value}" onchange="updateParam('${compId}', '${key}', this.value, 'string')">`;
+            } else if (typeof value === "number") {
+                const min = key.includes("min") ? "" : "min='0'";
+                const max = key.includes("max") ? "" : "max='200'";
+                formHTML += `<input type="number" ${min} ${max} value="${value}" onchange="updateParam('${compId}', '${key}', this.value, 'number')">`;
+            } else if (typeof value === "boolean") {
+                const checked = value ? "checked" : "";
+                formHTML += `<input type="checkbox" ${checked} onchange="updateParam('${compId}', '${key}', this.checked, 'boolean')">`;
+            } else {
+                formHTML += `<input type="text" value="${value}" onchange="updateParam('${compId}', '${key}', this.value, 'string')">`;
+            }
+            formHTML += `<br>`;
+        }
+
+        // Edycja pozycji (tylko do odczytu lub edycji)
+        formHTML += `
+          <label>Pozycja X:</label>
+          <input type="number" value="${Math.round(metadata.position.x)}"
+                 onchange="updatePosition('${compId}', 'x', this.value)" id="prop-x">
+          <br>
+          <label>Pozycja Y:</label>
+          <input type="number" value="${Math.round(metadata.position.y)}"
+                 onchange="updatePosition('${compId}', 'y', this.value)" id="prop-y">
+          <br>
+        `;
+
+        formHTML += `
         <br>
         <button onclick="addParameter('${compId}')">➕ Dodaj parametr</button>
         <button onclick="editMetadataRaw('${compId}')">🔧 Edytuj JSON</button>
@@ -380,265 +433,273 @@ body {
         <button onclick="removeComponent('${compId}')">❌ Usuń</button>
       `;
 
-      document.getElementById("property-editor").innerHTML = formHTML;
+        document.getElementById("property-editor").innerHTML = formHTML;
     }
 
     function formatLabel(key) {
-      return key.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase());
+        return key.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase());
     }
 
     window.updateParam = (id, paramKey, value, type) => {
-      if (type === "number") value = parseFloat(value);
-      if (type === "boolean") value = value === true || value === "true";
+        if (type === "number") value = parseFloat(value);
+        if (type === "boolean") value = value === true || value === "true";
 
-      const svgInstance = document.querySelector(`[data-id="${id}"]`);
-      if (!svgInstance) return;
+        const svgInstance = document.querySelector(`[data-id="${id}"]`);
+        if (!svgInstance) return;
 
-      updateMetadataInSVG(svgInstance, `parameters.${paramKey}`, value);
-      applyParameterToSVG(svgInstance, paramKey, value);
+        updateMetadataInSVG(svgInstance, `parameters.${paramKey}`, value);
+        applyParameterToSVG(svgInstance, paramKey, value);
     };
 
     function updateMetadataInSVG(svgElement, path, value) {
-      const metadataNode = svgElement.querySelector("metadata");
-      if (!metadataNode) return;
-
-      let metadata;
-      try {
-        metadata = JSON.parse(metadataNode.textContent);
-      } catch (e) {
-        metadata = { id: "unknown", parameters: {} };
-      }
-
-      const keys = path.split(".");
-      let ref = metadata;
-      for (let i = 0; i < keys.length - 1; i++) {
-        if (!ref[keys[i]]) ref[keys[i]] = {};
-        ref = ref[keys[i]];
-      }
-      ref[keys[keys.length - 1]] = value;
-
-      metadataNode.textContent = JSON.stringify(metadata, null, 2);
-    }
-
-    function applyParameterToSVG(svgInstance, paramKey, value) {
-      const content = svgInstance.content || svgInstance;
-
-      switch (paramKey) {
-        case "color":
-          const body = content.querySelector("#body");
-          if (body) body.setAttribute("fill", value);
-          break;
-        case "label":
-          const label = content.querySelector("#label");
-          if (label) label.textContent = value;
-          break;
-        case "value":
-          const valText = content.querySelector("#value");
-          if (valText) {
-            const unit = svgInstance.querySelector("metadata") ? JSON.parse(svgInstance.querySelector("metadata").textContent).parameters.unit || "" : "";
-            valText.textContent = `${value}${unit}`;
-          }
-          break;
-        case "size":
-          const size = parseInt(value);
-          const rect = content.querySelector("#body");
-          if (rect) {
-            const offset = (size - 50) / 2;
-            rect.setAttribute("x", 5 + offset);
-            rect.setAttribute("y", 5 + offset);
-            rect.setAttribute("width", size);
-            rect.setAttribute("height", size);
-          }
-          break;
-        case "isActive":
-          svgInstance.style.opacity = value ? 1 : 0.5;
-          break;
-        default:
-          const dynText = content.querySelector(`#param-${paramKey}`);
-          if (dynText) dynText.textContent = value;
-      }
-    }
-
-    window.removeComponent = (id) => {
-      const el = document.querySelector(`[data-id="${id}"]`);
-      if (el) {
-        el.remove();
-        document.getElementById("property-editor").innerHTML = "<p>Komponent usunięty.</p>";
-        selectedElement = null;
-        setTimeout(refreshSimulationList, 100);
-      }
-    };
-
-    // --- PRZECIĄGANIE KOMPONENTÓW PO PLANSZY ---
-    function makeDraggable(el) {
-      let isDragging = false;
-      let offsetX, offsetY;
-
-      el.addEventListener("mousedown", (e) => {
-        if (connectionMode) return;
-        if (selectedElement !== el) selectComponent(el);
-        isDragging = true;
-
-        const bbox = el.getBBox();
-        offsetX = e.clientX - (parseFloat(el.getAttribute("x")) + bbox.width / 2);
-        offsetY = e.clientY - (parseFloat(el.getAttribute("y")) + bbox.height / 2);
-        e.preventDefault();
-      });
-
-      document.addEventListener("mousemove", (e) => {
-        if (!isDragging || !selectedElement) return;
-        const x = e.clientX - offsetX;
-        const y = e.clientY - offsetY;
-
-        selectedElement.setAttribute("x", x);
-        selectedElement.setAttribute("y", y);
-
-        // Zaktualizuj metadata
-        const metadataNode = selectedElement.querySelector("metadata");
-        if (metadataNode) {
-          let metadata;
-          try {
-            metadata = JSON.parse(metadataNode.textContent);
-          } catch (e) {
-            return;
-          }
-          metadata.position = {
-            x: Math.round(x + (metadata.parameters.size || 50) / 2),
-            y: Math.round(y + (metadata.parameters.size || 50) / 2)
-          };
-          metadataNode.textContent = JSON.stringify(metadata, null, 2);
-        }
-      });
-
-      document.addEventListener("mouseup", () => {
-        isDragging = false;
-      });
-    }
-
-    // --- ŁĄCZENIE KOMPONENTÓW ---
-    window.toggleConnectionMode = () => {
-      connectionMode = !connectionMode;
-      canvas.style.cursor = connectionMode ? "crosshair" : "default";
-      alert(connectionMode ? "🔁 Tryb łączenia: kliknij dwa komponenty." : "🎯 Tryb edycji.");
-      if (!connectionMode && firstComponent) {
-        firstComponent.style.outline = "";
-        firstComponent = null;
-      }
-    };
-
-    function startConnection(svgElement) {
-      const metadataNode = svgElement.querySelector("metadata");
-      if (!metadataNode) return;
-
-      let metadata;
-      try {
-        metadata = JSON.parse(metadataNode.textContent);
-      } catch (e) {
-        return;
-      }
-
-      if (!metadata.position) {
-        alert("Ten komponent nie jest jeszcze umieszczony na planszy.");
-        return;
-      }
-
-      if (!connectionMode) return;
-
-      if (!firstComponent) {
-        firstComponent = svgElement;
-        svgElement.style.outline = "3px dashed yellow";
-      } else {
-        if (firstComponent !== svgElement) {
-          createConnection(firstComponent, svgElement);
-        }
-        firstComponent.style.outline = "";
-        firstComponent = null;
-      }
-    }
-
-    function createConnection(comp1, comp2) {
-      const x1 = parseFloat(comp1.getAttribute("x")) + 30;
-      const y1 = parseFloat(comp1.getAttribute("y")) + 30;
-      const x2 = parseFloat(comp2.getAttribute("x")) + 30;
-      const y2 = parseFloat(comp2.getAttribute("y")) + 30;
-
-      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      line.setAttribute("x1", x1);
-      line.setAttribute("y1", y1);
-      line.setAttribute("x2", x2);
-      line.setAttribute("y2", y2);
-      line.setAttribute("stroke", "#2c3e50");
-      line.setAttribute("stroke-width", "2");
-      line.setAttribute("marker-end", "url(#arrow)");
-      line.dataset.connection = "true";
-
-      canvas.appendChild(line);
-    }
-
-    // --- EKSPORT / IMPORT ---
-    window.exportProject = () => {
-      const components = [];
-      const lines = [];
-
-      document.querySelectorAll("#canvas > svg[data-id]").forEach(instance => {
-        const metadataNode = instance.querySelector("metadata");
+        const metadataNode = svgElement.querySelector("metadata");
         if (!metadataNode) return;
 
         let metadata;
         try {
-          metadata = JSON.parse(metadataNode.textContent);
-        } catch (e) { return; }
+            metadata = JSON.parse(metadataNode.textContent);
+        } catch (e) {
+            metadata = {id: "unknown", parameters: {}};
+        }
 
-        components.push({
-          id: metadata.id,
-          svgUrl: instance.dataset.svgUrl,
-          x: parseFloat(instance.getAttribute("x")),
-          y: parseFloat(instance.getAttribute("y")),
-          metadata: metadata
+        const keys = path.split(".");
+        let ref = metadata;
+        for (let i = 0; i < keys.length - 1; i++) {
+            if (!ref[keys[i]]) ref[keys[i]] = {};
+            ref = ref[keys[i]];
+        }
+        ref[keys[keys.length - 1]] = value;
+
+        metadataNode.textContent = JSON.stringify(metadata, null, 2);
+    }
+
+    function applyParameterToSVG(svgInstance, paramKey, value) {
+        const content = svgInstance.content || svgInstance;
+
+        switch (paramKey) {
+            case "color":
+                const body = content.querySelector("#body");
+                if (body) body.setAttribute("fill", value);
+                break;
+            case "label":
+                const label = content.querySelector("#label");
+                if (label) label.textContent = value;
+                break;
+            case "value":
+                const valText = content.querySelector("#value");
+                if (valText) {
+                    const unit = svgInstance.querySelector("metadata") ? JSON.parse(svgInstance.querySelector("metadata").textContent).parameters.unit || "" : "";
+                    valText.textContent = `${value}${unit}`;
+                }
+                break;
+            case "size":
+                const size = parseInt(value);
+                const rect = content.querySelector("#body");
+                if (rect) {
+                    const offset = (size - 50) / 2;
+                    rect.setAttribute("x", 5 + offset);
+                    rect.setAttribute("y", 5 + offset);
+                    rect.setAttribute("width", size);
+                    rect.setAttribute("height", size);
+                }
+                break;
+            case "isActive":
+                svgInstance.style.opacity = value ? 1 : 0.5;
+                break;
+            default:
+                const dynText = content.querySelector(`#param-${paramKey}`);
+                if (dynText) dynText.textContent = value;
+        }
+    }
+
+    window.removeComponent = (id) => {
+        const el = document.querySelector(`[data-id="${id}"]`);
+        if (el) {
+            el.remove();
+            document.getElementById("property-editor").innerHTML = "<p>Komponent usunięty.</p>";
+            selectedElement = null;
+            setTimeout(refreshSimulationList, 100);
+        }
+    };
+
+    // --- PRZECIĄGANIE KOMPONENTÓW PO PLANSZY ---
+    function makeDraggable(el) {
+        let isDragging = false;
+        let offsetX, offsetY;
+
+        el.addEventListener("mousedown", (e) => {
+            if (connectionMode) return;
+            if (selectedElement !== el) selectComponent(el);
+            isDragging = true;
+
+            const bbox = el.getBBox();
+            offsetX = e.clientX - (parseFloat(el.getAttribute("x")) + bbox.width / 2);
+            offsetY = e.clientY - (parseFloat(el.getAttribute("y")) + bbox.height / 2);
+            e.preventDefault();
         });
-      });
 
-      document.querySelectorAll("#canvas > line[data-connection]").forEach(line => {
-        lines.push({
-          x1: line.getAttribute("x1"),
-          y1: line.getAttribute("y1"),
-          x2: line.getAttribute("x2"),
-          y2: line.getAttribute("y2")
+        document.addEventListener("mousemove", (e) => {
+            if (!isDragging || !selectedElement) return;
+            const x = e.clientX - offsetX;
+            const y = e.clientY - offsetY;
+
+            selectedElement.setAttribute("x", x);
+            selectedElement.setAttribute("y", y);
+
+            // Aktualizuj metadane
+            const metadataNode = selectedElement.querySelector("metadata");
+            if (metadataNode) {
+                let metadata;
+                try {
+                    metadata = JSON.parse(metadataNode.textContent);
+                } catch (e) {
+                    return;
+                }
+
+                // Aktualizuj pozycję w metadanych
+                metadata.position = {
+                    x: Math.round(x + (metadata.parameters?.size || 50) / 2),
+                    y: Math.round(y + (metadata.parameters?.size || 50) / 2)
+                };
+
+                metadataNode.textContent = JSON.stringify(metadata, null, 2);
+            }
+
+            // 🔁 Odśwież panel właściwości w czasie rzeczywistym
+            showProperties(selectedElement);
         });
-      });
 
-      const project = {
-        version: "1.1",
-        createdAt: new Date().toISOString(),
-        components,
-        connections: lines
-      };
+        document.addEventListener("mouseup", () => {
+            isDragging = false;
+        });
+    }
 
-      const blob = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `digital-twin-${new Date().toISOString().split("T")[0]}.dtwin.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+    // --- ŁĄCZENIE KOMPONENTÓW ---
+    window.toggleConnectionMode = () => {
+        connectionMode = !connectionMode;
+        canvas.style.cursor = connectionMode ? "crosshair" : "default";
+        alert(connectionMode ? "🔁 Tryb łączenia: kliknij dwa komponenty." : "🎯 Tryb edycji.");
+        if (!connectionMode && firstComponent) {
+            firstComponent.style.outline = "";
+            firstComponent = null;
+        }
+    };
+
+    function startConnection(svgElement) {
+        const metadataNode = svgElement.querySelector("metadata");
+        if (!metadataNode) return;
+
+        let metadata;
+        try {
+            metadata = JSON.parse(metadataNode.textContent);
+        } catch (e) {
+            return;
+        }
+
+        if (!metadata.position) {
+            alert("Ten komponent nie jest jeszcze umieszczony na planszy.");
+            return;
+        }
+
+        if (!connectionMode) return;
+
+        if (!firstComponent) {
+            firstComponent = svgElement;
+            svgElement.style.outline = "3px dashed yellow";
+        } else {
+            if (firstComponent !== svgElement) {
+                createConnection(firstComponent, svgElement);
+            }
+            firstComponent.style.outline = "";
+            firstComponent = null;
+        }
+    }
+
+    function createConnection(comp1, comp2) {
+        const x1 = parseFloat(comp1.getAttribute("x")) + 30;
+        const y1 = parseFloat(comp1.getAttribute("y")) + 30;
+        const x2 = parseFloat(comp2.getAttribute("x")) + 30;
+        const y2 = parseFloat(comp2.getAttribute("y")) + 30;
+
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", x1);
+        line.setAttribute("y1", y1);
+        line.setAttribute("x2", x2);
+        line.setAttribute("y2", y2);
+        line.setAttribute("stroke", "#2c3e50");
+        line.setAttribute("stroke-width", "2");
+        line.setAttribute("marker-end", "url(#arrow)");
+        line.dataset.connection = "true";
+
+        canvas.appendChild(line);
+    }
+
+    // --- EKSPORT / IMPORT ---
+    window.exportProject = () => {
+        const components = [];
+        const lines = [];
+
+        document.querySelectorAll("#canvas > svg[data-id]").forEach(instance => {
+            const metadataNode = instance.querySelector("metadata");
+            if (!metadataNode) return;
+
+            let metadata;
+            try {
+                metadata = JSON.parse(metadataNode.textContent);
+            } catch (e) {
+                return;
+            }
+
+            components.push({
+                id: metadata.id,
+                svgUrl: instance.dataset.svgUrl,
+                x: parseFloat(instance.getAttribute("x")),
+                y: parseFloat(instance.getAttribute("y")),
+                metadata: metadata
+            });
+        });
+
+        document.querySelectorAll("#canvas > line[data-connection]").forEach(line => {
+            lines.push({
+                x1: line.getAttribute("x1"),
+                y1: line.getAttribute("y1"),
+                x2: line.getAttribute("x2"),
+                y2: line.getAttribute("y2")
+            });
+        });
+
+        const project = {
+            version: "1.1",
+            createdAt: new Date().toISOString(),
+            components,
+            connections: lines
+        };
+
+        const blob = new Blob([JSON.stringify(project, null, 2)], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `digital-twin-${new Date().toISOString().split("T")[0]}.dtwin.json`;
+        a.click();
+        URL.revokeObjectURL(url);
     };
 
     window.importProject = () => {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = ".dtwin.json";
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".dtwin.json";
 
-      input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
 
-        try {
-          const content = await file.text();
-          const project = JSON.parse(content);
+            try {
+                const content = await file.text();
+                const project = JSON.parse(content);
 
-          // Wyczyść
-          const canvas = document.getElementById("canvas");
-          canvas.innerHTML = `
+                // Wyczyść
+                const canvas = document.getElementById("canvas");
+                canvas.innerHTML = `
             <defs>
               <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                 <path d="M 0 0 L 10 5 L 0 10 z" fill="#2c3e50" />
@@ -650,226 +711,333 @@ body {
             <rect width="100%" height="100%" fill="url(#grid)" />
           `;
 
-          // Wczytaj komponenty
-          for (const comp of project.components) {
-            try {
-              const response = await fetch(comp.svgUrl);
-              const svgText = await response.text();
-              const parser = new DOMParser();
-              const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
-              const svgElement = svgDoc.documentElement;
+                // Wczytaj komponenty
+                for (const comp of project.components) {
+                    try {
+                        const response = await fetch(comp.svgUrl);
+                        const svgText = await response.text();
+                        const parser = new DOMParser();
+                        const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
+                        const svgElement = svgDoc.documentElement;
 
-              const metadataNode = svgElement.querySelector("metadata");
-              if (metadataNode) {
-                metadataNode.textContent = JSON.stringify(comp.metadata, null, 2);
-              }
+                        const metadataNode = svgElement.querySelector("metadata");
+                        if (metadataNode) {
+                            metadataNode.textContent = JSON.stringify(comp.metadata, null, 2);
+                        }
 
-              svgElement.setAttribute("data-id", comp.id);
-              svgElement.setAttribute("data-svgUrl", comp.svgUrl);
-              svgElement.setAttribute("x", comp.x);
-              svgElement.setAttribute("y", comp.y);
-              svgElement.setAttribute("style", "cursor: move;");
+                        svgElement.setAttribute("data-id", comp.id);
+                        svgElement.setAttribute("data-svgUrl", comp.svgUrl);
+                        svgElement.setAttribute("x", comp.x);
+                        svgElement.setAttribute("y", comp.y);
+                        svgElement.setAttribute("style", "cursor: move;");
 
-              svgElement.addEventListener("click", () => selectComponent(svgElement));
-              makeDraggable(svgElement);
+                        svgElement.addEventListener("click", () => selectComponent(svgElement));
+                        makeDraggable(svgElement);
 
-              canvas.appendChild(svgElement);
+                        canvas.appendChild(svgElement);
+                    } catch (err) {
+                        console.error("Błąd komponentu:", err);
+                    }
+                }
+
+                // Wczytaj linie
+                project.connections.forEach(conn => {
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", conn.x1);
+                    line.setAttribute("y1", conn.y1);
+                    line.setAttribute("x2", conn.x2);
+                    line.setAttribute("y2", conn.y2);
+                    line.setAttribute("stroke", "#2c3e50");
+                    line.setAttribute("stroke-width", "2");
+                    line.setAttribute("marker-end", "url(#arrow)");
+                    line.dataset.connection = "true";
+                    canvas.appendChild(line);
+                });
+
+                setTimeout(refreshSimulationList, 500);
+                alert(`Import: ${project.components.length} komponentów, ${project.connections.length} połączeń.`);
             } catch (err) {
-              console.error("Błąd komponentu:", err);
+                alert("Błąd importu!");
+                console.error(err);
             }
-          }
+        };
 
-          // Wczytaj linie
-          project.connections.forEach(conn => {
-            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            line.setAttribute("x1", conn.x1);
-            line.setAttribute("y1", conn.y1);
-            line.setAttribute("x2", conn.x2);
-            line.setAttribute("y2", conn.y2);
-            line.setAttribute("stroke", "#2c3e50");
-            line.setAttribute("stroke-width", "2");
-            line.setAttribute("marker-end", "url(#arrow)");
-            line.dataset.connection = "true";
-            canvas.appendChild(line);
-          });
-
-          setTimeout(refreshSimulationList, 500);
-          alert(`Import: ${project.components.length} komponentów, ${project.connections.length} połączeń.`);
-        } catch (err) {
-          alert("Błąd importu!");
-          console.error(err);
-        }
-      };
-
-      input.click();
+        input.click();
     };
 
     // --- EKSPORT JAKO OBRAZ ---
     window.exportAsPNG = () => {
-      const svgData = new XMLSerializer().serializeToString(canvas);
-      const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
-      const url = URL.createObjectURL(svgBlob);
+        const svgData = new XMLSerializer().serializeToString(canvas);
+        const svgBlob = new Blob([svgData], {type: "image/svg+xml;charset=utf-8"});
+        const url = URL.createObjectURL(svgBlob);
 
-      const img = new Image();
-      img.onload = () => {
-        const canvas2 = document.createElement("canvas");
-        canvas2.width = img.width;
-        canvas2.height = img.height;
-        const ctx = canvas2.getContext("2d");
-        ctx.drawImage(img, 0, 0);
+        const img = new Image();
+        img.onload = () => {
+            const canvas2 = document.createElement("canvas");
+            canvas2.width = img.width;
+            canvas2.height = img.height;
+            const ctx = canvas2.getContext("2d");
+            ctx.drawImage(img, 0, 0);
 
-        canvas2.toBlob((blob) => {
-          const a = document.createElement("a");
-          a.href = URL.createObjectURL(blob);
-          a.download = `digital-twin-${Date.now()}.png`;
-          a.click();
-          URL.revokeObjectURL(a.href);
-        });
+            canvas2.toBlob((blob) => {
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = `digital-twin-${Date.now()}.png`;
+                a.click();
+                URL.revokeObjectURL(a.href);
+            });
 
-        URL.revokeObjectURL(url);
-      };
-      img.src = url;
+            URL.revokeObjectURL(url);
+        };
+        img.src = url;
     };
 
     window.exportAsSVG = () => {
-      const source = new XMLSerializer().serializeToString(canvas);
-      const blob = new Blob([source], { type: "image/svg+xml" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `digital-twin-${Date.now()}.svg`;
-      a.click();
-      URL.revokeObjectURL(url);
+        const source = new XMLSerializer().serializeToString(canvas);
+        const blob = new Blob([source], {type: "image/svg+xml"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `digital-twin-${Date.now()}.svg`;
+        a.click();
+        URL.revokeObjectURL(url);
     };
 
     // --- SYMULACJA DANYCH ---
     window.startSimulation = () => {
-      if (simulationInterval) return;
+        if (simulationInterval) return;
 
-      simulationInterval = setInterval(() => {
-        document.querySelectorAll("#canvas > svg[data-id]").forEach(comp => {
-          const metadataNode = comp.querySelector("metadata");
-          if (!metadataNode) return;
+        simulationInterval = setInterval(() => {
+            document.querySelectorAll("#canvas > svg[data-id]").forEach(comp => {
+                const metadataNode = comp.querySelector("metadata");
+                if (!metadataNode) return;
 
-          let metadata;
-          try {
-            metadata = JSON.parse(metadataNode.textContent);
-          } catch (e) { return; }
+                let metadata;
+                try {
+                    metadata = JSON.parse(metadataNode.textContent);
+                } catch (e) {
+                    return;
+                }
 
-          const params = metadata.parameters;
-          if (!params.isActive) return;
+                const params = metadata.parameters;
+                if (!params.isActive) return;
 
-          // Symuluj wszystkie liczbowe parametry
-          Object.keys(params).forEach(key => {
-            if (typeof params[key] === "number" && !key.includes("Min") && !key.includes("Max") && key !== "size") {
-              const min = params[`${key}Min`] ?? 0;
-              const max = params[`${key}Max`] ?? 100;
-              const newVal = min + Math.random() * (max - min);
-              params[key] = parseFloat(newVal.toFixed(2));
+                // Symuluj wszystkie liczbowe parametry
+                Object.keys(params).forEach(key => {
+                    if (typeof params[key] === "number" && !key.includes("Min") && !key.includes("Max") && key !== "size") {
+                        const min = params[`${key}Min`] ?? 0;
+                        const max = params[`${key}Max`] ?? 100;
+                        const newVal = min + Math.random() * (max - min);
+                        params[key] = parseFloat(newVal.toFixed(2));
 
-              metadataNode.textContent = JSON.stringify(metadata, null, 2);
-              applyParameterToSVG(comp, key, params[key]);
+                        metadataNode.textContent = JSON.stringify(metadata, null, 2);
+                        applyParameterToSVG(comp, key, params[key]);
 
-              const displayEl = document.getElementById(`sim-value-${metadata.id}`);
-              if (displayEl) displayEl.textContent = params[key];
-            }
-          });
-        });
-      }, 1000);
+                        const displayEl = document.getElementById(`sim-value-${metadata.id}`);
+                        if (displayEl) displayEl.textContent = params[key];
+                    }
+                });
+            });
+        }, 1000);
     };
 
     window.stopSimulation = () => {
-      if (simulationInterval) clearInterval(simulationInterval);
-      simulationInterval = null;
+        if (simulationInterval) clearInterval(simulationInterval);
+        simulationInterval = null;
     };
 
     function refreshSimulationList() {
-      const list = document.getElementById("simulation-list");
-      list.innerHTML = "";
+        const list = document.getElementById("simulation-list");
+        list.innerHTML = "";
 
-      document.querySelectorAll("#canvas > svg[data-id]").forEach(comp => {
-        const metadataNode = comp.querySelector("metadata");
-        if (!metadataNode) return;
+        document.querySelectorAll("#canvas > svg[data-id]").forEach(comp => {
+            const metadataNode = comp.querySelector("metadata");
+            if (!metadataNode) return;
 
-        let metadata;
-        try {
-          metadata = JSON.parse(metadataNode.textContent);
-        } catch (e) { return; }
+            let metadata;
+            try {
+                metadata = JSON.parse(metadataNode.textContent);
+            } catch (e) {
+                return;
+            }
 
-        if (metadata.parameters.value !== undefined) {
-          const el = document.createElement("p");
-          el.innerHTML = `<strong>${metadata.name}</strong>: <span id="sim-value-${metadata.id}">${metadata.parameters.value}</span>`;
-          list.appendChild(el);
+            if (metadata.parameters.value !== undefined) {
+                const el = document.createElement("p");
+                el.innerHTML = `<strong>${metadata.name}</strong>: <span id="sim-value-${metadata.id}">${metadata.parameters.value}</span>`;
+                list.appendChild(el);
+            }
+        });
+
+        if (list.children.length === 0) {
+            list.innerHTML = "<p><i>Brak komponentów z parametrem 'value'</i></p>";
         }
-      });
-
-      if (list.children.length === 0) {
-        list.innerHTML = "<p><i>Brak komponentów z parametrem 'value'</i></p>";
-      }
     }
 
     // --- DODAJ PARAMETR ---
     window.addParameter = (id) => {
-      const name = prompt("Nazwa parametru (np. pressure):");
-      if (!name) return;
+        const name = prompt("Nazwa parametru (np. pressure):");
+        if (!name) return;
 
-      const type = prompt("Typ (string, number, boolean)", "number");
-      let value;
-      switch (type) {
-        case "number": value = 0; break;
-        case "boolean": value = false; break;
-        default: value = "nowy";
-      }
+        const type = prompt("Typ (string, number, boolean)", "number");
+        let value;
+        switch (type) {
+            case "number":
+                value = 0;
+                break;
+            case "boolean":
+                value = false;
+                break;
+            default:
+                value = "nowy";
+        }
 
-      const comp = document.querySelector(`[data-id="${id}"]`);
-      const metadataNode = comp.querySelector("metadata");
-      let metadata;
+        const comp = document.querySelector(`[data-id="${id}"]`);
+        const metadataNode = comp.querySelector("metadata");
+        let metadata;
 
-      try {
-        metadata = JSON.parse(metadataNode.textContent);
-      } catch (e) {
-        metadata = { id, parameters: {} };
-      }
+        try {
+            metadata = JSON.parse(metadataNode.textContent);
+        } catch (e) {
+            metadata = {id, parameters: {}};
+        }
 
-      metadata.parameters[name] = value;
-      metadataNode.textContent = JSON.stringify(metadata, null, 2);
-      selectComponent(comp);
+        metadata.parameters[name] = value;
+        metadataNode.textContent = JSON.stringify(metadata, null, 2);
+        selectComponent(comp);
     };
 
     // --- PWA ---
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("sw.js").then(() => {
-        console.log("SW zarejestrowany");
-      });
+        navigator.serviceWorker.register("sw.js").then(() => {
+            console.log("SW zarejestrowany");
+        });
     }
 
 
-      window.editMetadataRaw = (id) => {
-          const el = document.querySelector(`[data-id="${id}"]`);
-          const metadataNode = el.querySelector("metadata");
-          let metadata;
+    window.editMetadataRaw = (id) => {
+        const el = document.querySelector(`[data-id="${id}"]`);
+        const metadataNode = el.querySelector("metadata");
+        let metadata;
 
-          try {
+        try {
             metadata = JSON.parse(metadataNode.textContent);
-          } catch (e) {
+        } catch (e) {
             alert("Błąd: niepoprawny JSON w metadanych");
             return;
-          }
+        }
 
-          const jsonStr = JSON.stringify(metadata, null, 2);
-          const newJson = prompt("Edytuj metadane (JSON):", jsonStr);
+        const jsonStr = JSON.stringify(metadata, null, 2);
+        const newJson = prompt("Edytuj metadane (JSON):", jsonStr);
 
-          if (newJson) {
+        if (newJson) {
             try {
-              JSON.parse(newJson); // walidacja
-              metadataNode.textContent = newJson;
-              selectComponent(el); // odśwież panel
-              alert("Metadane zaktualizowane!");
+                JSON.parse(newJson); // walidacja
+                metadataNode.textContent = newJson;
+                selectComponent(el); // odśwież panel
+                alert("Metadane zaktualizowane!");
             } catch (e) {
-              alert("Błąd składni JSON: " + e.message);
+                alert("Błąd składni JSON: " + e.message);
             }
-          }
-        };
-  </script>
+        }
+    };
+    window.updatePosition = (id, coord, value) => {
+        const el = document.querySelector(`[data-id="${id}"]`);
+        if (!el) return;
+
+        const numValue = parseFloat(value);
+        if (isNaN(numValue)) return;
+
+        const currentX = parseFloat(el.getAttribute("x"));
+        const currentY = parseFloat(el.getAttribute("y"));
+        const size = el.querySelector("metadata") ?
+            JSON.parse(el.querySelector("metadata").textContent).parameters?.size || 50 : 50;
+
+        // Oblicz nową pozycję kontenera
+        if (coord === "x") {
+            el.setAttribute("x", numValue - size / 2);
+        } else {
+            el.setAttribute("y", numValue - size / 2);
+        }
+
+        // Aktualizuj metadane
+        const metadataNode = el.querySelector("metadata");
+        if (metadataNode) {
+            let metadata;
+            try {
+                metadata = JSON.parse(metadataNode.textContent);
+            } catch (e) {
+                return;
+            }
+            metadata.position[coord] = Math.round(numValue);
+            metadataNode.textContent = JSON.stringify(metadata, null, 2);
+        }
+
+        // Odśwież panel (żeby zobaczyć zmianę)
+        showProperties(el);
+    };
+
+    // Załaduj komponenty do biblioteki z ikonami
+    async function loadComponentLibrary() {
+        const container = document.getElementById("component-library");
+        container.innerHTML = ""; // wyczyść
+
+        for (const comp of COMPONENTS) {
+            try {
+                const response = await fetch(comp.svg);
+                const svgText = await response.text();
+                const parser = new DOMParser();
+                const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
+                const svgElement = svgDoc.documentElement;
+
+                // Przygotuj SVG jako ikona
+                svgElement.setAttribute("width", "32");
+                svgElement.setAttribute("height", "32");
+                svgElement.removeAttribute("id");
+                svgElement.style.display = "block";
+
+                // Tworzymy przycisk
+                const button = document.createElement("button");
+                button.className = "component-button";
+                button.draggable = true;
+                button.dataset.svg = comp.svg;
+                button.title = comp.name;
+
+                // Ikona po lewej
+                const iconWrapper = document.createElement("div");
+                iconWrapper.style.width = "36px";
+                iconWrapper.style.height = "36px";
+                iconWrapper.style.flexShrink = "0";
+                iconWrapper.appendChild(svgElement);
+
+                // Tekst
+                const label = document.createElement("span");
+                label.textContent = comp.name;
+
+                // Dodaj do przycisku
+                button.appendChild(iconWrapper);
+                button.appendChild(label);
+
+                // Obsługa przeciągania
+                button.addEventListener("dragstart", (e) => {
+                    e.dataTransfer.setData("text/plain", comp.svg);
+                });
+
+                container.appendChild(button);
+            } catch (err) {
+                console.error(`Błąd ładowania ikony ${comp.svg}:`, err);
+                const fallbackButton = document.createElement("button");
+                fallbackButton.className = "component-button";
+                fallbackButton.draggable = true;
+                fallbackButton.dataset.svg = comp.svg;
+                fallbackButton.innerHTML = `<span>⚠️ ${comp.name}</span>`;
+                fallbackButton.title = "Błąd ładowania ikony";
+                document.getElementById("component-library").appendChild(fallbackButton);
+            }
+        }
+    }
+
+    // Uruchom po załadowaniu DOM
+    document.addEventListener("DOMContentLoaded", loadComponentLibrary);
+</script>
 </body>
 </html>
