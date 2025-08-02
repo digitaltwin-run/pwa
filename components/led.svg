@@ -28,95 +28,100 @@
     <circle cx="20" cy="20" r="18" fill="#2c3e50" stroke="#1a252f" stroke-width="2"/>
 
     <!-- Diody (wewnętrzny ID) -->
-    <circle id="led-core" cx="20" cy="20" r="12" fill="#555"/>
+    <circle class="led-core" cx="20" cy="20" r="12" fill="#555"/>
 
     <!-- Etykieta -->
-    <text id="label" x="20" y="36" font-size="10" text-anchor="middle" fill="#bdc3c7">LED</text>
+    <text class="led-label" x="20" y="36" font-size="10" text-anchor="middle" fill="#bdc3c7">LED</text>
     <defs>
     <!-- Wewnętrzny skrypt SVG -->
     <script><![CDATA[
-      // Sprawdź, czy jesteśmy w DOM (po załadowaniu)
-      const svg = document.currentScript.ownerDocument.documentElement;
+      (function() {
+        // Funkcja do odczytu metadanych
+        function getMetadata(svgElement) {
+          const metadataNode = svgElement.querySelector('metadata');
+          if (metadataNode && metadataNode.textContent.trim()) {
+            try {
+              return JSON.parse(metadataNode.textContent);
+            } catch (e) {
+              console.warn('Błąd parsowania metadanych:', e);
+              return {};
+            }
+          }
+          return {};
+        }
 
-      // Funkcja do odczytu metadanych
-      function getMetadata() {
-        const metadataNode = svg.querySelector('metadata');
-        if (metadataNode && metadataNode.textContent.trim()) {
-          try {
-            return JSON.parse(metadataNode.textContent);
-          } catch (e) {
-            console.warn('Błąd parsowania metadanych:', e);
-            return {};
+        // Funkcja do aktualizacji wyglądu
+        function updateLED(svgElement) {
+          const metadata = getMetadata(svgElement);
+          console.log('Metadane:', metadata);
+
+          const params = metadata.parameters || {};
+          const ledCore = svgElement.querySelector('.led-core');
+          const labelEl = svgElement.querySelector('.led-label');
+
+          if (!ledCore || !params.isActive) {
+            if (ledCore) ledCore.setAttribute('fill', '#333');
+            return;
+          }
+
+          // Aktualizuj etykietę
+          if (labelEl && params.label) {
+            labelEl.textContent = params.label;
+          }
+
+          // Obsługa migania
+          if (params.isBlinking && params.isOn) {
+            if (!svgElement.blinkInterval) {
+              let on = true;
+              svgElement.blinkInterval = setInterval(() => {
+                ledCore.setAttribute('fill', on ? params.color : '#333');
+                on = !on;
+              }, params.blinkRate || 500);
+            }
+          } else {
+            // Zatrzymaj miganie
+            if (svgElement.blinkInterval) {
+              clearInterval(svgElement.blinkInterval);
+              svgElement.blinkInterval = null;
+            }
+            // Ustaw stan stały
+            ledCore.setAttribute('fill', params.isOn ? params.color : '#333');
           }
         }
-        return {};
-      }
 
-      // Funkcja do aktualizacji wyglądu
-      function updateLED() {
-        const metadata = getMetadata();
-        console.log('Metadane:', metadata);
+        // Inicjalizacja
+        const svgElement = document.querySelector('svg:not([data-led-initialized="true"])');
+        if (svgElement) {
+          svgElement.setAttribute('data-led-initialized', 'true');
+          
+          // Initial update
+          updateLED(svgElement);
 
-        const params = metadata.parameters || {};
-        const ledCore = svg.querySelector('#led-core');
-        const labelEl = svg.querySelector('#label');
+          // Opcjonalnie: nasłuchiwanie zmian (jeśli IDE nadpisuje metadata)
+          // Symulujemy "obserwatora" — co 500 ms sprawdzamy zmiany
+          svgElement.pollingInterval = setInterval(() => {
+            const metadata = getMetadata(svgElement);
+            const params = metadata.parameters || {};
+            const currentColor = svgElement.currentParams?.color;
+            const isBlinking = svgElement.currentParams?.isBlinking;
+            const isOn = svgElement.currentParams?.isOn;
 
-        if (!ledCore || !params.isActive) {
-          if (ledCore) ledCore.setAttribute('fill', '#333');
-          return;
+            if (params.color !== currentColor ||
+                params.isBlinking !== isBlinking ||
+                params.isOn !== isOn ||
+                params.isActive !== (svgElement.currentParams?.isActive)) {
+              svgElement.currentParams = { ...params };
+              updateLED(svgElement);
+            }
+          }, 500);
+
+          // Ewentualna oczyszczka przy usunięciu
+          window.addEventListener('beforeunload', () => {
+            if (svgElement.blinkInterval) clearInterval(svgElement.blinkInterval);
+            if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
+          });
         }
-
-        // Aktualizuj etykietę
-        if (labelEl && params.label) {
-          labelEl.textContent = params.label;
-        }
-
-        // Obsługa migania
-        if (params.isBlinking && params.isOn) {
-          if (!svg.blinkInterval) {
-            let on = true;
-            svg.blinkInterval = setInterval(() => {
-              ledCore.setAttribute('fill', on ? params.color : '#333');
-              on = !on;
-            }, params.blinkRate);
-          }
-        } else {
-          // Zatrzymaj miganie
-          if (svg.blinkInterval) {
-            clearInterval(svg.blinkInterval);
-            svg.blinkInterval = null;
-          }
-          // Ustaw stan stały
-          ledCore.setAttribute('fill', params.isOn ? params.color : '#333');
-        }
-      }
-
-      // Inicjalizacja
-      updateLED();
-
-      // Opcjonalnie: nasłuchiwanie zmian (jeśli IDE nadpisuje metadata)
-      // Symulujemy "obserwatora" — co 500 ms sprawdzamy zmiany
-      svg.pollingInterval = setInterval(() => {
-        const metadata = getMetadata();
-        const params = metadata.parameters || {};
-        const currentColor = svg.currentParams?.color;
-        const isBlinking = svg.currentParams?.isBlinking;
-        const isOn = svg.currentParams?.isOn;
-
-        if (params.color !== currentColor ||
-            params.isBlinking !== isBlinking ||
-            params.isOn !== isOn ||
-            params.isActive !== (svg.currentParams?.isActive)) {
-          svg.currentParams = { ...params };
-          updateLED();
-        }
-      }, 500);
-
-      // Ewentualna oczyszczka przy usunięciu
-      window.addEventListener('beforeunload', () => {
-        if (svg.blinkInterval) clearInterval(svg.blinkInterval);
-        if (svg.pollingInterval) clearInterval(svg.pollingInterval);
-      });
+      })();
 
   ]]></script>
     </defs>

@@ -95,8 +95,15 @@
             background: #ecf0f1;
             border-left: 1px solid #bdc3c7;
             border-right: 1px solid #bdc3c7;
-            overflow: hidden;
+            overflow: auto;
             position: relative;
+        }
+        
+        #svg-canvas {
+            width: 100%;
+            height: 100%;
+            min-height: 100%;
+            background-color: #fff;
         }
 
         #canvas {
@@ -244,12 +251,12 @@
     </aside>
 
     <!-- Środkowa: Plansza -->
-    <main class="workspace" id="workspace">
-        <svg id="canvas" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+    <div class="workspace" id="workspace">
+        <svg id="svg-canvas" xmlns="http://www.w3.org/2000/svg">
             <!-- Definicje: siatka i strzałka -->
             <defs>
-                <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5"
-                        markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6"
+                        orient="auto-start-reverse">
                     <path d="M 0 0 L 10 5 L 0 10 z" fill="#2c3e50"/>
                 </marker>
                 <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -275,18 +282,45 @@
     const COMPONENTS = [
         { svg: "components/sensor.svg", name: "Czujnik", id: "sensor" },
         { svg: "components/motor.svg", name: "Silnik", id: "motor" },
-        { svg: "components/valve.svg", name: "Zawór", id: "valve" },
-        { svg: "components/pump.svg", name: "Pompa", id: "pump" },
+        { svg: "components/led.svg", name: "Diody LED", id: "led" },
+        { svg: "components/switch.svg", name: "Przełącznik", id: "switch" },
+        { svg: "components/relay.svg", name: "Przekaźnik", id: "relay" },
+        { svg: "components/button.svg", name: "Przycisk", id: "button" },
+        { svg: "components/sensor.svg", name: "Czujnik temperatury", id: "temp-sensor" },
         { svg: "components/display.svg", name: "Wyświetlacz", id: "display" },
-        { svg: "components/led.svg", name: "LED", id: "led" }
     ];
 
-    // --- ZMIENNE GLOBALNE ---
-    let selectedElement = null;
-    let componentIdCounter = 0;
-    let connectionMode = false;
-    let firstComponent = null;
+    // Mapa przechowująca instancje komponentów
+    const components = new Map();
+    let componentCounter = 0;
+    let isConnectionMode = false;
+    let connectionStart = null;
+    let selectedComponent = null;
     let simulationInterval = null;
+    
+    // Pobierz kontener SVG
+    const svgCanvas = document.getElementById('svg-canvas');
+    const workspace = document.getElementById('workspace');
+    
+    // Inicjalizacja rozmiarów SVG
+    function updateSvgSize() {
+        const rect = workspace.getBoundingClientRect();
+        svgCanvas.setAttribute('width', rect.width);
+        svgCanvas.setAttribute('height', rect.height);
+        svgCanvas.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
+    }
+    
+    // Aktualizuj rozmiar przy zmianie okna
+    window.addEventListener('resize', updateSvgSize);
+    updateSvgSize();
+
+    function formatLabel(key) {
+        return key
+            .replace(/([A-Z])/g, " $1")
+            .replace(/^./, s => s.toUpperCase())
+            .replace(/([a-z])([A-Z])/g, '$1 $2')
+            .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
+    }
 
     // --- OBSŁUGA PRZECIĄGANIA KOMPONENTÓW ---
     document.getElementById("component-library").addEventListener("dragstart", (e) => {
@@ -296,163 +330,171 @@
         }
     });
 
-    const canvas = document.getElementById("canvas");
-    canvas.addEventListener("dragover", (e) => e.preventDefault());
-
-    canvas.addEventListener("drop", async (e) => {
+    svgCanvas.addEventListener("dragover", (e) => {
         e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        svgCanvas.classList.add('drag-over');
+    });
+
+    svgCanvas.addEventListener('dragleave', () => {
+        svgCanvas.classList.remove('drag-over');
+    });
+
+    svgCanvas.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        svgCanvas.classList.remove('drag-over');
+        
         const svgUrl = e.dataTransfer.getData("text/plain");
+        if (!svgUrl) {
+            console.error("Brak danych SVG podczas upuszczenia");
+            return;
+        }
+        
         const canvasX = e.offsetX;
         const canvasY = e.offsetY;
 
-        if (svgUrl) {
-            try {
-                const response = await fetch(svgUrl);
-                const svgText = await response.text();
-                const parser = new DOMParser();
-                const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
-                const svgElement = svgDoc.documentElement;
+        try {
+            const response = await fetch(svgUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const svgText = await response.text();
+            if (!svgText || !svgText.trim().startsWith('<svg') && !svgText.trim().startsWith('<?xml')) {
+                throw new Error("Nieprawidłowy format SVG");
+            }
+            
+            const parser = new DOMParser();
+            const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
+            
+            // Sprawdź błędy parsowania
+            const parserError = svgDoc.querySelector("parsererror");
+            if (parserError) {
+                throw new Error("Błąd parsowania SVG");
+            }
+            
+            const svgElement = svgDoc.documentElement;
+            if (!svgElement || svgElement.nodeName !== 'svg') {
+                throw new Error("Nie znaleziono elementu SVG");
+            }
 
-                // Generuj nowe ID
-                const componentId = `comp-${componentIdCounter++}`;
-                svgElement.setAttribute("data-id", componentId);
-                svgElement.setAttribute("data-svg-url", svgUrl);
-                svgElement.setAttribute("class", "draggable-component");
-                svgElement.setAttribute("style", "cursor: move;");
+            // Generuj nowe ID
+            const componentId = `comp-${componentCounter++}`;
+            svgElement.setAttribute("data-id", componentId);
+            svgElement.setAttribute("data-svg-url", svgUrl);
+            svgElement.setAttribute("class", "draggable-component");
+            svgElement.setAttribute("style", "cursor: move;");
 
-                // Pobierz lub utwórz metadane
-                let metadataNode = svgElement.querySelector("metadata");
-                let metadata = {parameters: {}};
+            // Pobierz lub utwórz metadane
+            let metadataNode = svgElement.querySelector("metadata");
+            let metadata = {parameters: {}};
 
-                if (metadataNode) {
-                    try {
-                        metadata = JSON.parse(metadataNode.textContent);
-                    } catch (e) {
-                        console.warn("Niepoprawne metadane w oryginalnym SVG");
+            if (metadataNode) {
+                try {
+                    const metadataContent = metadataNode.textContent.trim();
+                    if (metadataContent) {
+                        metadata = JSON.parse(metadataContent);
                     }
-                } else {
-                    // Utwórz nowe <metadata>, jeśli nie istnieje
-                    metadataNode = svgDoc.createElementNS("http://www.w3.org/2000/svg", "metadata");
-                    svgElement.prepend(metadataNode);
+                } catch (e) {
+                    console.warn("Niepoprawne metadane w oryginalnym SVG:", e);
                 }
+            } else {
+                // Utwórz nowe <metadata>, jeśli nie istnieje
+                metadataNode = document.createElementNS("http://www.w3.org/2000/svg", "metadata");
+                svgElement.prepend(metadataNode);
+            }
 
-                // Dodaj lub zaktualizuj pozycję w metadanych
-                metadata.position = {x: canvasX, y: canvasY};
-                metadata.id = metadata.id || componentId; // Zachowaj ID z pliku lub nadaj nowe
-                metadata.instanceId = componentId; // Unikalne ID instancji
+            // Dodaj lub zaktualizuj pozycję w metadanych
+            metadata.position = {x: canvasX, y: canvasY};
+            metadata.id = metadata.id || componentId; // Zachowaj ID z pliku lub nadaj nowe
+            metadata.instanceId = componentId; // Unikalne ID instancji
+            metadata.parameters = metadata.parameters || {}; // Upewnij się, że parameters istnieje
 
-                // Zapisz zaktualizowane metadane
-                metadataNode.textContent = JSON.stringify(metadata, null, 2);
+            // Zapisz zaktualizowane metadane
+            metadataNode.textContent = JSON.stringify(metadata, null, 2);
 
-                // Ustaw pozycję kontenera SVG
-                svgElement.setAttribute("x", canvasX - (metadata.parameters.size || 50) / 2);
-                svgElement.setAttribute("y", canvasY - (metadata.parameters.size || 50) / 2);
+            // Ustaw pozycję kontenera SVG
+            const defaultSize = 50;
+            const size = metadata.parameters.size || defaultSize;
+            svgElement.setAttribute("x", canvasX - size / 2);
+            svgElement.setAttribute("y", canvasY - size / 2);
 
-                // Zdarzenia
-                svgElement.addEventListener("click", (ev) => {
-                    ev.stopPropagation();
-                    if (connectionMode) {
-                        startConnection(svgElement);
-                    } else {
-                        selectComponent(svgElement);
-                    }
-                });
+            // Zdarzenia
+            svgElement.addEventListener("click", (ev) => {
+                ev.stopPropagation();
+                if (isConnectionMode) {
+                    startConnection(svgElement);
+                } else {
+                    selectComponent(svgElement);
+                }
+            });
 
-                makeDraggable(svgElement);
-                canvas.appendChild(svgElement);
-
+            makeDraggable(svgElement);
+            
+            if (svgCanvas) {
+                svgCanvas.appendChild(svgElement);
                 // Odśwież panel symulacji
                 setTimeout(refreshSimulationList, 100);
-            } catch (err) {
-                console.error("Błąd ładowania SVG:", err);
+            } else {
+                console.error("Nie znaleziono kontenera SVG canvas");
             }
+        } catch (err) {
+            console.error("Błąd ładowania SVG:", err);
+            alert(`Nie udało się załadować komponentu: ${err.message}`);
         }
     });
 
-
     // --- WYBÓR KOMPONENTU ---
     function selectComponent(el) {
-        if (selectedElement) {
-            selectedElement.style.outline = "";
+        // Sprawdź, czy element istnieje
+        if (!el) return;
+        
+        const propertiesPanel = document.getElementById('properties-panel');
+        if (!propertiesPanel) {
+            console.error("Nie znaleziono panelu właściwości (properties-panel)");
+            return;
         }
-        selectedElement = el;
-        el.style.outline = "2px solid red";
+        
+        // Jeśli kliknięto w to samo, odznacz
+        if (selectedComponent === el) {
+            el.style.outline = '';
+            selectedComponent = null;
+            propertiesPanel.style.display = 'none';
+            return;
+        }
+        
+        // Usuń zaznaczenie z poprzedniego komponentu
+        if (selectedComponent) {
+            selectedComponent.style.outline = '';
+        }
+        
+        // Zaznacz nowy komponent
+        selectedComponent = el;
+        el.style.outline = '2px solid #3498db';
+        
+        // Pokaż właściwości
         showProperties(el);
     }
 
     // --- EDYCJA WŁAŚCIWOŚCI ---
-    function showProperties(svgInstance) {
-        const metadataNode = svgInstance.querySelector("metadata");
-        let metadata;
-
-        try {
-            metadata = metadataNode ? JSON.parse(metadataNode.textContent) : {};
-        } catch (e) {
-            metadata = {id: "unknown", parameters: {}, position: {x: 0, y: 0}};
+    function showProperties(svgElement) {
+        // Sprawdź, czy element istnieje
+        if (!svgElement) return;
+        
+        const propertiesPanel = document.getElementById("properties-panel");
+        if (!propertiesPanel) {
+            console.error("Nie znaleziono panelu właściwości (properties-panel)");
+            return;
         }
+        
+        propertiesPanel.style.display = "block";
+        propertiesPanel.innerHTML = "<h3>Właściwości</h3>";
 
-        const params = metadata.parameters || {};
-        const compId = metadata.instanceId;
-
-        let formHTML = `<h4>${metadata.name || "Komponent"}</h4>`;
-
-        // Edycja parametrów
-        for (const [key, value] of Object.entries(params)) {
-            formHTML += `<label>${formatLabel(key)}:</label>`;
-            if (typeof value === "string" && value.startsWith("#")) {
-                formHTML += `<input type="color" value="${value}" onchange="updateParam('${compId}', '${key}', this.value, 'string')">`;
-            } else if (typeof value === "number") {
-                const min = key.includes("min") ? "" : "min='0'";
-                const max = key.includes("max") ? "" : "max='200'";
-                formHTML += `<input type="number" ${min} ${max} value="${value}" onchange="updateParam('${compId}', '${key}', this.value, 'number')">`;
-            } else if (typeof value === "boolean") {
-                const checked = value ? "checked" : "";
-                formHTML += `<input type="checkbox" ${checked} onchange="updateParam('${compId}', '${key}', this.checked, 'boolean')">`;
-            } else {
-                formHTML += `<input type="text" value="${value}" onchange="updateParam('${compId}', '${key}', this.value, 'string')">`;
-            }
-            formHTML += `<br>`;
-        }
-
-        // Edycja pozycji (tylko do odczytu lub edycji)
-        formHTML += `
-          <label>Pozycja X:</label>
-          <input type="number" value="${Math.round(metadata.position.x)}"
-                 onchange="updatePosition('${compId}', 'x', this.value)" id="prop-x">
-          <br>
-          <label>Pozycja Y:</label>
-          <input type="number" value="${Math.round(metadata.position.y)}"
-                 onchange="updatePosition('${compId}', 'y', this.value)" id="prop-y">
-          <br>
-        `;
-
-        formHTML += `
-        <br>
-        <button onclick="addParameter('${compId}')">➕ Dodaj parametr</button>
-        <button onclick="editMetadataRaw('${compId}')">🔧 Edytuj JSON</button>
-        <br><br>
-        <button onclick="removeComponent('${compId}')">❌ Usuń</button>
-      `;
-
-        document.getElementById("property-editor").innerHTML = formHTML;
-    }
-
-    function formatLabel(key) {
-        return key.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase());
-    }
-
-    window.updateParam = (id, paramKey, value, type) => {
-        if (type === "number") value = parseFloat(value);
-        if (type === "boolean") value = value === true || value === "true";
-
-        const svgInstance = document.querySelector(`[data-id="${id}"]`);
-        if (!svgInstance) return;
-
-        updateMetadataInSVG(svgInstance, `parameters.${paramKey}`, value);
-        applyParameterToSVG(svgInstance, paramKey, value);
-    };
-
-    function updateMetadataInSVG(svgElement, path, value) {
+        // Pobierz ID komponentu
+        const id = svgElement.getAttribute('data-id');
+        if (!id) return;
+        
+        // Pobierz metadane
         const metadataNode = svgElement.querySelector("metadata");
         if (!metadataNode) return;
 
@@ -460,129 +502,136 @@
         try {
             metadata = JSON.parse(metadataNode.textContent);
         } catch (e) {
-            metadata = {id: "unknown", parameters: {}};
+            console.error("Błąd parsowania metadanych:", e);
+            return;
         }
 
-        const keys = path.split(".");
-        let ref = metadata;
-        for (let i = 0; i < keys.length - 1; i++) {
-            if (!ref[keys[i]]) ref[keys[i]] = {};
-            ref = ref[keys[i]];
-        }
-        ref[keys[keys.length - 1]] = value;
+        // Dodaj przycisk usuwania
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Usuń komponent";
+        deleteBtn.onclick = () => removeComponent(id);
+        propertiesPanel.appendChild(deleteBtn);
 
-        metadataNode.textContent = JSON.stringify(metadata, null, 2);
-    }
+        // Dodaj przycisk edycji surowych metadanych
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "Edytuj metadane";
+        editBtn.onclick = () => editMetadataRaw(id);
+        propertiesPanel.appendChild(editBtn);
 
-    function applyParameterToSVG(svgInstance, paramKey, value) {
-        const content = svgInstance.content || svgInstance;
-
-        switch (paramKey) {
-            case "color":
-                const body = content.querySelector("#body");
-                if (body) body.setAttribute("fill", value);
-                break;
-            case "label":
-                const label = content.querySelector("#label");
-                if (label) label.textContent = value;
-                break;
-            case "value":
-                const valText = content.querySelector("#value");
-                if (valText) {
-                    const unit = svgInstance.querySelector("metadata") ? JSON.parse(svgInstance.querySelector("metadata").textContent).parameters.unit || "" : "";
-                    valText.textContent = `${value}${unit}`;
+        // Dodaj właściwości
+        if (metadata.parameters) {
+            const params = metadata.parameters;
+            Object.entries(params).forEach(([key, value]) => {
+                const paramDiv = document.createElement("div");
+                paramDiv.className = "property";
+                
+                const label = document.createElement("label");
+                label.textContent = formatLabel(key) + ": ";
+                
+                let input;
+                
+                if (typeof value === 'boolean') {
+                    input = document.createElement("input");
+                    input.type = "checkbox";
+                    input.checked = value;
+                    input.onchange = (e) => updateParam(id, key, e.target.checked, 'boolean');
+                } else if (typeof value === 'number') {
+                    input = document.createElement("input");
+                    input.type = "number";
+                    input.value = value;
+                    input.onchange = (e) => updateParam(id, key, parseFloat(e.target.value), 'number');
+                } else if (typeof value === 'string' && key === 'color') {
+                    input = document.createElement("input");
+                    input.type = "color";
+                    input.value = value || '#3498db';
+                    input.onchange = (e) => updateParam(id, key, e.target.value, 'color');
+                } else {
+                    input = document.createElement("input");
+                    input.type = "text";
+                    input.value = value;
+                    input.onchange = (e) => updateParam(id, key, e.target.value, 'string');
                 }
-                break;
-            case "size":
-                const size = parseInt(value);
-                const rect = content.querySelector("#body");
-                if (rect) {
-                    const offset = (size - 50) / 2;
-                    rect.setAttribute("x", 5 + offset);
-                    rect.setAttribute("y", 5 + offset);
-                    rect.setAttribute("width", size);
-                    rect.setAttribute("height", size);
-                }
-                break;
-            case "isActive":
-                svgInstance.style.opacity = value ? 1 : 0.5;
-                break;
-            default:
-                const dynText = content.querySelector(`#param-${paramKey}`);
-                if (dynText) dynText.textContent = value;
+                
+                paramDiv.appendChild(label);
+                paramDiv.appendChild(input);
+                propertiesPanel.appendChild(paramDiv);
+            });
+            
+            // Dodaj przycisk dodawania nowego parametru
+            const addParamBtn = document.createElement("button");
+            addParamBtn.textContent = "Dodaj parametr";
+            addParamBtn.onclick = () => addParameter(id);
+            propertiesPanel.appendChild(addParamBtn);
         }
     }
-
-    window.removeComponent = (id) => {
-        const el = document.querySelector(`[data-id="${id}"]`);
-        if (el) {
-            el.remove();
-            document.getElementById("property-editor").innerHTML = "<p>Komponent usunięty.</p>";
-            selectedElement = null;
-            setTimeout(refreshSimulationList, 100);
-        }
-    };
 
     // --- PRZECIĄGANIE KOMPONENTÓW PO PLANSZY ---
-    function makeDraggable(el) {
+    function makeDraggable(svgElement) {
         let isDragging = false;
         let offsetX, offsetY;
 
-        el.addEventListener("mousedown", (e) => {
-            if (connectionMode) return;
-            if (selectedElement !== el) selectComponent(el);
-            isDragging = true;
+        svgElement.setAttribute('draggable', 'false'); // Zapobiegaj domyślnemu zachowaniu przeglądarki
 
-            const bbox = el.getBBox();
-            offsetX = e.clientX - (parseFloat(el.getAttribute("x")) + bbox.width / 2);
-            offsetY = e.clientY - (parseFloat(el.getAttribute("y")) + bbox.height / 2);
+        svgElement.addEventListener('mousedown', startDrag);
+
+        function startDrag(e) {
+            if (e.button !== 0) return;
+
+            const rect = svgElement.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+
+            selectComponent(svgElement);
+
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('mouseup', stopDrag);
+
             e.preventDefault();
-        });
+            isDragging = true;
+        }
 
-        document.addEventListener("mousemove", (e) => {
-            if (!isDragging || !selectedElement) return;
-            const x = e.clientX - offsetX;
-            const y = e.clientY - offsetY;
+        function onDrag(e) {
+            if (!isDragging) return;
 
-            selectedElement.setAttribute("x", x);
-            selectedElement.setAttribute("y", y);
+            const x = e.clientX - offsetX - workspace.getBoundingClientRect().left;
+            const y = e.clientY - offsetY - workspace.getBoundingClientRect().top;
 
-            // Aktualizuj metadane
-            const metadataNode = selectedElement.querySelector("metadata");
-            if (metadataNode) {
-                let metadata;
-                try {
-                    metadata = JSON.parse(metadataNode.textContent);
-                } catch (e) {
-                    return;
-                }
+            const maxX = workspace.offsetWidth - svgElement.width.baseVal.value;
+            const maxY = workspace.offsetHeight - svgElement.height.baseVal.value;
 
-                // Aktualizuj pozycję w metadanych
-                metadata.position = {
-                    x: Math.round(x + (metadata.parameters?.size || 50) / 2),
-                    y: Math.round(y + (metadata.parameters?.size || 50) / 2)
-                };
+            const newX = Math.max(0, Math.min(x, maxX));
+            const newY = Math.max(0, Math.min(y, maxY));
 
-                metadataNode.textContent = JSON.stringify(metadata, null, 2);
+            svgElement.setAttribute('x', newX);
+            svgElement.setAttribute('y', newY);
+
+            const id = svgElement.getAttribute('data-id');
+            if (id) {
+                updatePosition(id, 'x', newX);
+                updatePosition(id, 'y', newY);
             }
 
-            // 🔁 Odśwież panel właściwości w czasie rzeczywistym
-            showProperties(selectedElement);
-        });
+            updateConnections(id);
+        }
 
-        document.addEventListener("mouseup", () => {
+        function stopDrag() {
+            if (!isDragging) return;
+
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('mouseup', stopDrag);
+
             isDragging = false;
-        });
+        }
     }
 
     // --- ŁĄCZENIE KOMPONENTÓW ---
     window.toggleConnectionMode = () => {
-        connectionMode = !connectionMode;
-        canvas.style.cursor = connectionMode ? "crosshair" : "default";
-        alert(connectionMode ? "🔁 Tryb łączenia: kliknij dwa komponenty." : "🎯 Tryb edycji.");
-        if (!connectionMode && firstComponent) {
-            firstComponent.style.outline = "";
-            firstComponent = null;
+        isConnectionMode = !isConnectionMode;
+        svgCanvas.style.cursor = isConnectionMode ? "crosshair" : "default";
+        alert(isConnectionMode ? "🔁 Tryb łączenia: kliknij dwa komponenty." : "🎯 Tryb edycji.");
+        if (!isConnectionMode && connectionStart) {
+            connectionStart.style.outline = "";
+            connectionStart = null;
         }
     };
 
@@ -602,17 +651,17 @@
             return;
         }
 
-        if (!connectionMode) return;
+        if (!isConnectionMode) return;
 
-        if (!firstComponent) {
-            firstComponent = svgElement;
+        if (!connectionStart) {
+            connectionStart = svgElement;
             svgElement.style.outline = "3px dashed yellow";
         } else {
-            if (firstComponent !== svgElement) {
-                createConnection(firstComponent, svgElement);
+            if (connectionStart !== svgElement) {
+                createConnection(connectionStart, svgElement);
             }
-            firstComponent.style.outline = "";
-            firstComponent = null;
+            connectionStart.style.outline = "";
+            connectionStart = null;
         }
     }
 
@@ -632,7 +681,7 @@
         line.setAttribute("marker-end", "url(#arrow)");
         line.dataset.connection = "true";
 
-        canvas.appendChild(line);
+        svgCanvas.appendChild(line);
     }
 
     // --- EKSPORT / IMPORT ---
@@ -640,7 +689,7 @@
         const components = [];
         const lines = [];
 
-        document.querySelectorAll("#canvas > svg[data-id]").forEach(instance => {
+        svgCanvas.querySelectorAll("svg[data-id]").forEach(instance => {
             const metadataNode = instance.querySelector("metadata");
             if (!metadataNode) return;
 
@@ -660,7 +709,7 @@
             });
         });
 
-        document.querySelectorAll("#canvas > line[data-connection]").forEach(line => {
+        svgCanvas.querySelectorAll("line[data-connection]").forEach(line => {
             lines.push({
                 x1: line.getAttribute("x1"),
                 y1: line.getAttribute("y1"),
@@ -699,8 +748,7 @@
                 const project = JSON.parse(content);
 
                 // Wyczyść
-                const canvas = document.getElementById("canvas");
-                canvas.innerHTML = `
+                svgCanvas.innerHTML = `
             <defs>
               <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                 <path d="M 0 0 L 10 5 L 0 10 z" fill="#2c3e50" />
@@ -716,26 +764,82 @@
                 for (const comp of project.components) {
                     try {
                         const response = await fetch(comp.svgUrl);
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
                         const svgText = await response.text();
+                        if (!svgText || !svgText.trim().startsWith('<svg') && !svgText.trim().startsWith('<?xml')) {
+                            throw new Error("Nieprawidłowy format SVG");
+                        }
+                        
                         const parser = new DOMParser();
                         const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
+                        
+                        // Sprawdź błędy parsowania
+                        const parserError = svgDoc.querySelector("parsererror");
+                        if (parserError) {
+                            throw new Error("Błąd parsowania SVG");
+                        }
+                        
                         const svgElement = svgDoc.documentElement;
-
-                        const metadataNode = svgElement.querySelector("metadata");
-                        if (metadataNode) {
-                            metadataNode.textContent = JSON.stringify(comp.metadata, null, 2);
+                        if (!svgElement || svgElement.nodeName !== 'svg') {
+                            throw new Error("Nie znaleziono elementu SVG");
                         }
 
-                        svgElement.setAttribute("data-id", comp.id);
+                        // Generuj nowe ID
+                        const componentId = `comp-${componentCounter++}`;
+                        svgElement.setAttribute("data-id", componentId);
                         svgElement.setAttribute("data-svgUrl", comp.svgUrl);
-                        svgElement.setAttribute("x", comp.x);
-                        svgElement.setAttribute("y", comp.y);
+                        svgElement.setAttribute("class", "draggable-component");
                         svgElement.setAttribute("style", "cursor: move;");
 
-                        svgElement.addEventListener("click", () => selectComponent(svgElement));
-                        makeDraggable(svgElement);
+                        // Pobierz lub utwórz metadane
+                        let metadataNode = svgElement.querySelector("metadata");
+                        let metadata = {parameters: {}};
 
-                        canvas.appendChild(svgElement);
+                        if (metadataNode) {
+                            try {
+                                const metadataContent = metadataNode.textContent.trim();
+                                if (metadataContent) {
+                                    metadata = JSON.parse(metadataContent);
+                                }
+                            } catch (e) {
+                                console.warn("Niepoprawne metadane w oryginalnym SVG:", e);
+                            }
+                        } else {
+                            // Utwórz nowe <metadata>, jeśli nie istnieje
+                            metadataNode = document.createElementNS("http://www.w3.org/2000/svg", "metadata");
+                            svgElement.prepend(metadataNode);
+                        }
+
+                        // Dodaj lub zaktualizuj pozycję w metadanych
+                        metadata.position = {x: comp.x, y: comp.y};
+                        metadata.id = metadata.id || componentId; // Zachowaj ID z pliku lub nadaj nowe
+                        metadata.instanceId = componentId; // Unikalne ID instancji
+                        metadata.parameters = metadata.parameters || {}; // Upewnij się, że parameters istnieje
+
+                        // Zapisz zaktualizowane metadane
+                        metadataNode.textContent = JSON.stringify(metadata, null, 2);
+
+                        // Ustaw pozycję kontenera SVG
+                        const defaultSize = 50;
+                        const size = metadata.parameters.size || defaultSize;
+                        svgElement.setAttribute("x", comp.x - size / 2);
+                        svgElement.setAttribute("y", comp.y - size / 2);
+
+                        // Zdarzenia
+                        svgElement.addEventListener("click", (ev) => {
+                            ev.stopPropagation();
+                            if (isConnectionMode) {
+                                startConnection(svgElement);
+                            } else {
+                                selectComponent(svgElement);
+                            }
+                        });
+
+                        makeDraggable(svgElement);
+                        svgCanvas.appendChild(svgElement);
                     } catch (err) {
                         console.error("Błąd komponentu:", err);
                     }
@@ -752,7 +856,7 @@
                     line.setAttribute("stroke-width", "2");
                     line.setAttribute("marker-end", "url(#arrow)");
                     line.dataset.connection = "true";
-                    canvas.appendChild(line);
+                    svgCanvas.appendChild(line);
                 });
 
                 setTimeout(refreshSimulationList, 500);
@@ -768,39 +872,71 @@
 
     // --- EKSPORT JAKO OBRAZ ---
     window.exportAsPNG = () => {
-        const svgData = new XMLSerializer().serializeToString(canvas);
-        const svgBlob = new Blob([svgData], {type: "image/svg+xml;charset=utf-8"});
-        const url = URL.createObjectURL(svgBlob);
-
+        // Tymczasowo ukryj elementy interfejsu, których nie chcemy na zrzucie
+        const uiElements = document.querySelectorAll('.toolbar, .sidebar, #properties-panel');
+        const originalDisplays = [];
+        
+        // Zapisz oryginalne style i ukryj elementy interfejsu
+        uiElements.forEach(el => {
+            originalDisplays.push(el.style.display);
+            el.style.display = 'none';
+        });
+        
+        // Utwórz nowy canvas do renderowania SVG
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Ustaw rozmiar canvas na rozmiar obszaru roboczego
+        const workspace = document.getElementById('workspace');
+        canvas.width = workspace.offsetWidth;
+        canvas.height = workspace.offsetHeight;
+        
+        // Wypełnij tło białym kolorem
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Konwertuj SVG na obraz i rysuj na canvas
+        const svgData = new XMLSerializer().serializeToString(svgCanvas);
         const img = new Image();
-        img.onload = () => {
-            const canvas2 = document.createElement("canvas");
-            canvas2.width = img.width;
-            canvas2.height = img.height;
-            const ctx = canvas2.getContext("2d");
-            ctx.drawImage(img, 0, 0);
-
-            canvas2.toBlob((blob) => {
-                const a = document.createElement("a");
-                a.href = URL.createObjectURL(blob);
-                a.download = `digital-twin-${Date.now()}.png`;
-                a.click();
-                URL.revokeObjectURL(a.href);
+        
+        img.onload = function() {
+            // Narysuj obraz na canvas
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            // Konwertuj canvas na obraz PNG i pobierz
+            const dataURL = canvas.toDataURL('image/png');
+            const downloadLink = document.createElement('a');
+            downloadLink.download = 'digital-twin-export.png';
+            downloadLink.href = dataURL;
+            downloadLink.click();
+            
+            // Przywróć elementy interfejsu
+            uiElements.forEach((el, index) => {
+                el.style.display = originalDisplays[index];
             });
-
-            URL.revokeObjectURL(url);
         };
-        img.src = url;
-    };
+        
+        // Ustaw źródło obrazu jako zakodowane w base64 dane SVG
+        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+    }
 
     window.exportAsSVG = () => {
-        const source = new XMLSerializer().serializeToString(canvas);
-        const blob = new Blob([source], {type: "image/svg+xml"});
+        // Pobierz zawartość SVG
+        const svgData = new XMLSerializer().serializeToString(svgCanvas);
+        
+        // Utwórz link do pobrania
+        const blob = new Blob([svgData], { type: 'image/svg+xml' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
+        
+        // Utwórz i kliknij link do pobrania
+        const a = document.createElement('a');
         a.href = url;
-        a.download = `digital-twin-${Date.now()}.svg`;
+        a.download = 'digital-twin-export.svg';
+        document.body.appendChild(a);
         a.click();
+        
+        // Posprzątaj
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
     };
 
@@ -809,7 +945,7 @@
         if (simulationInterval) return;
 
         simulationInterval = setInterval(() => {
-            document.querySelectorAll("#canvas > svg[data-id]").forEach(comp => {
+            svgCanvas.querySelectorAll("svg[data-id]").forEach(comp => {
                 const metadataNode = comp.querySelector("metadata");
                 if (!metadataNode) return;
 
@@ -851,7 +987,7 @@
         const list = document.getElementById("simulation-list");
         list.innerHTML = "";
 
-        document.querySelectorAll("#canvas > svg[data-id]").forEach(comp => {
+        svgCanvas.querySelectorAll("svg[data-id]").forEach(comp => {
             const metadataNode = comp.querySelector("metadata");
             if (!metadataNode) return;
 
@@ -892,7 +1028,7 @@
                 value = "nowy";
         }
 
-        const comp = document.querySelector(`[data-id="${id}"]`);
+        const comp = svgCanvas.querySelector(`[data-id="${id}"]`);
         const metadataNode = comp.querySelector("metadata");
         let metadata;
 
@@ -914,8 +1050,161 @@
         });
     }
 
+    function updateMetadataInSVG(svgElement, path, value) {
+        // Pobierz metadane
+        let metadata = {};
+        let metadataNode = svgElement.querySelector('metadata');
+        
+        if (metadataNode && metadataNode.textContent.trim()) {
+            try {
+                metadata = JSON.parse(metadataNode.textContent);
+            } catch (e) {
+                console.warn('Błąd parsowania metadanych:', e);
+            }
+        } else if (!metadataNode) {
+            // Jeśli nie ma węzła metadanych, utwórz nowy
+            metadataNode = document.createElement('metadata');
+            svgElement.appendChild(metadataNode);
+        }
+        
+        // Zaktualizuj wartość w ścieżce (np. 'parameters.speed')
+        const keys = path.split('.');
+        let current = metadata;
+        
+        for (let i = 0; i < keys.length - 1; i++) {
+            if (current[keys[i]] === undefined) {
+                current[keys[i]] = {};
+            }
+            current = current[keys[i]];
+        }
+        
+        current[keys[keys.length - 1]] = value;
+        
+        // Zapisz zaktualizowane metadane
+        metadataNode.textContent = JSON.stringify(metadata, null, 2);
+        
+        // Zastosuj zmiany do wizualizacji
+        applyParameterToSVG(svgElement, path, value);
+    }
 
-    window.editMetadataRaw = (id) => {
+    function applyParameterToSVG(svgElement, paramKey, value) {
+        if (!svgElement) return;
+        
+        // Pobierz metadane
+        const metadataNode = svgElement.querySelector('metadata');
+        if (!metadataNode) return;
+        
+        let metadata;
+        try {
+            metadata = JSON.parse(metadataNode.textContent);
+        } catch (e) {
+            console.warn('Błąd parsowania metadanych:', e);
+            return;
+        }
+        
+        const componentType = metadata.type || 'default';
+        const instanceId = svgElement.getAttribute('data-id');
+        
+        // Obsłuż różne typy komponentów
+        switch (componentType) {
+            case 'led':
+                // Dla LED-ów, zaktualizuj odpowiednie elementy
+                const ledCore = svgElement.querySelector('#led-core');
+                const labelEl = svgElement.querySelector('#label');
+                const params = metadata.parameters || {};
+                
+                if (paramKey === 'parameters.label' && labelEl) {
+                    labelEl.textContent = value;
+                }
+                
+                if (ledCore) {
+                    if (paramKey === 'parameters.color' || paramKey === 'parameters.isOn' || paramKey === 'parameters.isBlinking') {
+                        // Zatrzymaj istniejące miganie
+                        if (svgElement.blinkInterval) {
+                            clearInterval(svgElement.blinkInterval);
+                            svgElement.blinkInterval = null;
+                        }
+                        
+                        // Ustaw nowy kolor lub stan
+                        if (params.isBlinking && params.isOn) {
+                            let on = true;
+                            svgElement.blinkInterval = setInterval(() => {
+                                ledCore.setAttribute('fill', on ? (params.color || '#e74c3c') : '#333');
+                                on = !on;
+                            }, params.blinkRate || 500);
+                        } else {
+                            ledCore.setAttribute('fill', params.isOn ? (params.color || '#e74c3c') : '#333');
+                        }
+                    }
+                }
+                break;
+                
+            // Dodaj inne typy komponentów tutaj
+            
+            default:
+                // Domyślna obsługa dla nieznanych typów
+                const element = svgElement.querySelector(`#${paramKey}`);
+                if (element) {
+                    if (typeof value === 'object') {
+                        Object.entries(value).forEach(([attr, val]) => {
+                            element.setAttribute(attr, val);
+                        });
+                    } else {
+                        element.textContent = value;
+                    }
+                }
+        }
+    }
+
+    function updateParam(id, paramKey, value, type) {
+        if (type === 'number') value = parseFloat(value);
+        if (type === 'boolean') value = value === true || value === 'true';
+        
+        const svgElement = document.querySelector(`[data-id="${id}"]`);
+        if (!svgElement) return;
+        
+        // Aktualizuj metadane
+        updateMetadataInSVG(svgElement, `parameters.${paramKey}`, value);
+        
+        // Zastosuj zmiany do wizualizacji
+        applyParameterToSVG(svgElement, paramKey, value);
+    }
+
+    function removeComponent(id) {
+        const component = components.get(id);
+        if (!component) return;
+        
+        // Zatrzymaj wszystkie interwały związane z tym komponentem
+        if (component.element.blinkInterval) {
+            clearInterval(component.element.blinkInterval);
+        }
+        if (component.element.pollingInterval) {
+            clearInterval(component.element.pollingInterval);
+        }
+        
+        // Usuń element z DOM
+        if (component.element && component.element.parentNode) {
+            component.element.parentNode.removeChild(component.element);
+        }
+        
+        // Usuń z mapy komponentów
+        components.delete(id);
+        
+        // Usuń połączenia związane z tym komponentem
+        updateConnections(id, true);
+        
+        // Wyczyść panel właściwości
+        const propertiesPanel = document.getElementById('properties-panel');
+        if (propertiesPanel) {
+            propertiesPanel.style.display = 'none';
+        }
+        
+        if (selectedComponent && selectedComponent.getAttribute('data-id') === id) {
+            selectedComponent = null;
+        }
+    }
+
+    function editMetadataRaw(id) {
         const el = document.querySelector(`[data-id="${id}"]`);
         const metadataNode = el.querySelector("metadata");
         let metadata;
@@ -940,8 +1229,9 @@
                 alert("Błąd składni JSON: " + e.message);
             }
         }
-    };
-    window.updatePosition = (id, coord, value) => {
+    }
+
+    function updatePosition(id, coord, value) {
         const el = document.querySelector(`[data-id="${id}"]`);
         if (!el) return;
 
@@ -980,21 +1270,46 @@
     // Załaduj komponenty do biblioteki z ikonami
     async function loadComponentLibrary() {
         const container = document.getElementById("component-library");
+        if (!container) {
+            console.error("Nie znaleziono kontenera biblioteki komponentów (component-library)");
+            return;
+        }
+        
         container.innerHTML = ""; // wyczyść
 
         for (const comp of COMPONENTS) {
             try {
                 const response = await fetch(comp.svg);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const svgText = await response.text();
+                if (!svgText || !svgText.trim().startsWith('<svg') && !svgText.trim().startsWith('<?xml')) {
+                    throw new Error("Nieprawidłowy format SVG");
+                }
+                
                 const parser = new DOMParser();
                 const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
+                
+                // Sprawdź błędy parsowania
+                const parserError = svgDoc.querySelector("parsererror");
+                if (parserError) {
+                    throw new Error("Błąd parsowania SVG");
+                }
+                
                 const svgElement = svgDoc.documentElement;
+                if (!svgElement || svgElement.nodeName !== 'svg') {
+                    throw new Error("Nie znaleziono elementu SVG");
+                }
 
-                // Przygotuj SVG jako ikona
+                // Przygotuj SVG jako ikona - używamy setAttribute zamiast style
                 svgElement.setAttribute("width", "32");
                 svgElement.setAttribute("height", "32");
                 svgElement.removeAttribute("id");
-                svgElement.style.display = "block";
+                
+                // Używamy setAttribute zamiast style.display
+                svgElement.setAttribute("style", "display: block;");
 
                 // Tworzymy przycisk
                 const button = document.createElement("button");
@@ -1005,9 +1320,7 @@
 
                 // Ikona po lewej
                 const iconWrapper = document.createElement("div");
-                iconWrapper.style.width = "36px";
-                iconWrapper.style.height = "36px";
-                iconWrapper.style.flexShrink = "0";
+                iconWrapper.setAttribute("style", "width: 36px; height: 36px; flex-shrink: 0;");
                 iconWrapper.appendChild(svgElement);
 
                 // Tekst
@@ -1032,7 +1345,12 @@
                 fallbackButton.dataset.svg = comp.svg;
                 fallbackButton.innerHTML = `<span>⚠️ ${comp.name}</span>`;
                 fallbackButton.title = "Błąd ładowania ikony";
-                document.getElementById("component-library").appendChild(fallbackButton);
+                
+                // Sprawdź czy kontener istnieje przed dodaniem przycisku awaryjnego
+                const componentLibrary = document.getElementById("component-library");
+                if (componentLibrary) {
+                    componentLibrary.appendChild(fallbackButton);
+                }
             }
         }
     }
