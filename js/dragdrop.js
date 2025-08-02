@@ -101,58 +101,33 @@ export class DragDropManager {
     placeComponent(svgElement, x, y, svgUrl) {
         // Generuj nowe ID
         const componentId = this.componentManager.generateComponentId();
-        
+
         // Konfiguruj element SVG
         svgElement.setAttribute("data-id", componentId);
         svgElement.setAttribute("data-svg-url", svgUrl);
         svgElement.setAttribute("class", "draggable-component");
         svgElement.setAttribute("style", "cursor: move;");
 
-        // Pobierz lub utwórz metadane z elementu script type="application/json" (jeśli istnieje)
+        // Inicjalizuj puste metadane
         let metadata = { parameters: {} };
-        const metadataNode = svgElement.querySelector('script[type="application/json"][id="metadata"]');
-        
-        // Jeśli nie ma nowego formatu, sprawdź stary format (dla kompatybilności wstecznej)
-        const oldMetadataNode = !metadataNode ? svgElement.querySelector("metadata") : null;
-        
-        if (metadataNode) {
-            try {
-                const metadataContent = metadataNode.textContent.trim();
-                if (metadataContent) {
-                    metadata = JSON.parse(metadataContent);
-                }
-                // Usuń zawartość JSON z script element (zachowaj czystość)
-                metadataNode.textContent = '';
-            } catch (error) {
-                console.warn("Błąd parsowania metadanych JSON:", error);
-            }
-        } else if (oldMetadataNode) {
-            // Obsługa starego formatu dla kompatybilności wstecznej
-            try {
-                const metadataContent = oldMetadataNode.textContent.trim();
-                if (metadataContent) {
-                    metadata = JSON.parse(metadataContent);
-                }
-                // Usuń stary format metadata
-                svgElement.removeChild(oldMetadataNode);
-            } catch (error) {
-                console.warn("Błąd parsowania starego formatu metadanych JSON:", error);
-            }
-        }
 
-        // Przechowuj metadane w atrybutach data-*
+        // Usuń wszystkie elementy metadata z SVG (zachowaj czystość)
+        const metadataElements = svgElement.querySelectorAll('metadata, script[type="application/json"][class="metadata"]');
+        metadataElements.forEach(element => element.remove());
+
+        // Przechowuj metadane tylko w atrybutach data-*
         svgElement.setAttribute('data-metadata', JSON.stringify(metadata));
 
         // Ustaw pozycję
         const width = parseFloat(svgElement.getAttribute("width")) || 100;
         const height = parseFloat(svgElement.getAttribute("height")) || 100;
-        
+
         const finalX = x - width / 2;
         const finalY = y - height / 2;
-        
+
         svgElement.setAttribute("x", finalX);
         svgElement.setAttribute("y", finalY);
-        
+
         // Zapisz pozycję w metadanych
         metadata.position = { x: finalX, y: finalY };
         svgElement.setAttribute('data-metadata', JSON.stringify(metadata));
@@ -180,26 +155,26 @@ export class DragDropManager {
 
         svgElement.addEventListener('mousedown', (e) => {
             if (e.button !== 0) return; // Tylko lewy przycisk myszy
-            
+
             isDragging = true;
             startX = e.clientX;
             startY = e.clientY;
             startElementX = parseFloat(svgElement.getAttribute('x')) || 0;
             startElementY = parseFloat(svgElement.getAttribute('y')) || 0;
-            
+
             svgElement.style.cursor = 'grabbing';
             e.preventDefault();
         });
 
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
-            
+
             const deltaX = e.clientX - startX;
             const deltaY = e.clientY - startY;
-            
+
             const newX = startElementX + deltaX;
             const newY = startElementY + deltaY;
-            
+
             svgElement.setAttribute('x', newX);
             svgElement.setAttribute('y', newY);
         });

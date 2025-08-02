@@ -8,8 +8,7 @@
     <title>REST API Client - Interactive HTTP Request Interface</title>
     <desc>A PHP-powered SVG interface for making REST API requests with customizable HTTP methods and request bodies</desc>
 
-    <script type="application/json" id="metadata">
-        {
+    <script type="application/json" class="metadata">{
         "id": "led-001",
         "name": "Animated LED",
         "type": "led",
@@ -21,8 +20,7 @@
             "blinkRate": 500,
             "isActive": true
             }
-        }
-    </script>
+        }</script>
 
     <!-- Obudowa -->
     <circle cx="20" cy="20" r="18" fill="#2c3e50" stroke="#1a252f" stroke-width="2"/>
@@ -38,7 +36,7 @@
       (function() {
         // Function to read metadata
         function getMetadata(svgElement) {
-          const metadataNode = svgElement.querySelector('script[type="application/json"][id="metadata"]');
+          const metadataNode = svgElement.querySelector('script[type="application/json"][class="metadata"]');
           if (metadataNode && metadataNode.textContent.trim()) {
             try {
               return JSON.parse(metadataNode.textContent);
@@ -59,7 +57,7 @@
           const ledCore = svgElement.querySelector('.led-core');
           const labelEl = svgElement.querySelector('.led-label');
 
-          if (!ledCore || !params.isActive) {
+          if (!ledCore || params.isActive === false) {
             if (ledCore) ledCore.setAttribute('fill', '#333');
             return;
           }
@@ -76,7 +74,7 @@
               clearInterval(svgElement.blinkInterval);
               svgElement.blinkInterval = null;
             }
-            
+
             // Create a new interval for this LED
             let on = true;
             svgElement.blinkInterval = setInterval(() => {
@@ -99,18 +97,18 @@
             ledCore.setAttribute('fill', params.isOn ? params.color : '#333');
           }
         }
-        
+
         // Toggle LED function
         function toggleLED(svgElement) {
           const metadata = getMetadata(svgElement);
           if (metadata && metadata.parameters) {
             // Toggle the state
             metadata.parameters.isOn = !metadata.parameters.isOn;
-            
+
             // Update metadata
-            svgElement.querySelector('script[type="application/json"][id="metadata"]').textContent = 
+            svgElement.querySelector('script[type="application/json"][class="metadata"]').textContent =
               JSON.stringify(metadata, null, 2);
-            
+
             // Update appearance immediately
             updateLED(svgElement);
           }
@@ -121,10 +119,10 @@
         const svgElement = document.currentScript.closest('svg');
         if (svgElement && !svgElement.hasAttribute('data-led-initialized')) {
           svgElement.setAttribute('data-led-initialized', 'true');
-          
+
           // Store a unique identifier for this LED
           svgElement.ledInstanceId = 'led-' + Math.random().toString(36).substr(2, 9);
-          
+
           // Add click event listener to toggle LED
           const ledCore = svgElement.querySelector('.led-core');
           if (ledCore) {
@@ -133,31 +131,38 @@
               e.stopPropagation(); // Prevent event bubbling
             });
           }
-          
+
           // Initial update
           updateLED(svgElement);
 
           // Optional: listen for changes (if IDE overwrites metadata)
           // Simulate an "observer" - check for changes every 500ms
           svgElement.pollingInterval = setInterval(() => {
-            // Instead of document.body.contains, check if the element is still connected
-            if (svgElement.ownerDocument && !svgElement.isConnected) {
+            // Safely check if element is still in DOM
+            if (!svgElement.isConnected) {
               // Clean up if it's been removed
               if (svgElement.blinkInterval) clearInterval(svgElement.blinkInterval);
               if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
               return;
             }
-            
+
             const metadata = getMetadata(svgElement);
             const params = metadata.parameters || {};
-            const currentColor = svgElement.currentParams?.color;
-            const isBlinking = svgElement.currentParams?.isBlinking;
-            const isOn = svgElement.currentParams?.isOn;
+
+            // Initialize currentParams if needed
+            if (!svgElement.currentParams) {
+              svgElement.currentParams = {};
+            }
+
+            const currentColor = svgElement.currentParams.color;
+            const isBlinking = svgElement.currentParams.isBlinking;
+            const isOn = svgElement.currentParams.isOn;
+            const isActive = svgElement.currentParams.isActive;
 
             if (params.color !== currentColor ||
                 params.isBlinking !== isBlinking ||
                 params.isOn !== isOn ||
-                params.isActive !== (svgElement.currentParams?.isActive)) {
+                params.isActive !== isActive) {
               svgElement.currentParams = { ...params };
               updateLED(svgElement);
             }
@@ -168,27 +173,30 @@
             if (svgElement.blinkInterval) clearInterval(svgElement.blinkInterval);
             if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
           }
-          
+
           window.addEventListener('beforeunload', cleanupLED);
-          
+
           // For SVGs that are embedded and might be removed
-          const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-              if (Array.from(mutation.removedNodes).includes(svgElement)) {
-                cleanupLED();
-                observer.disconnect();
+          if (typeof MutationObserver === 'function') {
+            try {
+              const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                  if (Array.from(mutation.removedNodes).some(node =>
+                      node === svgElement || (node.contains && node.contains(svgElement)))) {
+                    cleanupLED();
+                    observer.disconnect();
+                  }
+                });
+              });
+
+              // Only observe if the SVG is in a document and has a parent node
+              if (svgElement.parentNode) {
+                observer.observe(svgElement.parentNode, { childList: true });
               }
-            });
-          });
-          
-          try {
-            // Only observe if the SVG is in a document
-            if (svgElement.parentNode) {
-              observer.observe(svgElement.parentNode, { childList: true });
+            } catch (e) {
+              // Ignore errors for standalone SVGs
+              console.warn("Could not set up observer:", e);
             }
-          } catch (e) {
-            // Ignore errors for standalone SVGs
-            console.warn("Could not set up observer:", e);
           }
         }
       })();

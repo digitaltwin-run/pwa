@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg"
-     xmlns:xhtml="http://www.w3.org/1999/xhtml"
-     width="40"
-     height="40"
-     viewBox="0 0 40 40">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xhtml="http://www.w3.org/1999/xhtml" width="40" height="40" viewBox="0 0 40 40">
 
     <title>Relay Component</title>
     <desc>Interactive relay component for digital twin</desc>
 
-    <metadata>
+    <script type="application/json" class="metadata">{
         {
         "id": "relay-001",
         "name": "Relay",
@@ -23,29 +19,29 @@
             "isActive": true
             }
         }
-    </metadata>
+    </script>
 
     <!-- Main body -->
     <rect x="5" y="5" width="30" height="25" rx="2" ry="2" fill="#34495e" stroke="#2c3e50" stroke-width="1.5"/>
-    
+
     <!-- Contacts -->
     <rect x="7" y="10" width="26" height="3" fill="#95a5a6"/>
     <rect x="7" y="22" width="26" height="3" fill="#95a5a6"/>
-    
+
     <!-- Indicator -->
     <circle class="relay-indicator" cx="20" cy="17" r="5" fill="#7f8c8d" stroke="#2c3e50" stroke-width="1"/>
-    
+
     <!-- Label -->
     <text class="relay-label" x="20" y="36" font-size="8" text-anchor="middle" fill="#bdc3c7">Relay</text>
 
     <defs>
     <!-- Internal SVG script -->
-    <script><![CDATA[
+    <script>
       (function() {
         // Function to read metadata
         function getMetadata(svgElement) {
-          const metadataNode = svgElement.querySelector('metadata');
-          if (metadataNode && metadataNode.textContent.trim()) {
+          const metadataNode = svgElement.querySelector('script[type="application/json"][class="metadata"]');
+          if (metadataNode &amp;&amp; metadataNode.textContent.trim()) {
             try {
               return JSON.parse(metadataNode.textContent);
             } catch (e) {
@@ -60,7 +56,7 @@
         function updateRelay(svgElement) {
           const metadata = getMetadata(svgElement);
           const params = metadata.parameters || {};
-          
+
           const indicator = svgElement.querySelector('.relay-indicator');
           const labelEl = svgElement.querySelector('.relay-label');
 
@@ -70,7 +66,7 @@
           }
 
           // Update label
-          if (labelEl && params.label) {
+          if (labelEl &amp;&amp; params.label) {
             labelEl.textContent = params.label;
           }
 
@@ -82,19 +78,19 @@
         const svgElement = document.querySelector('svg:not([data-relay-initialized="true"])');
         if (svgElement) {
           svgElement.setAttribute('data-relay-initialized', 'true');
-          
+
           // Initial update
           updateRelay(svgElement);
 
           // Poll for changes
-          svgElement.pollingInterval = setInterval(() => {
+          svgElement.pollingInterval = setInterval(() =&gt; {
             const metadata = getMetadata(svgElement);
             const params = metadata.parameters || {};
             const currentState = svgElement.currentParams?.state;
             const currentColor = svgElement.currentParams?.color;
 
-            if (params.state !== currentState || 
-                params.color !== currentColor || 
+            if (params.state !== currentState ||
+                params.color !== currentColor ||
                 params.isActive !== (svgElement.currentParams?.isActive)) {
               svgElement.currentParams = { ...params };
               updateRelay(svgElement);
@@ -102,11 +98,11 @@
           }, 500);
 
           // Cleanup on removal
-          window.addEventListener('beforeunload', () => {
+          window.addEventListener('beforeunload', () =&gt; {
             if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
           });
         }
       })();
-    ]]></script>
+    </script>
     </defs>
 </svg>

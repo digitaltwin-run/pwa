@@ -18,7 +18,7 @@
             <xs:simpleContent>
               <xs:extension base="xs:string">
                 <xs:attribute name="type" type="xs:string" fixed="application/json"/>
-                <xs:attribute name="id" type="xs:string" fixed="metadata"/>
+                <xs:attribute name="class" type="xs:string" fixed="metadata"/>
                 <xs:annotation>
                   <xs:documentation>
                     JSON metadata must follow this structure:
@@ -67,11 +67,12 @@
       </xs:sequence>
       
       <!-- Required attributes for SVG root -->
-      <xs:attribute name="xmlns" type="xs:anyURI" use="required" fixed="http://www.w3.org/2000/svg"/>
-      <xs:attribute name="xmlns:xhtml" type="xs:anyURI" use="required" fixed="http://www.w3.org/1999/xhtml"/>
       <xs:attribute name="width" type="xs:positiveInteger" use="required"/>
       <xs:attribute name="height" type="xs:positiveInteger" use="required"/>
       <xs:attribute name="viewBox" type="xs:string" use="required"/>
+      
+      <!-- Note: xmlns attributes are special in XML Schema and cannot be directly declared -->
+      <!-- Instead, they are implicitly handled by the namespace declarations -->
     </xs:complexType>
   </xs:element>
 

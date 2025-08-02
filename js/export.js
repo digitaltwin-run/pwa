@@ -126,7 +126,7 @@ export class ExportManager {
                 svgElement.setAttribute("transform", compData.transform);
             }
 
-            // Zapisz metadane w atrybucie data-metadata
+            // Zapisz metadane tylko w atrybucie data-metadata (bez elementów DOM)
             svgElement.setAttribute('data-metadata', JSON.stringify(compData.metadata || {}));
 
             // Dodaj do canvas i mapy

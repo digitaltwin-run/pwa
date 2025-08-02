@@ -1,5 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="80" height="60" viewBox="0 0 80 60">
-  <metadata>
+  <script type="application/json" class="metadata">{
 {
   "id": "display-001",
   "name": "HMI Display",
@@ -11,8 +12,7 @@
     "status": "OK",
     "backlight": true
   }
-}
-  </metadata>
+}</script>
 
   <rect id="body" x="5" y="5" width="70" height="50" rx="8" fill="#2c3e50" stroke="#34495e" stroke-width="2"/>
   <rect x="15" y="15" width="50" height="20" fill="#ecf0f1" rx="4"/>

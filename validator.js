@@ -2,18 +2,18 @@
 
 /**
  * SVG Component Validator
- * 
+ *
  * This script validates SVG component files against the XSD schema
  * and performs additional checks for common errors in components.
- * 
+ *
  * Usage:
  *   node validator.js [options] [files...]
- * 
+ *
  * Options:
  *   --help     Show help
  *   --schema   Path to XSD schema (default: ./schema/component-schema.xsd)
  *   --fix      Try to fix common issues automatically
- * 
+ *
  * Examples:
  *   node validator.js ./components/*.svg
  *   node validator.js --fix ./components/led.svg
@@ -22,7 +22,7 @@
 const fs = require('fs');
 const path = require('path');
 const { DOMParser } = require('@xmldom/xmldom');
-const { validate } = require('xsd-schema-validator');
+const xsdValidator = require('xsd-schema-validator');
 const glob = require('glob');
 
 // Configuration
@@ -98,7 +98,7 @@ if (!fs.existsSync(options.schemaPath)) {
  */
 async function validateAgainstSchema(svgContent) {
   return new Promise((resolve, reject) => {
-    validate(svgContent, options.schemaPath, (err, result) => {
+    xsdValidator.validateXML(svgContent, options.schemaPath, (err, result) => {
       if (err) {
         reject(err);
       } else {
@@ -115,11 +115,34 @@ async function validateAgainstSchema(svgContent) {
  */
 function validateMetadata(xmlDoc) {
   const issues = [];
-  
+
+  // Helper function to find elements by attributes
+  function findElementByAttributes(doc, tagName, attributes) {
+    const elements = doc.getElementsByTagName(tagName);
+    for (let i = 0; i < elements.length; i++) {
+      const element = elements[i];
+      let match = true;
+      for (const [attr, value] of Object.entries(attributes)) {
+        if (element.getAttribute(attr) !== value) {
+          match = false;
+          break;
+        }
+      }
+      if (match) {
+        return element;
+      }
+    }
+    return null;
+  }
+
   // Check for metadata script element
-  const metadataScript = xmlDoc.querySelector('script[type="application/json"][id="metadata"]');
+  const metadataScript = findElementByAttributes(xmlDoc, 'script', {
+    'type': 'application/json',
+    'class': 'metadata'
+  });
+  
   if (!metadataScript) {
-    issues.push('Missing <script type="application/json" id="metadata"> element for component metadata');
+    issues.push('Missing <script type="application/json" class="metadata"> element for component metadata');
     return { valid: issues.length === 0, issues };
   }
 
@@ -136,7 +159,7 @@ function validateMetadata(xmlDoc) {
   if (!metadataJson.id) issues.push('Missing "id" in metadata');
   if (!metadataJson.name) issues.push('Missing "name" in metadata');
   if (!metadataJson.type) issues.push('Missing "type" in metadata');
-  
+
   // Check parameters
   if (!metadataJson.parameters) {
     issues.push('Missing "parameters" object in metadata');
@@ -172,18 +195,37 @@ function validateMetadata(xmlDoc) {
  */
 function validateScript(xmlDoc, metadata) {
   const issues = [];
-  
+
+  // Helper function to find elements by attributes
+  function findElementByAttributes(doc, tagName, attributes) {
+    const elements = doc.getElementsByTagName(tagName);
+    for (let i = 0; i < elements.length; i++) {
+      const element = elements[i];
+      let match = true;
+      for (const [attr, value] of Object.entries(attributes)) {
+        if (element.getAttribute(attr) !== value) {
+          match = false;
+          break;
+        }
+      }
+      if (match) {
+        return element;
+      }
+    }
+    return null;
+  }
+
   // Check for script element (not the metadata script)
   const scripts = Array.from(xmlDoc.getElementsByTagName('script'))
     .filter(s => s.getAttribute('type') !== 'application/json');
-    
+
   if (scripts.length === 0) {
     issues.push('Missing interactive <script> element');
     return { valid: issues.length === 0, issues };
   }
-  
+
   const script = scripts[0];  // Use the first non-metadata script
-  
+
   const scriptContent = script.textContent;
 
   // Check for empty script
@@ -191,39 +233,57 @@ function validateScript(xmlDoc, metadata) {
     issues.push('Empty script content');
     return { valid: issues.length === 0, issues };
   }
-  
+
   // Check for required initialization pattern
   if (!scriptContent.includes('(function() {')) {
     issues.push('Missing initialization IIFE pattern: (function() {');
   }
-  
+
   // Check for proper script termination
   if (!scriptContent.trim().endsWith('})();')) {
     issues.push('Script not properly terminated with })();');
   }
-  
+
   // Check for DOM manipulation using currentScript
   if (!scriptContent.includes('document.currentScript.closest(\'svg\')')) {
     issues.push('Script should use document.currentScript.closest(\'svg\') to locate its container');
   }
-  
+
   // Check if script correctly reads metadata from new location
   if (scriptContent.includes('querySelector(\'metadata\')')) {
-    issues.push('Script is using outdated metadata selector. Should use: querySelector(\'script[type="application/json"][id="metadata"]\')');
+    issues.push('Script is using outdated metadata selector. Should use: querySelector(\'script[type="application/json"][class="metadata"]\')');
   }
-  
+
   // Check for getMetadata function implementation
-  if (!scriptContent.includes('script[type="application/json"][id="metadata"]')) {
-    issues.push('Script should access metadata via querySelector(\'script[type="application/json"][id="metadata"]\')');
+  if (!scriptContent.includes('script[type="application/json"][class="metadata"]')) {
+    issues.push('Script should access metadata via querySelector(\'script[type="application/json"][class="metadata"]\')');
   }
-  
+
   // Check for event cleanup
-  if (scriptContent.includes('setInterval(') && 
+  if (scriptContent.includes('setInterval(') &&
       (!scriptContent.includes('clearInterval(') || !scriptContent.includes('beforeunload'))) {
     issues.push('Script uses setInterval but may not properly clean up intervals');
   }
 
   return { valid: issues.length === 0, issues };
+}
+
+/**
+ * Helper function to find elements with a specific class name
+ * @param {Document|Element} node - Root node to search from
+ * @param {string} className - Class name to find
+ * @returns {Element|null} - First element with matching class or null
+ */
+function findElementByClassName(node, className) {
+  const elements = node.getElementsByTagName('*');
+  for (let i = 0; i < elements.length; i++) {
+    const element = elements[i];
+    const classAttr = element.getAttribute('class');
+    if (classAttr && classAttr.split(' ').includes(className)) {
+      return element;
+    }
+  }
+  return null;
 }
 
 /**
@@ -235,69 +295,69 @@ function validateScript(xmlDoc, metadata) {
 function validateSVGStructure(xmlDoc, metadata) {
   const issues = [];
   const type = metadata?.type;
-  
+
   if (!type) {
     issues.push('Cannot validate structure without component type');
     return { valid: issues.length === 0, issues };
   }
-  
+
   // Common structure checks based on component type
   switch (type) {
     case 'led':
-      if (!xmlDoc.querySelector('.led-core')) {
+      if (!findElementByClassName(xmlDoc, 'led-core')) {
         issues.push('LED component missing .led-core element');
       }
-      if (!xmlDoc.querySelector('.led-label')) {
+      if (!findElementByClassName(xmlDoc, 'led-label')) {
         issues.push('LED component missing .led-label element');
       }
       break;
     case 'button':
-      if (!xmlDoc.querySelector('.button-surface')) {
+      if (!findElementByClassName(xmlDoc, 'button-surface')) {
         issues.push('Button component missing .button-surface element');
       }
-      if (!xmlDoc.querySelector('.button-shadow') && !xmlDoc.querySelector('.button-base')) {
+      if (!findElementByClassName(xmlDoc, 'button-shadow') && !findElementByClassName(xmlDoc, 'button-base')) {
         issues.push('Button component missing .button-shadow or .button-base element');
       }
       break;
     case 'switch':
-      if (!xmlDoc.querySelector('.switch-handle')) {
+      if (!findElementByClassName(xmlDoc, 'switch-handle')) {
         issues.push('Switch component missing .switch-handle element');
       }
-      if (!xmlDoc.querySelector('.switch-track')) {
+      if (!findElementByClassName(xmlDoc, 'switch-track')) {
         issues.push('Switch component missing .switch-track element');
       }
       break;
     case 'toggle':
-      if (!xmlDoc.querySelector('.toggle-handle')) {
+      if (!findElementByClassName(xmlDoc, 'toggle-handle')) {
         issues.push('Toggle component missing .toggle-handle element');
       }
-      if (!xmlDoc.querySelector('.toggle-track')) {
+      if (!findElementByClassName(xmlDoc, 'toggle-track')) {
         issues.push('Toggle component missing .toggle-track element');
       }
       break;
     case 'knob':
-      if (!xmlDoc.querySelector('.knob-indicator')) {
+      if (!findElementByClassName(xmlDoc, 'knob-indicator')) {
         issues.push('Knob component missing .knob-indicator element');
       }
       break;
     case 'slider':
-      if (!xmlDoc.querySelector('.slider-handle')) {
+      if (!findElementByClassName(xmlDoc, 'slider-handle')) {
         issues.push('Slider component missing .slider-handle element');
       }
-      if (!xmlDoc.querySelector('.slider-track')) {
+      if (!findElementByClassName(xmlDoc, 'slider-track')) {
         issues.push('Slider component missing .slider-track element');
       }
       break;
     case 'gauge':
-      if (!xmlDoc.querySelector('.gauge-needle')) {
+      if (!findElementByClassName(xmlDoc, 'gauge-needle')) {
         issues.push('Gauge component missing .gauge-needle element');
       }
       break;
     case 'counter':
-      if (!xmlDoc.querySelector('.counter-value')) {
+      if (!findElementByClassName(xmlDoc, 'counter-value')) {
         issues.push('Counter component missing .counter-value element');
       }
-      if (!xmlDoc.querySelector('.counter-increment-button') || !xmlDoc.querySelector('.counter-decrement-button')) {
+      if (!findElementByClassName(xmlDoc, 'counter-increment-button') || !findElementByClassName(xmlDoc, 'counter-decrement-button')) {
         issues.push('Counter component missing increment/decrement buttons');
       }
       break;
@@ -315,26 +375,26 @@ function validateSVGStructure(xmlDoc, metadata) {
 async function fixCommonIssues(filePath, validationResults) {
   let content = fs.readFileSync(filePath, 'utf8');
   let fixesApplied = false;
-  
+
   // Fix metadata JSON format
   if (validationResults.metadataResults && !validationResults.metadataResults.valid) {
     // Try to fix metadata in <script type="application/json">
-    const metadataMatch = content.match(/<script[^>]*type="application\/json"[^>]*id="metadata"[^>]*>([\s\S]*?)<\/script>/);
-    
+    const metadataMatch = content.match(/<script[^>]*type="application\/json"[^>]*class="metadata"[^>]*>([\s\S]*?)<\/script>/);
+
     // If not found, also check for old metadata format
     const oldMetadataMatch = !metadataMatch && content.match(/<metadata>([\s\S]*?)<\/metadata>/);
-    
+
     if (metadataMatch || oldMetadataMatch) {
       try {
         const jsonStr = (metadataMatch || oldMetadataMatch)[1].trim();
         const parsedJson = JSON.parse(jsonStr);
-        
+
         // Add missing fields
         if (!parsedJson.id) parsedJson.id = `${parsedJson.type || 'component'}-${Date.now()}`;
         if (!parsedJson.name) parsedJson.name = path.basename(filePath, '.svg');
         if (!parsedJson.type) parsedJson.type = 'generic';
         if (!parsedJson.parameters) parsedJson.parameters = {};
-        
+
         // Add component-specific parameters
         if (parsedJson.type === 'led') {
           if (!parsedJson.parameters.color) parsedJson.parameters.color = '#e74c3c';
@@ -342,22 +402,22 @@ async function fixCommonIssues(filePath, validationResults) {
           if (parsedJson.parameters.isBlinking === undefined) parsedJson.parameters.isBlinking = false;
           if (!parsedJson.parameters.label) parsedJson.parameters.label = 'LED';
         }
-        
+
         const formattedJson = JSON.stringify(parsedJson, null, 4);
-        
+
         // If old metadata format was found, convert it to new format
         if (oldMetadataMatch) {
           content = content.replace(
-            /<metadata>[\s\S]*?<\/metadata>/, 
-            `<script type="application/json" id="metadata">\n${formattedJson}\n</script>`
+            /<metadata>[\s\S]*?<\/metadata>/,
+            `<script type="application/json" class="metadata">\n${formattedJson}\n</script>`
           );
           console.log(`Converted <metadata> to <script type="application/json"> in ${filePath}`);
           fixesApplied = true;
         } else {
           // Otherwise just update the existing script content
           content = content.replace(
-            /<script[^>]*type="application\/json"[^>]*id="metadata"[^>]*>[\s\S]*?<\/script>/, 
-            `<script type="application/json" id="metadata">\n${formattedJson}\n</script>`
+            /<script[^>]*type="application\/json"[^>]*class="metadata"[^>]*>[\s\S]*?<\/script>/,
+            `<script type="application/json" class="metadata">\n${formattedJson}\n</script>`
           );
           fixesApplied = true;
         }
@@ -366,7 +426,7 @@ async function fixCommonIssues(filePath, validationResults) {
       }
     }
   }
-  
+
   // Fix script IIFE pattern
   if (validationResults.scriptResults && !validationResults.scriptResults.valid) {
     if (validationResults.scriptResults.issues.includes('Script not properly terminated with })();')) {
@@ -383,7 +443,7 @@ async function fixCommonIssues(filePath, validationResults) {
         }
       );
     }
-    
+
     // Add currentScript pattern if missing
     if (validationResults.scriptResults.issues.includes('Script should use document.currentScript.closest(\'svg\') to locate its container')) {
       content = content.replace(
@@ -397,13 +457,13 @@ async function fixCommonIssues(filePath, validationResults) {
       );
     }
   }
-  
+
   // If fixes were applied, write the file
   if (fixesApplied) {
     fs.writeFileSync(filePath, content, 'utf8');
     console.log(`Applied fixes to ${filePath}`);
   }
-  
+
   return fixesApplied;
 }
 
@@ -413,15 +473,15 @@ async function fixCommonIssues(filePath, validationResults) {
  */
 async function validateSVGComponent(filePath) {
   console.log(`\nValidating: ${filePath}`);
-  
+
   try {
     // Read file content
     const content = fs.readFileSync(filePath, 'utf8');
-    
+
     // Parse SVG as XML
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(content, 'text/xml');
-    
+
     // Validate metadata
     const metadataResults = validateMetadata(xmlDoc);
     if (!metadataResults.valid) {
@@ -430,7 +490,7 @@ async function validateSVGComponent(filePath) {
     } else {
       console.log('✅ Metadata validated successfully');
     }
-    
+
     // Validate script if metadata is valid
     let scriptResults = { valid: false, issues: ['Cannot validate script without valid metadata'] };
     if (metadataResults.metadata) {
@@ -442,7 +502,7 @@ async function validateSVGComponent(filePath) {
         console.log('✅ Script validated successfully');
       }
     }
-    
+
     // Validate SVG structure if metadata is valid
     let structureResults = { valid: false, issues: ['Cannot validate structure without valid metadata'] };
     if (metadataResults.metadata) {
@@ -454,7 +514,7 @@ async function validateSVGComponent(filePath) {
         console.log('✅ Structure validated successfully');
       }
     }
-    
+
     // Try to fix issues if requested
     if (options.fix) {
       await fixCommonIssues(filePath, {
@@ -463,7 +523,7 @@ async function validateSVGComponent(filePath) {
         structureResults
       });
     }
-    
+
     // Check for more complex issues like syntax errors
     console.log('Checking for JavaScript syntax errors...');
     const scriptNodes = xmlDoc.getElementsByTagName('script');
@@ -477,7 +537,7 @@ async function validateSVGComponent(filePath) {
         console.log(`❌ Script syntax error: ${e.message}`);
       }
     }
-    
+
     // Validate against XSD schema
     try {
       const result = await validateAgainstSchema(content);
@@ -490,7 +550,7 @@ async function validateSVGComponent(filePath) {
     } catch (err) {
       console.error(`❌ XSD validation error: ${err.message}`);
     }
-    
+
   } catch (err) {
     console.error(`Error validating ${filePath}: ${err.message}`);
   }
@@ -504,7 +564,7 @@ async function main() {
   for (const file of options.files) {
     await validateSVGComponent(file);
   }
-  
+
   console.log('\nValidation complete');
 }
 

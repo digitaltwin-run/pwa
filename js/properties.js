@@ -30,18 +30,18 @@ export class PropertiesManager {
 
         const id = svgElement.getAttribute('data-id');
         const componentData = this.componentManager.getComponent(id);
-        
+
         if (!componentData) {
             this.clearProperties();
             return;
         }
 
         let html = `<h4>Komponent: ${id}</h4>`;
-        
+
         // Pozycja
         const x = parseFloat(svgElement.getAttribute('x')) || 0;
         const y = parseFloat(svgElement.getAttribute('y')) || 0;
-        
+
         html += `
             <label>Pozycja X:</label>
             <input type="number" value="${x}" onchange="updatePosition('${id}', 'x', this.value)">
@@ -52,14 +52,14 @@ export class PropertiesManager {
         // Parametry z metadanych
         if (componentData.metadata && componentData.metadata.parameters) {
             html += '<h5>Parametry:</h5>';
-            
+
             for (const [key, param] of Object.entries(componentData.metadata.parameters)) {
                 const label = this.componentManager.formatLabel(key);
                 const value = param.value !== undefined ? param.value : param.default || '';
                 const type = param.type || 'text';
-                
+
                 html += `<label>${label}:</label>`;
-                
+
                 if (type === 'color') {
                     html += `<input type="color" value="${value}" onchange="updateParam('${id}', '${key}', this.value, '${type}')">`;
                 } else if (type === 'range') {
@@ -122,11 +122,11 @@ export class PropertiesManager {
         if (!componentData.metadata.parameters) {
             componentData.metadata.parameters = {};
         }
-        
+
         if (!componentData.metadata.parameters[paramKey]) {
             componentData.metadata.parameters[paramKey] = {};
         }
-        
+
         componentData.metadata.parameters[paramKey].value = value;
         componentData.metadata.parameters[paramKey].type = type;
 
@@ -153,7 +153,7 @@ export class PropertiesManager {
             componentData.metadata.position = {};
         }
         componentData.metadata.position[coord] = numValue;
-        
+
         this.updateMetadataInSVG(componentData.element, `position.${coord}`, numValue);
     }
 
@@ -192,26 +192,26 @@ export class PropertiesManager {
         // Pobierz obecne metadane z atrybutu data-metadata
         let metadata;
         try {
-            const metadataStr = svgElement.getAttribute('data-metadata') || '{}';
-            metadata = JSON.parse(metadataStr);
-        } catch {
-            metadata = {};
+            // Pobierz metadane z elementu SVG
+            const metadataStr = svgElement.getAttribute('data-metadata');
+            metadata = metadataStr ? JSON.parse(metadataStr) : { parameters: {} };
+        } catch (e) {
+            console.warn("Błąd parsowania metadanych w updateMetadataInSVG:", e);
+            metadata = { parameters: {} };
         }
 
-        // Ustaw wartość w zagnieżdżonej ścieżce
+        // Ustaw wartość w ścieżce
         const keys = path.split('.');
         let current = metadata;
-        
         for (let i = 0; i < keys.length - 1; i++) {
             if (!current[keys[i]]) {
                 current[keys[i]] = {};
             }
             current = current[keys[i]];
         }
-        
         current[keys[keys.length - 1]] = value;
 
-        // Zapisz zaktualizowane metadane w atrybucie
+        // Zapisz zaktualizowane metadane w atrybucie (jedyne źródło prawdy)
         svgElement.setAttribute('data-metadata', JSON.stringify(metadata));
         
         // Zaktualizuj też dane w componentManager
@@ -222,55 +222,28 @@ export class PropertiesManager {
         }
     }
 
-    // Zastosuj parametr do SVG
-    applyParameterToSVG(svgElement, paramKey, value) {
-        const rules = {
-            'fillColor': (el, val) => {
-                const paths = el.querySelectorAll('path, rect, circle, ellipse');
-                paths.forEach(path => {
-                    if (path.getAttribute('fill') && path.getAttribute('fill') !== 'none') {
-                        path.setAttribute('fill', val);
-                    }
-                });
-            },
-            'strokeColor': (el, val) => {
-                const paths = el.querySelectorAll('path, rect, circle, ellipse, line');
-                paths.forEach(path => path.setAttribute('stroke', val));
-            },
-            'strokeWidth': (el, val) => {
-                const paths = el.querySelectorAll('path, rect, circle, ellipse, line');
-                paths.forEach(path => path.setAttribute('stroke-width', val));
-            },
-            'opacity': (el, val) => {
-                el.setAttribute('opacity', val);
-            },
-            'size': (el, val) => {
-                const currentWidth = parseFloat(el.getAttribute('width')) || 100;
-                const currentHeight = parseFloat(el.getAttribute('height')) || 100;
-                const scale = parseFloat(val) / 100;
-                
-                el.setAttribute('width', currentWidth * scale);
-                el.setAttribute('height', currentHeight * scale);
-            },
-            'rotation': (el, val) => {
-                const x = parseFloat(el.getAttribute('x')) || 0;
-                const y = parseFloat(el.getAttribute('y')) || 0;
-                const width = parseFloat(el.getAttribute('width')) || 100;
-                const height = parseFloat(el.getAttribute('height')) || 100;
-                
-                const centerX = x + width / 2;
-                const centerY = y + height / 2;
-                
-                el.setAttribute('transform', `rotate(${val} ${centerX} ${centerY})`);
-            },
-            'text': (el, val) => {
-                const textElements = el.querySelectorAll('text');
-                textElements.forEach(text => text.textContent = val);
-            }
-        };
+    // Funkcja do aplikowania parametrów do elementów SVG
+    applyParameterToSVG(svgElement, path, value) {
+        // Specjalne przypadki dla różnych komponentów i parametrów
+        if (path.includes('parameters.')) {
+            const paramName = path.split('.')[1]; // np. parameters.color -> color
 
-        if (rules[paramKey]) {
-            rules[paramKey](svgElement, value);
+            // Wybierz odpowiednie elementy SVG
+            switch (paramName) {
+                case 'label':
+                    const labelElement = svgElement.querySelector('.led-label, .button-label, .switch-label, .gauge-label, .counter-value, .slider-label');
+                    if (labelElement) labelElement.textContent = value;
+                    break;
+                case 'color':
+                    const colorElement = svgElement.querySelector('.led-core, .button-surface, .switch-handle, .gauge-needle');
+                    if (colorElement) colorElement.setAttribute('fill', value);
+                    break;
+                case 'isOn':
+                case 'state':
+                    // Zaimplementuj zachowanie zależne od stanu (dla LED, przełączników)
+                    break;
+                // Dodaj obsługę innych parametrów
+            }
         }
     }
 
@@ -294,13 +267,13 @@ export class PropertiesManager {
 
         const currentMetadata = JSON.stringify(componentData.metadata, null, 2);
         const newMetadata = prompt("Edytuj metadane (JSON):", currentMetadata);
-        
+
         if (newMetadata === null) return;
 
         try {
             const parsed = JSON.parse(newMetadata);
             componentData.metadata = parsed;
-            
+
             this.updateMetadataInSVG(componentData.element, '', parsed);
             this.showProperties(componentData.element);
         } catch (error) {
