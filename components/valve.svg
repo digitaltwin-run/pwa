@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60">
+  <metadata>
+{
+  "id": "valve-001",
+  "name": "Control Valve",
+  "type": "valve",
+  "parameters": {
+    "label": "V1",
+    "color": "#95a5a6",
+    "position": 50,
+    "positionMin": 0,
+    "positionMax": 100,
+    "flow": "open",
+    "unit": "%",
+    "isActive": true
+  }
+}
+  </metadata>
+
+  <rect id="body" x="20" y="10" width="20" height="40" fill="#95a5a6" stroke="#7f8c8d" stroke-width="2" rx="4"/>
+  <circle cx="30" cy="30" r="12" fill="#7f8c8d" stroke="#2c3e50" stroke-width="2"/>
+  <text id="label" x="30" y="20" font-size="12" text-anchor="middle" fill="white">V1</text>
+  <text id="value" x="30" y="55" font-size="12" text-anchor="middle" fill="#2c3e50">50%</text>
+</svg>

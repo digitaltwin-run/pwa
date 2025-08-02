@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="70" height="60" viewBox="0 0 70 60">
+  <metadata>
+{
+  "id": "pump-001",
+  "name": "Centrifugal Pump",
+  "type": "pump",
+  "parameters": {
+    "label": "P1",
+    "color": "#16a085",
+    "flowRate": 45,
+    "flowRateMin": 0,
+    "flowRateMax": 100,
+    "unit": "m³/h",
+    "isActive": true
+  }
+}
+  </metadata>
+
+  <circle cx="35" cy="30" r="25" fill="#16a085" stroke="#138a76" stroke-width="3"/>
+  <path d="M25 20 L45 40 M45 20 L25 40" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <text id="label" x="35" y="20" font-size="12" text-anchor="middle" fill="white">P1</text>
+  <text id="value" x="35" y="50" font-size="12" text-anchor="middle" fill="white">45 m³/h</text>
+</svg>
