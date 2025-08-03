@@ -37,10 +37,46 @@ export class PropertiesMapper {
         this.mappedProperties.clear();
         this.availableVariables.clear();
 
-        // Znajdź wszystkie komponenty SVG na canvie
-        const svgComponents = canvas.querySelectorAll('[data-id]');
+        // Enhanced component detection with multiple selectors
+        console.log('[PropertiesMapper] Canvas content debug:', {
+            innerHTML: canvas.innerHTML.substring(0, 200) + '...',
+            childElementCount: canvas.childElementCount,
+            children: Array.from(canvas.children).map(c => ({ tag: c.tagName, id: c.id, dataId: c.getAttribute('data-id') }))
+        });
         
-        console.log(`[PropertiesMapper] Found ${svgComponents.length} components on canvas`);
+        // Try multiple selectors to find components
+        let svgComponents = canvas.querySelectorAll('[data-id]');
+        
+        // If no components found with data-id, try alternative selectors
+        if (svgComponents.length === 0) {
+            console.log('[PropertiesMapper] No [data-id] components found, trying alternative selectors...');
+            
+            // Try SVG elements with class draggable-component
+            svgComponents = canvas.querySelectorAll('.draggable-component');
+            console.log(`[PropertiesMapper] Found ${svgComponents.length} .draggable-component elements`);
+            
+            // Try any SVG elements
+            if (svgComponents.length === 0) {
+                svgComponents = canvas.querySelectorAll('svg, g[id]');
+                console.log(`[PropertiesMapper] Found ${svgComponents.length} svg/g elements`);
+            }
+            
+            // Try any child elements with some identifier
+            if (svgComponents.length === 0) {
+                svgComponents = canvas.querySelectorAll('*[id], *[class]');
+                console.log(`[PropertiesMapper] Found ${svgComponents.length} elements with id/class`);
+            }
+        }
+        
+        console.log(`[PropertiesMapper] Final component count: ${svgComponents.length}`);
+        if (svgComponents.length > 0) {
+            console.log('[PropertiesMapper] Sample components:', Array.from(svgComponents).slice(0, 3).map(el => ({
+                tag: el.tagName,
+                id: el.id,
+                dataId: el.getAttribute('data-id'),
+                classes: el.className
+            })));
+        }
         
         // Clear existing mappings to prevent stale data
         this.mappedProperties.clear();

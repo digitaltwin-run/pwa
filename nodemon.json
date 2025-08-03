@@ -1,0 +1,24 @@
+{
+  "watch": [
+    "server.js",
+    "js/**/*.js",
+    ".env"
+  ],
+  "ignore": [
+    "components.json",
+    "node_modules/**/*",
+    "tests/**/*",
+    "docs/**/*",
+    "test-results/**/*",
+    "coverage/**/*",
+    "*.log",
+    "*.md",
+    ".git/**/*",
+    "dist/**/*",
+    "build/**/*"
+  ],
+  "ext": "js,json,env",
+  "delay": 2000,
+  "verbose": false,
+  "restartable": "rs"
+}

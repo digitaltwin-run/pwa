@@ -385,7 +385,7 @@ export class PropertiesManager {
 
     // Generuj sekcję właściwości komponentu
     generateComponentProperties(componentData) {
-        return this.colorsManager.generateColorsSection(componentData.element);
+        return this.colorManager.generateColorsSection(componentData.element);
     }
     
     // Generuj sekcję zoom/scale z zachowaniem proporcji

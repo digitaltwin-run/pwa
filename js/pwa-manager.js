@@ -32,7 +32,15 @@ class PWAManager {
 
         try {
             await this.registerServiceWorker();
-            await this.initPushNotifications();
+            
+            // Only initialize push notifications if enabled in config
+            if (pwaConfig.enablePushNotifications) {
+                console.log('🔔 Push notifications enabled in config');
+                await this.initPushNotifications();
+            } else {
+                console.log('ℹ️ Push notifications disabled in config - skipping initialization');
+            }
+            
             this.setupOfflineHandling();
             this.setupBackgroundSync();
         } catch (error) {

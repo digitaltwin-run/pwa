@@ -5,6 +5,28 @@
  * component parameters from the SVG metadata.
  */
 
+// Expose functions for testing
+const svgPropertyPanel = {
+  enhancePropertyPanel,
+  getSelectedSvgElement,
+  getComponentMetadata,
+  updatePropertyPanel,
+  formatParamName,
+  updateParameter
+};
+
+// Make functions available on window for testing
+if (typeof window !== 'undefined') {
+  window.svgPropertyPanel = svgPropertyPanel;
+  // Also expose individual functions for backward compatibility
+  window.enhancePropertyPanel = enhancePropertyPanel;
+  window.getSelectedSvgElement = getSelectedSvgElement;
+  window.getComponentMetadata = getComponentMetadata;
+  window.updatePropertyPanel = updatePropertyPanel;
+  window.formatParamName = formatParamName;
+  window.updateParameter = updateParameter;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   // Wait for the SVG editor to be fully loaded
   const checkEditor = setInterval(function() {

@@ -3,16 +3,20 @@
  * Loads environment variables for PWA features
  */
 
+// Check if we're in development mode
+const isDevelopment = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
 // Browser-compatible configuration (hardcoded values)
 const config = {
     // Generated VAPID keys for push notifications (browser-safe)
-    vapidPublicKey: 'BF_gMSomRFiLtQbJKDxEefNWqD0Y_zNOUbYc4dKmYZUtD1v185QrNiDk7Bzg72AI2eBlKM0QLmHy-8vBYEs9ydA',
-    vapidPrivateKey: '3yCmFZINJY9Y7ayh3OrQDXMXPZR3sHwF1b6PBvrXjGo',
+    vapidPublicKey: 'BCYXjHfZ_qV8YPYqQhKBUJx8hSmXyUIgK3z7Q4F3yZd1PJTX2_bKU7F9MRKX2-rCd3wE4a_VVN5_Y7LFd8g7wqY',
+    vapidPrivateKey: 'O_KOhZ8gV3yJlKlRJR4pV1kKGF7iFGNYpY5KQW2YXVQ',
     vapidEmail: 'admin@digitaltwin-run.local',
-    enablePushNotifications: true, // Enable by default
-    enableServiceWorker: true,
-    enableOffline: true,
-    enableBackgroundSync: true
+    enablePushNotifications: false, // Temporarily disabled - VAPID key issues
+    enableServiceWorker: !isDevelopment, // Disable in development to prevent caching
+    enableOffline: !isDevelopment, // Disable offline mode in development
+    enableBackgroundSync: !isDevelopment // Disable background sync in development
 };
 
 // Log configuration in development (browser-compatible)

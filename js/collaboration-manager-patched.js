@@ -3,25 +3,25 @@
  * This is a temporary fix for the 'process is not defined' error
  */
 
-// Create a safe process.env if it doesn't exist
-if (typeof process === 'undefined') {
-    window.process = { env: {} };
-} else if (!process.env) {
-    process.env = {};
-}
+// Browser-compatible configuration (no process.env)
+const collaborationConfig = {
+    NODE_ENV: 'development',
+    COLLABORATION_SERVER: 'http://localhost:3001'
+};
 
-// Default environment variables
-process.env.NODE_ENV = process.env.NODE_ENV || 'development';
-process.env.COLLABORATION_SERVER = process.env.COLLABORATION_SERVER || 'http://localhost:3001';
+// Make config available globally for compatibility
+if (typeof window !== 'undefined') {
+    window.collaborationConfig = collaborationConfig;
+}
 
 // Export the original CollaborationManager
 import { CollaborationManager as OriginalCollaborationManager } from './collaboration-manager.js';
 
 export class CollaborationManager extends OriginalCollaborationManager {
     constructor() {
-        // Ensure process.env is available
-        if (typeof process === 'undefined' || !process.env) {
-            window.process = window.process || { env: {} };
+        // Ensure collaborationConfig is available
+        if (typeof window === 'undefined' || !window.collaborationConfig) {
+            window.collaborationConfig = collaborationConfig;
         }
         
         // Call parent constructor

@@ -98,10 +98,23 @@ self.addEventListener('activate', event => {
 
 // Fetch event - serve from cache or network
 self.addEventListener('fetch', event => {
-    const request = event.request;
+    const { request } = event;
     const url = new URL(request.url);
     
-    // Skip non-GET requests
+    // Filter out unsupported URL schemes
+    if (url.protocol === 'chrome-extension:' || 
+        url.protocol === 'moz-extension:' || 
+        url.protocol === 'safari-extension:' ||
+        url.protocol === 'ms-browser-extension:') {
+        return;
+    }
+    
+    // Only handle requests from our origin
+    if (url.origin !== self.location.origin) {
+        return;
+    }
+    
+    // Only handle GET requests
     if (request.method !== 'GET') {
         return;
     }
@@ -125,6 +138,15 @@ self.addEventListener('fetch', event => {
 // Cache first strategy for core assets
 async function cacheFirstStrategy(request) {
     try {
+        // Filter out unsupported URL schemes
+        const url = new URL(request.url);
+        if (url.protocol === 'chrome-extension:' || 
+            url.protocol === 'moz-extension:' || 
+            url.protocol === 'safari-extension:' ||
+            url.protocol === 'ms-browser-extension:') {
+            return fetch(request); // Just fetch, don't cache
+        }
+        
         const cachedResponse = await caches.match(request);
         if (cachedResponse) {
             return cachedResponse;
@@ -133,7 +155,12 @@ async function cacheFirstStrategy(request) {
         const networkResponse = await fetch(request);
         if (networkResponse.ok) {
             const cache = await caches.open(CACHE_NAME);
-            cache.put(request, networkResponse.clone());
+            try {
+                cache.put(request, networkResponse.clone());
+            } catch (cacheError) {
+                console.warn('Cache put failed:', cacheError.message);
+                // Continue without caching
+            }
         }
         return networkResponse;
     } catch (error) {
