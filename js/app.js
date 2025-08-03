@@ -217,9 +217,51 @@ class DigitalTwinApp {
     }
 
     /**
+     * Update toolbar button text based on current language
+     */
+    updateToolbarTexts() {
+        const t = window.i18nManager.t;
+        
+        // Update toolbar buttons
+        const exportBtn = document.getElementById('export-btn');
+        if (exportBtn) exportBtn.textContent = t('ui.buttons.export');
+        
+        const importBtn = document.getElementById('import-btn');
+        if (importBtn) importBtn.textContent = t('ui.buttons.import');
+        
+        const exportPngBtn = document.getElementById('export-png-btn');
+        if (exportPngBtn) exportPngBtn.textContent = t('ui.buttons.export_png');
+        
+        const exportSvgBtn = document.getElementById('export-svg-btn');
+        if (exportSvgBtn) exportSvgBtn.textContent = t('ui.buttons.export_svg');
+        
+        const connectionModeBtn = document.getElementById('connection-mode-btn');
+        if (connectionModeBtn) {
+            // Safely check if connectionManager is initialized
+            const isConnectionMode = this.connectionManager && 
+                                   typeof this.connectionManager.isConnectionMode !== 'undefined' 
+                                   ? this.connectionManager.isConnectionMode 
+                                   : false;
+            
+            connectionModeBtn.textContent = isConnectionMode 
+                ? t('ui.buttons.cancel_connection') 
+                : t('ui.buttons.connect_components');
+        }
+    }
+
+    /**
      * Set up application event listeners
      */
     setupEventListeners() {
+        // Listen for language changes
+        document.addEventListener('languageChanged', () => {
+            this.updateToolbarTexts();
+            // Add other UI updates here when language changes
+        });
+
+        // Initial toolbar text update
+        this.updateToolbarTexts();
+
         // Toolbar buttons
         const exportBtn = document.getElementById('export-btn');
         if (exportBtn) {
@@ -253,6 +295,8 @@ class DigitalTwinApp {
         if (connectionModeBtn) {
             connectionModeBtn.addEventListener('click', () => {
                 this.connectionManager.toggleConnectionMode();
+                // Update button text after toggling mode
+                this.updateToolbarTexts();
             });
         }
         

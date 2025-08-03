@@ -25,7 +25,11 @@
       "close": "Schließen",
       "ok": "OK",
       "start": "Starten",
-      "stop": "Stoppen"
+      "stop": "Stoppen",
+      "export_png": "Als PNG exportieren",
+      "export_svg": "Als SVG exportieren",
+      "connect_components": "Komponenten verbinden",
+      "cancel_connection": "Verbindung abbrechen"
     },
     "labels": {
       "name": "Name",

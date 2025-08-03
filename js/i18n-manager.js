@@ -369,7 +369,7 @@ class I18nManager {
     applyTranslations() {
         console.log('🔄 Applying translations...');
         
-        // Find all elements with data-i18n attribute
+        // Update static elements with data-i18n attribute
         const elements = document.querySelectorAll('[data-i18n]');
         let translatedCount = 0;
         
@@ -378,11 +378,15 @@ class I18nManager {
             const translation = this.t(key);
             
             if (translation !== key) { // Only if translation found
-                // Check if it's a placeholder
+                // Check if it's a placeholder, title, or regular content
                 if (element.hasAttribute('placeholder')) {
                     element.placeholder = translation;
                 } else if (element.hasAttribute('title')) {
                     element.title = translation;
+                } else if (element.hasAttribute('data-i18n-html')) {
+                    element.innerHTML = translation;
+                } else if (element.tagName === 'INPUT') {
+                    element.value = translation;
                 } else {
                     element.textContent = translation;
                 }
@@ -396,7 +400,20 @@ class I18nManager {
             document.title = this.t(titleKey);
         }
         
+        // Dispatch a custom event to notify all components about the language change
+        // This allows dynamic UI components to update their content
+        const event = new CustomEvent('languageChanged', {
+            detail: { 
+                language: this.currentLanguage,
+                t: (key, params) => this.t(key, params) // Pass translation function
+            }
+        });
+        document.dispatchEvent(event);
+        
         console.log(`✅ Applied ${translatedCount} translations`);
+        
+        // Return the translation function for chaining if needed
+        return this.t.bind(this);
     }
 
     // Setup language switcher UI

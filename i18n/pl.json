@@ -23,7 +23,11 @@
       "apply": "Zastosuj",
       "cancel": "Anuluj",
       "close": "Zamknij",
-      "ok": "OK"
+      "ok": "OK",
+      "export_png": "Eksportuj jako PNG",
+      "export_svg": "Eksportuj jako SVG",
+      "connect_components": "Połącz komponenty",
+      "cancel_connection": "Anuluj łączenie"
     },
     "labels": {
       "name": "Nazwa",
