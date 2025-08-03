@@ -1,0 +1,27 @@
+{
+  "canvas": {
+    "grid": {
+      "enabled": true,
+      "size": 100,
+      "color": "#e0e0e0",
+      "snapToGrid": true
+    },
+    "defaultView": {
+      "zoom": 1,
+      "panX": 0,
+      "panY": 0
+    },
+    "components": {
+      "defaultPosition": {
+        "x": 100,
+        "y": 100
+      },
+      "snapToGrid": true
+    }
+  },
+  "appearance": {
+    "theme": "light",
+    "toolbarPosition": "top"
+  },
+  "version": "1.0.0"
+}

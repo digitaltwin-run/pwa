@@ -52,18 +52,31 @@
     <text class="gauge-label" x="30" y="56" font-size="8" text-anchor="middle" fill="#bdc3c7">Gauge</text>
 
     <defs>
-    <!-- Internal SVG script -->
-    <script>
+    <!-- Wewnętrzny skrypt SVG -->
+    <script><![CDATA[
       (function() {
         // Function to read metadata
         function getMetadata(svgElement) {
-          const metadataNode = svgElement.querySelector('script[type="application/json"][class="metadata"]');
-          if (metadataNode &amp;&amp; metadataNode.textContent.trim()) {
+          const metadataElement = svgElement.querySelector('metadata component');
+          if (metadataElement) {
             try {
-              return JSON.parse(metadataNode.textContent);
+              const parametersElement = metadataElement.querySelector('parameters');
+              if (parametersElement) {
+                const result = {
+                  parameters: {
+                    label: parametersElement.querySelector('label')?.textContent || 'Gauge',
+                    value: parseFloat(parametersElement.querySelector('value')?.textContent || '50'),
+                    min: parseFloat(parametersElement.querySelector('min')?.textContent || '0'),
+                    max: parseFloat(parametersElement.querySelector('max')?.textContent || '100'),
+                    color: parametersElement.querySelector('color')?.textContent || '#e74c3c',
+                    units: parametersElement.querySelector('units')?.textContent || '%',
+                    isActive: parametersElement.querySelector('isActive')?.textContent === 'true'
+                  }
+                };
+                return result;
+              }
             } catch (e) {
               console.warn('Error parsing metadata:', e);
-              return {};
             }
           }
           return {};
@@ -78,12 +91,12 @@
           const gaugeValue = svgElement.querySelector('.gauge-value');
           const labelEl = svgElement.querySelector('.gauge-label');
 
-          if (!gaugeNeedle || !params.isActive) {
+          if (!gaugeNeedle || params.isActive === false) {
             return;
           }
 
           // Update label
-          if (labelEl &amp;&amp; params.label) {
+          if (labelEl && params.label) {
             labelEl.textContent = params.label;
           }
 
@@ -97,9 +110,9 @@
           // Get current angle
           let currentAngle = 0;
           const transform = gaugeNeedle.getAttribute('transform');
-          if (transform &amp;&amp; transform.includes('rotate')) {
+          if (transform && transform.includes('rotate')) {
             const match = transform.match(/rotate\(([^,]+)/);
-            if (match &amp;&amp; match[1]) {
+            if (match && match[1]) {
               currentAngle = parseFloat(match[1]);
             }
           }
@@ -114,7 +127,7 @@
 
           // Update needle color if specified
           const needleLine = gaugeNeedle.querySelector('line');
-          if (needleLine &amp;&amp; params.color) {
+          if (needleLine && params.color) {
             needleLine.setAttribute('stroke', params.color);
           }
         }
@@ -134,30 +147,46 @@
           const angleDiff = toAngle - fromAngle;
           let step = 0;
 
-          needle.animation = setInterval(() =&gt; {
+          needle.animation = setInterval(() => {
             step++;
             const progress = step / steps;
             const newAngle = fromAngle + progress * angleDiff;
 
             needle.setAttribute('transform', `rotate(${newAngle} 30 30)`);
 
-            if (step &gt;= steps) {
+            if (step >= steps) {
               clearInterval(needle.animation);
               needle.animation = null;
             }
           }, stepDuration);
         }
 
+        // Function to update metadata value
+        function updateMetadataValue(svgElement, newValue) {
+          const metadataElement = svgElement.querySelector('metadata component');
+          if (metadataElement) {
+            const valueElement = metadataElement.querySelector('parameters value');
+            if (valueElement) {
+              valueElement.textContent = newValue.toString();
+              return true;
+            }
+          }
+          return false;
+        }
+
         // Initialize
-        const svgElement = document.querySelector('svg:not([data-gauge-initialized="true"])');
-        if (svgElement) {
+        const svgElement = document.currentScript.closest('svg');
+        if (svgElement && !svgElement.hasAttribute('data-gauge-initialized')) {
           svgElement.setAttribute('data-gauge-initialized', 'true');
+          
+          // Store a unique identifier for this gauge
+          svgElement.gaugeInstanceId = 'gauge-' + Math.random().toString(36).substr(2, 9);
 
           // Initial update
           updateGauge(svgElement);
 
           // Handle click interaction
-          svgElement.addEventListener('click', (e) =&gt; {
+          svgElement.addEventListener('click', (e) => {
             // Get current metadata
             const metadata = getMetadata(svgElement);
             if (!metadata.parameters) return;
@@ -175,8 +204,8 @@
             let angle = Math.atan2(clickY, clickX) * 180 / Math.PI;
 
             // Adjust angle to fit gauge range (bottom half only)
-            if (angle &lt; -90) angle = -90;
-            if (angle &gt; 90) angle = 90;
+            if (angle < -90) angle = -90;
+            if (angle > 90) angle = 90;
 
             // Convert angle to value
             const min = metadata.parameters.min || 0;
@@ -185,37 +214,47 @@
             const newValue = Math.round(min + percentage * (max - min));
 
             // Update metadata
-            metadata.parameters.value = newValue;
-            svgElement.querySelector('script[type="application/json"][class="metadata"]').textContent = JSON.stringify(metadata, null, 2);
-
-            // Update gauge display
-            updateGauge(svgElement);
+            if (updateMetadataValue(svgElement, newValue)) {
+              // Update gauge display
+              updateGauge(svgElement);
+            }
           });
 
           // Poll for changes
-          svgElement.pollingInterval = setInterval(() =&gt; {
+          svgElement.pollingInterval = setInterval(() => {
+            // Safely check if element is still in DOM
+            if (!svgElement.isConnected) {
+              // Clean up if it's been removed
+              if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
+              if (svgElement.animation) clearInterval(svgElement.animation);
+              return;
+            }
+            
             const metadata = getMetadata(svgElement);
             const params = metadata.parameters || {};
-            const currentValue = svgElement.currentParams?.value;
-            const currentColor = svgElement.currentParams?.color;
-            const currentUnits = svgElement.currentParams?.units;
-
-            if (params.value !== currentValue ||
-                params.color !== currentColor ||
-                params.units !== currentUnits ||
-                params.isActive !== (svgElement.currentParams?.isActive)) {
+            
+            // Initialize currentParams if needed
+            if (!svgElement.currentParams) {
+              svgElement.currentParams = {};
+            }
+            
+            // Check if parameters have changed
+            const hasChanged = 
+              params.value !== svgElement.currentParams.value ||
+              params.color !== svgElement.currentParams.color ||
+              params.units !== svgElement.currentParams.units ||
+              params.min !== svgElement.currentParams.min ||
+              params.max !== svgElement.currentParams.max ||
+              params.isActive !== svgElement.currentParams.isActive ||
+              params.label !== svgElement.currentParams.label;
+            
+            if (hasChanged) {
               svgElement.currentParams = { ...params };
               updateGauge(svgElement);
             }
           }, 500);
-
-          // Cleanup on removal
-          window.addEventListener('beforeunload', () =&gt; {
-            if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
-            if (svgElement.animation) clearInterval(svgElement.animation);
-          });
         }
       })();
-    </script>
+    ]]></script>
     </defs>
 </svg>

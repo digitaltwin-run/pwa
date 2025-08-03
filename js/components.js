@@ -2,18 +2,100 @@
 
 // Lista komponentów – ścieżka, nazwa, opcjonalnie ikona (jeśli inna)
 export const COMPONENTS = [
-    { svg: "components/motor.svg", name: "Silnik", id: "motor" },
-    { svg: "components/led.svg", name: "Diody LED", id: "led" },
-    { svg: "components/switch.svg", name: "Przełącznik", id: "switch" },
-    { svg: "components/relay.svg", name: "Przekaźnik", id: "relay" },
-    { svg: "components/button.svg", name: "Przycisk", id: "button" },
-    { svg: "components/knob.svg", name: "Pokrętło", id: "knob" },
-    { svg: "components/slider.svg", name: "Suwak", id: "slider" },
-    { svg: "components/gauge.svg", name: "Miernik", id: "gauge" },
-    { svg: "components/counter.svg", name: "Licznik", id: "counter" },
-    { svg: "components/toggle.svg", name: "Przycisk suwakowy", id: "toggle" },
-    { svg: "components/sensor.svg", name: "Czujnik temperatury", id: "temp-sensor" },
-    { svg: "components/display.svg", name: "Wyświetlacz", id: "display" },
+    { 
+        svg: "components/motor.svg", 
+        name: "Silnik", 
+        id: "motor",
+        defaultEvents: {
+            click: [
+                {
+                    type: 'http-request',
+                    params: {
+                        method: 'POST',
+                        url: 'http://localhost:3000/api/motor/toggle',
+                        body: { action: 'toggle' }
+                    }
+                }
+            ]
+        }
+    },
+    { 
+        svg: "components/led.svg", 
+        name: "Diody LED", 
+        id: "led",
+        defaultState: { on: false, color: '#00ff00' }
+    },
+    { 
+        svg: "components/switch.svg", 
+        name: "Przełącznik", 
+        id: "switch",
+        defaultState: { on: false }
+    },
+    { 
+        svg: "components/relay.svg", 
+        name: "Przekaźnik", 
+        id: "relay",
+        defaultState: { active: false }
+    },
+    { 
+        svg: "components/button.svg", 
+        name: "Przycisk", 
+        id: "button",
+        defaultEvents: {
+            click: [
+                {
+                    type: 'http-request',
+                    params: {
+                        method: 'POST',
+                        url: 'http://localhost:3000/api/button/press',
+                        body: { pressed: true }
+                    }
+                }
+            ]
+        }
+    },
+    { 
+        svg: "components/knob.svg", 
+        name: "Pokrętło", 
+        id: "knob",
+        defaultState: { value: 0, min: 0, max: 100 }
+    },
+    { 
+        svg: "components/slider.svg", 
+        name: "Suwak", 
+        id: "slider",
+        defaultState: { value: 50, min: 0, max: 100 }
+    },
+    { 
+        svg: "components/gauge.svg", 
+        name: "Miernik", 
+        id: "gauge",
+        defaultState: { value: 0, min: 0, max: 100, unit: '°C' }
+    },
+    { 
+        svg: "components/counter.svg", 
+        name: "Licznik", 
+        id: "counter",
+        defaultState: { value: 0 }
+    },
+    { 
+        svg: "components/toggle.svg", 
+        name: "Przełącznik suwakowy", 
+        id: "toggle",
+        defaultState: { on: false }
+    },
+    { 
+        svg: "components/sensor.svg", 
+        name: "Czujnik temperatury", 
+        id: "temp-sensor",
+        defaultState: { value: 22.5, unit: '°C' }
+    },
+    { 
+        svg: "components/display.svg", 
+        name: "Wyświetlacz", 
+        id: "display",
+        defaultState: { text: 'Ready', value: 0 }
+    },
 ];
 
 export class ComponentManager {
@@ -21,6 +103,85 @@ export class ComponentManager {
         this.components = new Map();
         this.componentCounter = 0;
         this.selectedComponent = null;
+        this.actionManager = null;
+        this.stateListeners = new Map();
+    }
+
+    // Set the action manager instance
+    setActionManager(actionManager) {
+        this.actionManager = actionManager;
+    }
+
+    // Get component by ID
+    getComponent(id) {
+        return this.components.get(id);
+    }
+
+    // Update component state and notify listeners
+    updateComponentState(componentId, newState) {
+        const component = this.components.get(componentId);
+        if (!component) return;
+
+        const oldState = { ...component.state };
+        component.state = { ...component.state, ...newState };
+        this.components.set(componentId, component);
+
+        // Notify state change listeners
+        this.notifyStateChange(componentId, component.state, oldState);
+
+        // Update the component's visual representation
+        this.updateComponentVisuals(componentId);
+    }
+
+    // Add a state change listener
+    addStateListener(componentId, callback) {
+        if (!this.stateListeners.has(componentId)) {
+            this.stateListeners.set(componentId, new Set());
+        }
+        this.stateListeners.get(componentId).add(callback);
+        return () => this.removeStateListener(componentId, callback);
+    }
+
+    // Remove a state change listener
+    removeStateListener(componentId, callback) {
+        const listeners = this.stateListeners.get(componentId);
+        if (listeners) {
+            listeners.delete(callback);
+        }
+    }
+
+    // Notify all listeners of a state change
+    notifyStateChange(componentId, newState, oldState) {
+        const listeners = this.stateListeners.get(componentId);
+        if (listeners) {
+            listeners.forEach(callback => callback(newState, oldState));
+        }
+    }
+
+    // Update component's visual representation based on state
+    updateComponentVisuals(componentId) {
+        const component = this.components.get(componentId);
+        if (!component || !component.element) return;
+
+        const svgElement = component.element.querySelector('svg') || component.element;
+        if (!svgElement) return;
+
+        // Apply state-based styles or transformations
+        if (component.state) {
+            // Example: Toggle active state
+            if ('active' in component.state || 'on' in component.state) {
+                const isActive = component.state.active || component.state.on;
+                svgElement.classList.toggle('active', isActive);
+            }
+
+            // Example: Update text content for display components
+            if (component.type === 'display' && component.state.text !== undefined) {
+                const textElement = svgElement.querySelector('text, .display-text');
+                if (textElement) {
+                    textElement.textContent = component.state.text;
+                }
+            }
+        }
     }
 
     // Załaduj komponenty do biblioteki z ikonami

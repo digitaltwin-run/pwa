@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xhtml="http://www.w3.org/1999/xhtml" width="60" height="40" viewBox="0 0 60 40">
-
+<svg width="60" height="80" viewBox="0 0 60 80" xmlns="http://www.w3.org/2000/svg">
     <title>Slider Component</title>
-    <desc>Interactive slider component with drag animation for digital twin</desc>
+    <desc>Interactive slider component for digital twin</desc>
 
     <metadata>
-        <component id="slider-001" name="Interactive Slider" type="slider">
+        <component id="slider-001" name="Slider" type="slider">
             <parameters>
                 <label>Slider</label>
                 <value>50</value>
                 <min>0</min>
                 <max>100</max>
+                <step>1</step>
                 <color>#16a085</color>
                 <size>60</size>
                 <isActive>true</isActive>
@@ -18,231 +18,253 @@
         </component>
     </metadata>
 
-
-    <!-- Background -->
-    <rect x="5" y="5" width="50" height="30" rx="3" ry="3" fill="#34495e" stroke="#2c3e50" stroke-width="1.5"/>
-
-    <!-- Slider track -->
-    <rect class="slider-track" x="10" y="18" width="40" height="4" rx="2" ry="2" fill="#7f8c8d" stroke="#2c3e50" stroke-width="0.5"/>
-
-    <!-- Slider progress track -->
-    <rect class="slider-progress" x="10" y="18" width="20" height="4" rx="2" ry="2" fill="#16a085"/>
-
-    <!-- Slider handle -->
-    <circle class="slider-handle" cx="30" cy="20" r="6" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
-
-    <!-- Label -->
-    <text class="slider-label" x="30" y="35" font-size="8" text-anchor="middle" fill="#bdc3c7">Slider</text>
-
-    <!-- Value display -->
-    <text class="slider-value" x="40" y="13" font-size="8" text-anchor="middle" fill="#ecf0f1">50</text>
+    <!-- Track -->
+    <rect x="10" y="35" width="40" height="10" rx="5" class="slider-track" fill="#2c3e50" />
+    <rect x="10" y="35" width="20" height="10" rx="5" class="slider-progress" fill="#16a085" />
+    
+    <!-- Handle -->
+    <circle cx="30" cy="40" r="6" class="slider-handle" fill="#ecf0f1" stroke="#2c3e50" stroke-width="1.5" />
+    
+    <!-- Labels -->
+    <text x="30" y="25" font-size="8" text-anchor="middle" class="slider-label" fill="#bdc3c7">Slider</text>
+    <text x="30" y="70" font-size="8" text-anchor="middle" class="slider-value" fill="#bdc3c7">50</text>
 
     <defs>
-    <!-- Internal SVG script -->
-    <script>
-      (function() {
-        // Function to read metadata
-        function getMetadata(svgElement) {
-          const metadataNode = svgElement.querySelector('script[type="application/json"][class="metadata"]');
-          if (metadataNode &amp;&amp; metadataNode.textContent.trim()) {
-            try {
-              return JSON.parse(metadataNode.textContent);
-            } catch (e) {
-              console.warn('Error parsing metadata:', e);
-              return {};
+        <script>
+        <![CDATA[
+        (function() {
+          // Function to read metadata
+          function getMetadata(svgElement) {
+            const metadataElement = svgElement.querySelector('metadata component');
+            if (metadataElement) {
+              try {
+                const parametersElement = metadataElement.querySelector('parameters');
+                if (parametersElement) {
+                  return {
+                    parameters: {
+                      label: parametersElement.querySelector('label')?.textContent || 'Slider',
+                      value: parseFloat(parametersElement.querySelector('value')?.textContent || '50'),
+                      min: parseFloat(parametersElement.querySelector('min')?.textContent || '0'),
+                      max: parseFloat(parametersElement.querySelector('max')?.textContent || '100'),
+                      step: parseFloat(parametersElement.querySelector('step')?.textContent || '1'),
+                      color: parametersElement.querySelector('color')?.textContent || '#16a085',
+                      size: parseFloat(parametersElement.querySelector('size')?.textContent || '60'),
+                      isActive: parametersElement.querySelector('isActive')?.textContent === 'true'
+                    }
+                  };
+                }
+              } catch (e) {
+                console.warn('Error parsing metadata:', e);
+              }
             }
-          }
-          return {};
-        }
-
-        // Function to update slider appearance
-        function updateSlider(svgElement) {
-          const metadata = getMetadata(svgElement);
-          const params = metadata.parameters || {};
-
-          const sliderTrack = svgElement.querySelector('.slider-track');
-          const sliderProgress = svgElement.querySelector('.slider-progress');
-          const sliderHandle = svgElement.querySelector('.slider-handle');
-          const labelEl = svgElement.querySelector('.slider-label');
-          const valueEl = svgElement.querySelector('.slider-value');
-
-          if (!sliderTrack || !sliderHandle || !params.isActive) {
-            if (sliderProgress) sliderProgress.setAttribute('fill', '#555');
-            return;
+            return {};
           }
 
-          // Update label
-          if (labelEl &amp;&amp; params.label) {
-            labelEl.textContent = params.label;
-          }
-
-          // Update colors
-          if (sliderProgress) {
-            sliderProgress.setAttribute('fill', params.color || '#16a085');
-          }
-
-          // Calculate position based on value, min and max
-          const min = params.min || 0;
-          const max = params.max || 100;
-          const value = Math.min(Math.max(params.value, min), max);
-          const percentage = (value - min) / (max - min);
-
-          // Get track dimensions
-          const trackWidth = 40;
-          const startX = 10;
-          const handleX = startX + percentage * trackWidth;
-
-          // Update handle position
-          sliderHandle.setAttribute('cx', handleX);
-
-          // Update progress track width
-          const progressWidth = percentage * trackWidth;
-          sliderProgress.setAttribute('width', progressWidth);
-
-          // Update value text
-          if (valueEl) {
-            valueEl.textContent = value;
-          }
-        }
-
-        // Initialize
-        const svgElement = document.querySelector('svg:not([data-slider-initialized="true"])');
-        if (svgElement) {
-          svgElement.setAttribute('data-slider-initialized', 'true');
-
-          // Initial update
-          updateSlider(svgElement);
-
-          // Handle drag interaction
-          let isDragging = false;
-          let startX, startValue;
-
-          // Click/drag handlers with animation
-          svgElement.addEventListener('mousedown', (e) =&gt; {
-            const handle = svgElement.querySelector('.slider-handle');
-
-            // Get current metadata
-            const metadata = getMetadata(svgElement);
-            if (!metadata.parameters) return;
-
-            // Calculate value from click position
-            const bbox = svgElement.getBoundingClientRect();
-            const trackWidth = 40;
-            const startX = 10;
-            const clickX = (e.clientX - bbox.left) * (60 / bbox.width);
-
-            // Check if clicked on or near handle
-            const handleX = parseFloat(handle.getAttribute('cx'));
-            const isNearHandle = Math.abs(clickX - handleX) &lt; 8;
-
-            if (isNearHandle) {
-              // Start drag operation
-              isDragging = true;
-              startX = e.clientX;
-              startValue = metadata.parameters.value;
-
-              // Apply "pressed" effect animation
-              handle.setAttribute('r', '7'); // Larger size
-              handle.setAttribute('fill', '#dfe6e9');
-
-              // Capture mouse events outside the SVG
-              document.addEventListener('mousemove', handleMouseMove);
-              document.addEventListener('mouseup', handleMouseUp);
-            } else {
-              // Direct click on the track - jump to position
-              const min = metadata.parameters.min || 0;
-              const max = metadata.parameters.max || 100;
-
-              // Constrain to track
-              const posX = Math.max(startX, Math.min(startX + trackWidth, clickX));
-              const percentage = (posX - startX) / trackWidth;
-              const newValue = min + percentage * (max - min);
-
-              // Update metadata
-              metadata.parameters.value = Math.round(newValue);
-              svgElement.querySelector('script[type="application/json"][class="metadata"]').textContent = JSON.stringify(metadata, null, 2);
-
-              // Update display with animation
-              handle.setAttribute('r', '7'); // Larger size
-              handle.setAttribute('fill', '#dfe6e9');
-
-              setTimeout(() =&gt; {
-                handle.setAttribute('r', '6'); // Normal size
-                handle.setAttribute('fill', '#ecf0f1');
-                updateSlider(svgElement);
-              }, 150);
-            }
-
-            // Prevent text selection
-            e.preventDefault();
-          });
-
-          // Mouse move handler (for drag)
-          function handleMouseMove(e) {
-            if (!isDragging) return;
-
-            const metadata = getMetadata(svgElement);
-            if (!metadata.parameters) return;
-
-            // Calculate new value based on drag distance
-            const min = metadata.parameters.min || 0;
-            const max = metadata.parameters.max || 100;
-            const range = max - min;
-            const pixelsPerUnit = 100 / range; // Approximate pixels per unit value
-
-            const deltaX = e.clientX - startX;
-            const deltaValue = deltaX / pixelsPerUnit;
-            let newValue = startValue + deltaValue;
-
-            // Constrain to range
-            newValue = Math.min(max, Math.max(min, newValue));
-
-            // Update metadata
-            metadata.parameters.value = Math.round(newValue);
-            svgElement.querySelector('script[type="application/json"][class="metadata"]').textContent = JSON.stringify(metadata, null, 2);
-
-            // Update display
-            updateSlider(svgElement);
-          }
-
-          // Mouse up handler (end drag)
-          function handleMouseUp() {
-            if (!isDragging) return;
-
-            // End drag operation
-            isDragging = false;
-
-            // Reset handle appearance
-            const handle = svgElement.querySelector('.slider-handle');
-            handle.setAttribute('r', '6'); // Normal size
-            handle.setAttribute('fill', '#ecf0f1');
-
-            // Remove global event listeners
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', handleMouseUp);
-          }
-
-          // Poll for changes
-          svgElement.pollingInterval = setInterval(() =&gt; {
+          // Function to update slider appearance
+          function updateSlider(svgElement) {
             const metadata = getMetadata(svgElement);
             const params = metadata.parameters || {};
-            const currentValue = svgElement.currentParams?.value;
-            const currentColor = svgElement.currentParams?.color;
 
-            if (params.value !== currentValue ||
-                params.color !== currentColor ||
-                params.isActive !== (svgElement.currentParams?.isActive)) {
-              svgElement.currentParams = { ...params };
+            const sliderTrack = svgElement.querySelector('.slider-track');
+            const sliderProgress = svgElement.querySelector('.slider-progress');
+            const sliderHandle = svgElement.querySelector('.slider-handle');
+            const labelEl = svgElement.querySelector('.slider-label');
+            const valueEl = svgElement.querySelector('.slider-value');
+
+            if (!sliderTrack || !sliderHandle || !params.isActive) {
+              if (sliderProgress) sliderProgress.setAttribute('fill', '#555');
+              return;
+            }
+
+            // Update label
+            if (labelEl && params.label) {
+              labelEl.textContent = params.label;
+            }
+
+            // Update colors
+            if (sliderProgress) {
+              sliderProgress.setAttribute('fill', params.color || '#16a085');
+            }
+
+            // Calculate position based on value, min and max
+            const min = params.min || 0;
+            const max = params.max || 100;
+            const value = Math.min(Math.max(params.value, min), max);
+            const percentage = (value - min) / (max - min);
+
+            // Get track dimensions
+            const trackWidth = 40;
+            const startX = 10;
+            const handleX = startX + percentage * trackWidth;
+
+            // Update handle position
+            sliderHandle.setAttribute('cx', handleX);
+
+            // Update progress track width
+            const progressWidth = percentage * trackWidth;
+            sliderProgress.setAttribute('width', progressWidth);
+
+            // Update value text
+            if (valueEl) {
+              valueEl.textContent = Math.round(value);
+            }
+          }
+
+          // Function to update metadata value
+          function updateMetadataValue(svgElement, newValue) {
+            const metadataElement = svgElement.querySelector('metadata component');
+            if (metadataElement) {
+              const valueElement = metadataElement.querySelector('parameters value');
+              if (valueElement) {
+                valueElement.textContent = newValue.toString();
+                return true;
+              }
+            }
+            return false;
+          }
+
+          // Initialize
+          const svgElement = document.currentScript.closest('svg');
+          if (svgElement && !svgElement.hasAttribute('data-slider-initialized')) {
+            svgElement.setAttribute('data-slider-initialized', 'true');
+            
+            // Store a unique identifier for this slider
+            svgElement.sliderInstanceId = 'slider-' + Math.random().toString(36).substr(2, 9);
+
+            // Initial update
+            updateSlider(svgElement);
+
+            // Handle drag interaction
+            let isDragging = false;
+            let startX, startValue;
+
+            // Click/drag handlers with animation
+            svgElement.addEventListener('mousedown', function(e) {
+              const handle = svgElement.querySelector('.slider-handle');
+
+              // Get current metadata
+              const metadata = getMetadata(svgElement);
+              if (!metadata.parameters) return;
+
+              // Calculate value from click position
+              const bbox = svgElement.getBoundingClientRect();
+              const trackWidth = 40;
+              const startX = 10;
+              const clickX = (e.clientX - bbox.left) * (60 / bbox.width);
+
+              // Check if clicked on or near handle
+              const handleX = parseFloat(handle.getAttribute('cx'));
+              const isNearHandle = Math.abs(clickX - handleX) < 8;
+
+              if (isNearHandle) {
+                // Start drag operation
+                isDragging = true;
+                startX = e.clientX;
+                startValue = metadata.parameters.value;
+
+                // Apply "pressed" effect animation
+                handle.setAttribute('r', '7'); // Larger size
+                handle.setAttribute('fill', '#dfe6e9');
+
+                // Capture mouse events outside the SVG
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+              } else {
+                // Direct click on the track - jump to position
+                const min = metadata.parameters.min || 0;
+                const max = metadata.parameters.max || 100;
+
+                // Constrain to track
+                const posX = Math.max(startX, Math.min(startX + trackWidth, clickX));
+                const percentage = (posX - startX) / trackWidth;
+                const newValue = min + percentage * (max - min);
+
+                // Update metadata
+                const roundedValue = Math.round(newValue);
+                updateMetadataValue(svgElement, roundedValue);
+                
+                // Update display with animation
+                handle.setAttribute('r', '7'); // Larger size
+                handle.setAttribute('fill', '#dfe6e9');
+
+                setTimeout(function() {
+                  handle.setAttribute('r', '6'); // Normal size
+                  handle.setAttribute('fill', '#ecf0f1');
+                  updateSlider(svgElement);
+                }, 150);
+              }
+
+              // Prevent text selection
+              e.preventDefault();
+            });
+
+            // Mouse move handler (for drag)
+            function handleMouseMove(e) {
+              if (!isDragging) return;
+
+              const metadata = getMetadata(svgElement);
+              if (!metadata.parameters) return;
+
+              // Calculate new value based on drag distance
+              const min = metadata.parameters.min || 0;
+              const max = metadata.parameters.max || 100;
+              const range = max - min;
+              const pixelsPerUnit = 100 / range; // Approximate pixels per unit value
+
+              const deltaX = e.clientX - startX;
+              const deltaValue = deltaX / pixelsPerUnit;
+              let newValue = startValue + deltaValue;
+
+              // Constrain to range
+              newValue = Math.min(max, Math.max(min, newValue));
+
+              // Update metadata
+              const roundedValue = Math.round(newValue);
+              updateMetadataValue(svgElement, roundedValue);
+              
+              // Update display
               updateSlider(svgElement);
             }
-          }, 500);
 
-          // Cleanup on removal
-          window.addEventListener('beforeunload', () =&gt; {
-            if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
-          });
-        }
-      })();
-    </script>
+            // Mouse up handler (end drag)
+            function handleMouseUp() {
+              if (!isDragging) return;
+
+              // End drag operation
+              isDragging = false;
+
+              // Reset handle appearance
+              const handle = svgElement.querySelector('.slider-handle');
+              handle.setAttribute('r', '6'); // Normal size
+              handle.setAttribute('fill', '#ecf0f1');
+
+              // Remove global event listeners
+              document.removeEventListener('mousemove', handleMouseMove);
+              document.removeEventListener('mouseup', handleMouseUp);
+            }
+
+            // Poll for changes
+            svgElement.pollingInterval = setInterval(function() {
+              const metadata = getMetadata(svgElement);
+              const params = metadata.parameters || {};
+              const currentValue = svgElement.currentParams?.value;
+              const currentColor = svgElement.currentParams?.color;
+
+              if (params.value !== currentValue ||
+                  params.color !== currentColor ||
+                  params.isActive !== (svgElement.currentParams?.isActive)) {
+                svgElement.currentParams = { ...params };
+                updateSlider(svgElement);
+              }
+            }, 500);
+
+            // Cleanup on removal
+            window.addEventListener('beforeunload', function() {
+              if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
+            });
+          }
+        })();
+        ]]>
+        </script>
     </defs>
 </svg>

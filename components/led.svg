@@ -119,7 +119,7 @@
               // Toggle the state
               const currentState = isOnElement.textContent === 'true';
               isOnElement.textContent = currentState ? 'false' : 'true';
-              
+
               // Update appearance immediately
               updateLED(svgElement);
             }
@@ -167,14 +167,14 @@
             }
 
             // Check if parameters have changed
-            const hasChanged = 
+            const hasChanged =
               params.color !== svgElement.currentParams.color ||
               params.isBlinking !== svgElement.currentParams.isBlinking ||
               params.isOn !== svgElement.currentParams.isOn ||
               params.isActive !== svgElement.currentParams.isActive ||
               params.label !== svgElement.currentParams.label ||
               params.blinkRate !== svgElement.currentParams.blinkRate;
-            
+
             if (hasChanged) {
               svgElement.currentParams = { ...params };
               updateLED(svgElement);

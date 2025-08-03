@@ -44,18 +44,32 @@
     <text class="counter-label" x="30" y="35" font-size="8" text-anchor="middle" fill="#7f8c8d">Counter</text>
 
     <defs>
-    <!-- Internal SVG script -->
-    <script>
+    <!-- Wewnętrzny skrypt SVG -->
+    <script><![CDATA[
       (function() {
         // Function to read metadata
         function getMetadata(svgElement) {
-          const metadataNode = svgElement.querySelector('script[type="application/json"][class="metadata"]');
-          if (metadataNode &amp;&amp; metadataNode.textContent.trim()) {
+          const metadataElement = svgElement.querySelector('metadata component');
+          if (metadataElement) {
             try {
-              return JSON.parse(metadataNode.textContent);
+              const parametersElement = metadataElement.querySelector('parameters');
+              if (parametersElement) {
+                const result = {
+                  parameters: {
+                    label: parametersElement.querySelector('label')?.textContent || 'Counter',
+                    value: parseFloat(parametersElement.querySelector('value')?.textContent || '50'),
+                    min: parseFloat(parametersElement.querySelector('min')?.textContent || '0'),
+                    max: parseFloat(parametersElement.querySelector('max')?.textContent || '999'),
+                    color: parametersElement.querySelector('color')?.textContent || '#2980b9',
+                    units: parametersElement.querySelector('units')?.textContent || '',
+                    step: parseFloat(parametersElement.querySelector('step')?.textContent || '1'),
+                    isActive: parametersElement.querySelector('isActive')?.textContent === 'true'
+                  }
+                };
+                return result;
+              }
             } catch (e) {
               console.warn('Error parsing metadata:', e);
-              return {};
             }
           }
           return {};
@@ -74,7 +88,7 @@
           }
 
           // Update label
-          if (labelEl &amp;&amp; params.label) {
+          if (labelEl && params.label) {
             labelEl.textContent = params.label;
           }
 
@@ -114,7 +128,7 @@
           let step = 0;
 
           // Store animation in element's property for proper isolation
-          element.animation = setInterval(() =&gt; {
+          element.animation = setInterval(() => {
             step++;
             const progress = step / steps;
             const newValue = Math.round(fromValue + progress * valueDiff);
@@ -122,7 +136,7 @@
             // Update value
             element.textContent = newValue;
 
-            if (step &gt;= steps) {
+            if (step >= steps) {
               clearInterval(element.animation);
               element.animation = null;
               element.textContent = toValue; // Ensure final value is exact
@@ -130,9 +144,22 @@
           }, stepDuration);
         }
 
+        // Function to update metadata value
+        function updateMetadataValue(svgElement, newValue) {
+          const metadataElement = svgElement.querySelector('metadata component');
+          if (metadataElement) {
+            const valueElement = metadataElement.querySelector('parameters value');
+            if (valueElement) {
+              valueElement.textContent = newValue.toString();
+              return true;
+            }
+          }
+          return false;
+        }
+
         // Initialize - use the current SVG that contains this script
         const svgElement = document.currentScript.closest('svg');
-        if (svgElement &amp;&amp; !svgElement.hasAttribute('data-counter-initialized')) {
+        if (svgElement && !svgElement.hasAttribute('data-counter-initialized')) {
           svgElement.setAttribute('data-counter-initialized', 'true');
 
           // Generate unique instance ID for this counter
@@ -146,7 +173,7 @@
           const decrementButton = svgElement.querySelector('.counter-decrement-button');
 
           if (incrementButton) {
-            incrementButton.addEventListener('click', (e) =&gt; {
+            incrementButton.addEventListener('click', (e) => {
               e.stopPropagation(); // Don't trigger the whole SVG click
 
               // Get current metadata
@@ -160,19 +187,18 @@
 
               // Calculate new value
               let newValue = currentVal + step;
-              if (newValue &gt; max) newValue = max;
+              if (newValue > max) newValue = max;
 
               // Update metadata
-              metadata.parameters.value = newValue;
-              svgElement.querySelector('script[type="application/json"][class="metadata"]').textContent = JSON.stringify(metadata, null, 2);
+              updateMetadataValue(svgElement, newValue);
 
               // Animate button press
               const rect = incrementButton.querySelector('rect');
               if (rect) {
                 rect.setAttribute('fill', '#95a5a6');
-                setTimeout(() =&gt; {
+                setTimeout(() => {
                   // Make sure element still exists before updating
-                  if (rect.ownerDocument &amp;&amp; rect.ownerDocument.body.contains(rect)) {
+                  if (rect.ownerDocument && rect.parentNode) {
                     rect.setAttribute('fill', '#bdc3c7');
                   }
                 }, 200);
@@ -184,7 +210,7 @@
           }
 
           if (decrementButton) {
-            decrementButton.addEventListener('click', (e) =&gt; {
+            decrementButton.addEventListener('click', (e) => {
               e.stopPropagation(); // Don't trigger the whole SVG click
 
               // Get current metadata
@@ -198,19 +224,18 @@
 
               // Calculate new value
               let newValue = currentVal - step;
-              if (newValue &lt; min) newValue = min;
+              if (newValue < min) newValue = min;
 
               // Update metadata
-              metadata.parameters.value = newValue;
-              svgElement.querySelector('script[type="application/json"][class="metadata"]').textContent = JSON.stringify(metadata, null, 2);
+              updateMetadataValue(svgElement, newValue);
 
               // Animate button press
               const rect = decrementButton.querySelector('rect');
               if (rect) {
                 rect.setAttribute('fill', '#95a5a6');
-                setTimeout(() =&gt; {
+                setTimeout(() => {
                   // Make sure element still exists before updating
-                  if (rect.ownerDocument &amp;&amp; rect.parentNode) {
+                  if (rect.ownerDocument && rect.parentNode) {
                     rect.setAttribute('fill', '#bdc3c7');
                   }
                 }, 200);
@@ -222,13 +247,13 @@
           }
 
           // Poll for changes
-          svgElement.pollingInterval = setInterval(() =&gt; {
+          svgElement.pollingInterval = setInterval(() => {
             // Check if element still exists in DOM using isConnected
-            if (svgElement.ownerDocument &amp;&amp; !svgElement.isConnected) {
+            if (svgElement.ownerDocument && !svgElement.isConnected) {
               // Clean up if it's been removed
               if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
               const counterValue = svgElement.querySelector('.counter-value');
-              if (counterValue &amp;&amp; counterValue.animation) {
+              if (counterValue && counterValue.animation) {
                 clearInterval(counterValue.animation);
                 counterValue.animation = null;
               }
@@ -255,7 +280,7 @@
               svgElement.pollingInterval = null;
             }
             const counterValue = svgElement.querySelector('.counter-value');
-            if (counterValue &amp;&amp; counterValue.animation) {
+            if (counterValue && counterValue.animation) {
               clearInterval(counterValue.animation);
               counterValue.animation = null;
             }
@@ -265,9 +290,10 @@
 
           // For SVGs that are embedded and might be removed
           try {
-            if (typeof MutationObserver !== 'undefined' &amp;&amp; svgElement.parentNode) {
-              const observer = new MutationObserver((mutations) =&gt; {
-                mutations.forEach((mutation) =&gt; {
+            // Sprawdź, czy parentNode istnieje i czy jest obiektem DOM
+            if (typeof MutationObserver !== 'undefined' && svgElement.parentNode && svgElement.parentNode.nodeType) {
+              const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
                   if (Array.from(mutation.removedNodes).includes(svgElement)) {
                     cleanupCounter();
                     observer.disconnect();
@@ -283,6 +309,6 @@
           }
         }
       })();
-    </script>
+    ]]></script>
     </defs>
 </svg>

@@ -1,9 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           xmlns:svg="http://www.w3.org/2000/svg"
            targetNamespace="http://www.w3.org/2000/svg"
+           xmlns="http://www.w3.org/2000/svg"
            elementFormDefault="qualified">
 
+  <!-- Define component parameters type -->
+  <xs:complexType name="ComponentParametersType">
+    <xs:all>
+      <!-- Common parameters -->
+      <xs:element name="label" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="isActive" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="color" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="size" type="xs:positiveInteger" minOccurs="0" maxOccurs="1"/>
+      
+      <!-- Animation parameters -->
+      <xs:element name="isOn" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="isBlinking" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="blinkRate" type="xs:positiveInteger" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="pressed" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="momentary" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="position" type="xs:decimal" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="rotation" type="xs:decimal" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="speed" type="xs:decimal" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="value" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="min" type="xs:decimal" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="max" type="xs:decimal" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="step" type="xs:decimal" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="state" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="units" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="direction" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="isRunning" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+    </xs:all>
+  </xs:complexType>
+  
+  <!-- Typ dla dodatkowych parametrów -->
+  <xs:complexType name="CustomParametersType">
+    <xs:sequence>
+      <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax" namespace="##any"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <!-- Define script type for animation scripts -->
+  <xs:complexType name="ScriptType" mixed="true">
+    <xs:attribute name="type" type="xs:string" use="optional"/>
+    <xs:attribute name="class" type="xs:string" use="optional"/>
+    <xs:anyAttribute processContents="lax"/>
+  </xs:complexType>
+  
   <!-- Define SVG root element -->
   <xs:element name="svg">
     <xs:complexType>
@@ -13,19 +56,14 @@
         <xs:element name="desc" type="xs:string" minOccurs="0" maxOccurs="1"/>
         
         <!-- Metadata is stored in standard SVG metadata element with XML structure -->
-        <xs:element name="metadata" minOccurs="1" maxOccurs="1">
+        <xs:element name="metadata" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="component">
+              <xs:element name="component" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="parameters">
-                      <xs:complexType>
-                        <xs:sequence>
-                          <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
-                        </xs:sequence>
-                      </xs:complexType>
-                    </xs:element>
+                    <xs:element name="parameters" type="ComponentParametersType" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="customParameters" type="CustomParametersType" minOccurs="0" maxOccurs="1"/>
                   </xs:sequence>
                   <xs:attribute name="id" type="xs:string" use="required"/>
                   <xs:attribute name="name" type="xs:string" use="required"/>
@@ -36,151 +74,200 @@
           </xs:complexType>
         </xs:element>
         
-        <!-- Legacy script-based metadata (for backward compatibility) -->
-        <xs:element name="script" minOccurs="0" maxOccurs="1">
-          <xs:complexType>
-            <xs:simpleContent>
-              <xs:extension base="xs:string">
-                <xs:attribute name="type" type="xs:string" fixed="application/json"/>
-                <xs:attribute name="class" type="xs:string" fixed="metadata"/>
-              </xs:extension>
-            </xs:simpleContent>
-          </xs:complexType>
-        </xs:element>
+
         
-        <!-- SVG graphic elements and other elements in any order -->
-        <xs:choice minOccurs="1" maxOccurs="unbounded">
-          <xs:element name="circle" type="svg:CircleType"/>
-          <xs:element name="rect" type="svg:RectType"/>
-          <xs:element name="path" type="svg:PathType"/>
-          <xs:element name="text" type="svg:TextType"/>
-          <xs:element name="line" type="svg:LineType"/>
-          <xs:element name="polygon" type="svg:PolygonType"/>
-          <xs:element name="polyline" type="svg:PolylineType"/>
-          <xs:element name="g" type="svg:GroupType"/>
-          <xs:element name="defs" type="svg:DefsType"/>
-          <!-- Allow standalone scripts for backward compatibility -->
-          <xs:element name="script" type="svg:ScriptType"/>
-        </xs:choice>
+        <!-- SVG content elements -->
+        <xs:sequence>
+          
+          <!-- SVG graphic elements -->
+          <xs:sequence>
+            <!-- Script elements outside defs -->
+            <xs:element name="script" type="ScriptType" minOccurs="0" maxOccurs="unbounded"/>
+            
+            <!-- Additional defs element that can appear after metadata -->
+            <xs:element name="defs" minOccurs="0" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                  <xs:element name="script" type="ScriptType"/>
+                  <xs:any processContents="lax" namespace="##other"/>
+                </xs:choice>
+              </xs:complexType>
+            </xs:element>
+            
+            <!-- Basic SVG elements -->
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+              <xs:element name="circle">
+                <xs:complexType>
+                  <xs:attribute name="cx" type="xs:string" use="required"/>
+                  <xs:attribute name="cy" type="xs:string" use="required"/>
+                  <xs:attribute name="r" type="xs:string" use="required"/>
+                  <xs:attribute name="fill" type="xs:string" use="optional"/>
+                  <xs:attribute name="stroke" type="xs:string" use="optional"/>
+                  <xs:attribute name="stroke-width" type="xs:string" use="optional"/>
+                  <xs:attribute name="class" type="xs:string" use="optional"/>
+                  <xs:attribute name="id" type="xs:string" use="optional"/>
+                  <xs:anyAttribute processContents="lax"/>
+                </xs:complexType>
+              </xs:element>
+              
+              <xs:element name="rect">
+                <xs:complexType>
+                  <xs:attribute name="x" type="xs:string" use="optional"/>
+                  <xs:attribute name="y" type="xs:string" use="optional"/>
+                  <xs:attribute name="width" type="xs:string" use="required"/>
+                  <xs:attribute name="height" type="xs:string" use="required"/>
+                  <xs:attribute name="rx" type="xs:string" use="optional"/>
+                  <xs:attribute name="ry" type="xs:string" use="optional"/>
+                  <xs:attribute name="fill" type="xs:string" use="optional"/>
+                  <xs:attribute name="stroke" type="xs:string" use="optional"/>
+                  <xs:attribute name="stroke-width" type="xs:string" use="optional"/>
+                  <xs:attribute name="class" type="xs:string" use="optional"/>
+                  <xs:attribute name="id" type="xs:string" use="optional"/>
+                  <xs:anyAttribute processContents="lax"/>
+                </xs:complexType>
+              </xs:element>
+              
+              <xs:element name="path">
+                <xs:complexType>
+                  <xs:attribute name="d" type="xs:string" use="required"/>
+                  <xs:attribute name="fill" type="xs:string" use="optional"/>
+                  <xs:attribute name="stroke" type="xs:string" use="optional"/>
+                  <xs:attribute name="stroke-width" type="xs:string" use="optional"/>
+                  <xs:attribute name="class" type="xs:string" use="optional"/>
+                  <xs:attribute name="id" type="xs:string" use="optional"/>
+                  <xs:anyAttribute processContents="lax"/>
+                </xs:complexType>
+              </xs:element>
+              
+              <xs:element name="text">
+                <xs:complexType mixed="true">
+                  <xs:attribute name="x" type="xs:string" use="optional"/>
+                  <xs:attribute name="y" type="xs:string" use="optional"/>
+                  <xs:attribute name="font-family" type="xs:string" use="optional"/>
+                  <xs:attribute name="font-size" type="xs:string" use="optional"/>
+                  <xs:attribute name="fill" type="xs:string" use="optional"/>
+                  <xs:attribute name="class" type="xs:string" use="optional"/>
+                  <xs:attribute name="id" type="xs:string" use="optional"/>
+                  <xs:anyAttribute processContents="lax"/>
+                </xs:complexType>
+              </xs:element>
+              
+              <xs:element name="line">
+                <xs:complexType>
+                  <xs:attribute name="x1" type="xs:string" use="required"/>
+                  <xs:attribute name="y1" type="xs:string" use="required"/>
+                  <xs:attribute name="x2" type="xs:string" use="required"/>
+                  <xs:attribute name="y2" type="xs:string" use="required"/>
+                  <xs:attribute name="stroke" type="xs:string" use="optional"/>
+                  <xs:attribute name="stroke-width" type="xs:string" use="optional"/>
+                  <xs:attribute name="class" type="xs:string" use="optional"/>
+                  <xs:attribute name="id" type="xs:string" use="optional"/>
+                  <xs:anyAttribute processContents="lax"/>
+                </xs:complexType>
+              </xs:element>
+              
+              <xs:element name="polygon">
+                <xs:complexType>
+                  <xs:attribute name="points" type="xs:string" use="required"/>
+                  <xs:attribute name="fill" type="xs:string" use="optional"/>
+                  <xs:attribute name="stroke" type="xs:string" use="optional"/>
+                  <xs:attribute name="stroke-width" type="xs:string" use="optional"/>
+                  <xs:attribute name="class" type="xs:string" use="optional"/>
+                  <xs:attribute name="id" type="xs:string" use="optional"/>
+                  <xs:anyAttribute processContents="lax"/>
+                </xs:complexType>
+              </xs:element>
+              
+              <xs:element name="polyline">
+                <xs:complexType>
+                  <xs:attribute name="points" type="xs:string" use="required"/>
+                  <xs:attribute name="fill" type="xs:string" use="optional"/>
+                  <xs:attribute name="stroke" type="xs:string" use="optional"/>
+                  <xs:attribute name="stroke-width" type="xs:string" use="optional"/>
+                  <xs:attribute name="class" type="xs:string" use="optional"/>
+                  <xs:attribute name="id" type="xs:string" use="optional"/>
+                  <xs:anyAttribute processContents="lax"/>
+                </xs:complexType>
+              </xs:element>
+              
+              <!-- Group element -->
+              <xs:element name="g">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:choice minOccurs="0" maxOccurs="unbounded">
+                      <xs:element name="circle">
+                        <xs:complexType>
+                          <xs:attribute name="cx" type="xs:string" use="required"/>
+                          <xs:attribute name="cy" type="xs:string" use="required"/>
+                          <xs:attribute name="r" type="xs:string" use="required"/>
+                          <xs:attribute name="fill" type="xs:string" use="optional"/>
+                          <xs:attribute name="stroke" type="xs:string" use="optional"/>
+                          <xs:attribute name="stroke-width" type="xs:string" use="optional"/>
+                          <xs:attribute name="class" type="xs:string" use="optional"/>
+                          <xs:attribute name="id" type="xs:string" use="optional"/>
+                          <xs:anyAttribute processContents="lax"/>
+                        </xs:complexType>
+                      </xs:element>
+                      <xs:element name="rect">
+                        <xs:complexType>
+                          <xs:attribute name="x" type="xs:string" use="optional"/>
+                          <xs:attribute name="y" type="xs:string" use="optional"/>
+                          <xs:attribute name="width" type="xs:string" use="required"/>
+                          <xs:attribute name="height" type="xs:string" use="required"/>
+                          <xs:attribute name="rx" type="xs:string" use="optional"/>
+                          <xs:attribute name="ry" type="xs:string" use="optional"/>
+                          <xs:attribute name="fill" type="xs:string" use="optional"/>
+                          <xs:attribute name="stroke" type="xs:string" use="optional"/>
+                          <xs:attribute name="stroke-width" type="xs:string" use="optional"/>
+                          <xs:attribute name="class" type="xs:string" use="optional"/>
+                          <xs:attribute name="id" type="xs:string" use="optional"/>
+                          <xs:anyAttribute processContents="lax"/>
+                        </xs:complexType>
+                      </xs:element>
+                      <xs:element name="path">
+                        <xs:complexType>
+                          <xs:attribute name="d" type="xs:string" use="required"/>
+                          <xs:attribute name="fill" type="xs:string" use="optional"/>
+                          <xs:attribute name="stroke" type="xs:string" use="optional"/>
+                          <xs:attribute name="stroke-width" type="xs:string" use="optional"/>
+                          <xs:attribute name="class" type="xs:string" use="optional"/>
+                          <xs:attribute name="id" type="xs:string" use="optional"/>
+                          <xs:anyAttribute processContents="lax"/>
+                        </xs:complexType>
+                      </xs:element>
+                      <xs:element name="text">
+                        <xs:complexType mixed="true">
+                          <xs:attribute name="x" type="xs:string" use="optional"/>
+                          <xs:attribute name="y" type="xs:string" use="optional"/>
+                          <xs:attribute name="font-family" type="xs:string" use="optional"/>
+                          <xs:attribute name="font-size" type="xs:string" use="optional"/>
+                          <xs:attribute name="fill" type="xs:string" use="optional"/>
+                          <xs:attribute name="class" type="xs:string" use="optional"/>
+                          <xs:attribute name="id" type="xs:string" use="optional"/>
+                          <xs:anyAttribute processContents="lax"/>
+                        </xs:complexType>
+                      </xs:element>
+                    </xs:choice>
+                  </xs:sequence>
+                  <xs:attribute name="transform" type="xs:string" use="optional"/>
+                  <xs:attribute name="class" type="xs:string" use="optional"/>
+                  <xs:attribute name="id" type="xs:string" use="optional"/>
+                  <xs:anyAttribute processContents="lax"/>
+                </xs:complexType>
+              </xs:element>
+            </xs:choice>
+          </xs:sequence>
+        </xs:sequence>
       </xs:sequence>
       
       <!-- Required attributes for SVG root -->
-      <xs:attribute name="width" type="xs:positiveInteger" use="required"/>
-      <xs:attribute name="height" type="xs:positiveInteger" use="required"/>
+      <xs:attribute name="width" type="xs:string" use="required"/>
+      <xs:attribute name="height" type="xs:string" use="required"/>
       <xs:attribute name="viewBox" type="xs:string" use="required"/>
-      
-      <!-- Note: xmlns attributes are special in XML Schema and cannot be directly declared -->
-      <!-- Instead, they are implicitly handled by the namespace declarations -->
+      <!-- xmlns jest atrybutem specjalnym i nie może być zadeklarowany w XSD -->
+      <xs:attribute name="data-component-id" type="xs:string" use="optional"/>
+      <xs:attribute name="class" type="xs:string" use="optional"/>
+      <xs:anyAttribute processContents="lax"/>
     </xs:complexType>
   </xs:element>
-
-  <!-- Define types for SVG elements -->
-  <xs:complexType name="CircleType">
-    <xs:attribute name="cx" type="xs:decimal" use="required"/>
-    <xs:attribute name="cy" type="xs:decimal" use="required"/>
-    <xs:attribute name="r" type="xs:decimal" use="required"/>
-    <xs:attribute name="fill" type="xs:string" use="optional"/>
-    <xs:attribute name="stroke" type="xs:string" use="optional"/>
-    <xs:attribute name="stroke-width" type="xs:decimal" use="optional"/>
-    <xs:attribute name="id" type="xs:string" use="optional"/>
-    <xs:attribute name="class" type="xs:string" use="optional"/>
-  </xs:complexType>
-
-  <xs:complexType name="RectType">
-    <xs:attribute name="x" type="xs:decimal" use="required"/>
-    <xs:attribute name="y" type="xs:decimal" use="required"/>
-    <xs:attribute name="width" type="xs:decimal" use="required"/>
-    <xs:attribute name="height" type="xs:decimal" use="required"/>
-    <xs:attribute name="fill" type="xs:string" use="optional"/>
-    <xs:attribute name="stroke" type="xs:string" use="optional"/>
-    <xs:attribute name="stroke-width" type="xs:decimal" use="optional"/>
-    <xs:attribute name="id" type="xs:string" use="optional"/>
-    <xs:attribute name="class" type="xs:string" use="optional"/>
-  </xs:complexType>
-
-  <xs:complexType name="PathType">
-    <xs:attribute name="d" type="xs:string" use="required"/>
-    <xs:attribute name="fill" type="xs:string" use="optional"/>
-    <xs:attribute name="stroke" type="xs:string" use="optional"/>
-    <xs:attribute name="stroke-width" type="xs:decimal" use="optional"/>
-    <xs:attribute name="id" type="xs:string" use="optional"/>
-    <xs:attribute name="class" type="xs:string" use="optional"/>
-  </xs:complexType>
-
-  <xs:complexType name="TextType">
-    <xs:simpleContent>
-      <xs:extension base="xs:string">
-        <xs:attribute name="x" type="xs:decimal" use="required"/>
-        <xs:attribute name="y" type="xs:decimal" use="required"/>
-        <xs:attribute name="font-size" type="xs:decimal" use="optional"/>
-        <xs:attribute name="text-anchor" type="xs:string" use="optional"/>
-        <xs:attribute name="fill" type="xs:string" use="optional"/>
-        <xs:attribute name="id" type="xs:string" use="optional"/>
-        <xs:attribute name="class" type="xs:string" use="optional"/>
-      </xs:extension>
-    </xs:simpleContent>
-  </xs:complexType>
-
-  <xs:complexType name="LineType">
-    <xs:attribute name="x1" type="xs:decimal" use="required"/>
-    <xs:attribute name="y1" type="xs:decimal" use="required"/>
-    <xs:attribute name="x2" type="xs:decimal" use="required"/>
-    <xs:attribute name="y2" type="xs:decimal" use="required"/>
-    <xs:attribute name="stroke" type="xs:string" use="optional"/>
-    <xs:attribute name="stroke-width" type="xs:decimal" use="optional"/>
-    <xs:attribute name="id" type="xs:string" use="optional"/>
-    <xs:attribute name="class" type="xs:string" use="optional"/>
-  </xs:complexType>
-
-  <xs:complexType name="PolygonType">
-    <xs:attribute name="points" type="xs:string" use="required"/>
-    <xs:attribute name="fill" type="xs:string" use="optional"/>
-    <xs:attribute name="stroke" type="xs:string" use="optional"/>
-    <xs:attribute name="stroke-width" type="xs:decimal" use="optional"/>
-    <xs:attribute name="id" type="xs:string" use="optional"/>
-    <xs:attribute name="class" type="xs:string" use="optional"/>
-  </xs:complexType>
-
-  <xs:complexType name="PolylineType">
-    <xs:attribute name="points" type="xs:string" use="required"/>
-    <xs:attribute name="fill" type="xs:string" use="optional"/>
-    <xs:attribute name="stroke" type="xs:string" use="optional"/>
-    <xs:attribute name="stroke-width" type="xs:decimal" use="optional"/>
-    <xs:attribute name="id" type="xs:string" use="optional"/>
-    <xs:attribute name="class" type="xs:string" use="optional"/>
-  </xs:complexType>
-
-  <xs:complexType name="GroupType">
-    <xs:sequence>
-      <xs:choice minOccurs="0" maxOccurs="unbounded">
-        <xs:element name="circle" type="svg:CircleType"/>
-        <xs:element name="rect" type="svg:RectType"/>
-        <xs:element name="path" type="svg:PathType"/>
-        <xs:element name="text" type="svg:TextType"/>
-        <xs:element name="line" type="svg:LineType"/>
-        <xs:element name="polygon" type="svg:PolygonType"/>
-        <xs:element name="polyline" type="svg:PolylineType"/>
-        <xs:element name="g" type="svg:GroupType"/>
-      </xs:choice>
-    </xs:sequence>
-    <xs:attribute name="id" type="xs:string" use="optional"/>
-    <xs:attribute name="class" type="xs:string" use="optional"/>
-    <xs:attribute name="transform" type="xs:string" use="optional"/>
-  </xs:complexType>
-
-  <xs:complexType name="DefsType">
-    <xs:sequence>
-      <!-- Script element is required for interactive components -->
-      <xs:element name="script" type="svg:ScriptType" minOccurs="0" maxOccurs="unbounded"/>
-    </xs:sequence>
-  </xs:complexType>
-  
-  <xs:complexType name="ScriptType">
-    <xs:simpleContent>
-      <xs:extension base="xs:string">
-        <xs:attribute name="type" type="xs:string" use="optional"/>
-        <xs:attribute name="class" type="xs:string" use="optional"/>
-      </xs:extension>
-    </xs:simpleContent>
-  </xs:complexType>
 </xs:schema>

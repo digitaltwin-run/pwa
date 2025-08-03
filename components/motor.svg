@@ -14,8 +14,206 @@
         </component>
     </metadata>
 
-  <circle id="housing" cx="35" cy="35" r="30" fill="#3498db" stroke="#2980b9" stroke-width="3"/>
-  <circle id="core" cx="35" cy="35" r="15" fill="white"/>
-  <text id="label" x="35" y="38" font-size="14" text-anchor="middle" fill="#2c3e50">M1</text>
-  <path d="M35 18 L42 25 L37 25 L37 40 L33 40 L33 25 L28 25 Z" fill="#2c3e50"/>
+  <circle class="motor-housing" cx="35" cy="35" r="30" fill="#3498db" stroke="#2980b9" stroke-width="3"/>
+  <circle class="motor-core" cx="35" cy="35" r="15" fill="white"/>
+  <text class="motor-label" x="35" y="38" font-size="14" text-anchor="middle" fill="#2c3e50">M1</text>
+  <path class="motor-indicator" d="M35 18 L42 25 L37 25 L37 40 L33 40 L33 25 L28 25 Z" fill="#2c3e50"/>
+
+  <defs>
+    <!-- Wewnętrzny skrypt SVG -->
+    <script><![CDATA[
+    (function() {
+        // Function to read metadata
+        function getMetadata(svgElement) {
+            const metadataElement = svgElement.querySelector('metadata component');
+            if (metadataElement) {
+                try {
+                    const parametersElement = metadataElement.querySelector('parameters');
+                    if (parametersElement) {
+                        const result = {
+                            parameters: {
+                                label: parametersElement.querySelector('label')?.textContent || 'M1',
+                                color: parametersElement.querySelector('color')?.textContent || '#3498db',
+                                speed: parseFloat(parametersElement.querySelector('speed')?.textContent || '1500'),
+                                speedMin: parseFloat(parametersElement.querySelector('speedMin')?.textContent || '0'),
+                                speedMax: parseFloat(parametersElement.querySelector('speedMax')?.textContent || '3000'),
+                                rotation: parametersElement.querySelector('rotation')?.textContent === 'true',
+                                isActive: parametersElement.querySelector('isActive')?.textContent === 'true'
+                            }
+                        };
+                        return result;
+                    }
+                } catch (e) {
+                    console.warn('Error parsing metadata:', e);
+                }
+            }
+            return {};
+        }
+
+        // Function to update motor appearance
+        function updateMotor(svgElement) {
+            const metadata = getMetadata(svgElement);
+            const params = metadata.parameters || {};
+            const motorHousing = svgElement.querySelector('.motor-housing');
+            const motorIndicator = svgElement.querySelector('.motor-indicator');
+            const labelEl = svgElement.querySelector('.motor-label');
+
+            if (!motorHousing || params.isActive === false) {
+                if (motorHousing) motorHousing.setAttribute('fill', '#555');
+                // Stop animation if exists
+                if (svgElement.rotationInterval) {
+                    clearInterval(svgElement.rotationInterval);
+                    svgElement.rotationInterval = null;
+                }
+                return;
+            }
+
+            // Update label
+            if (labelEl && params.label) {
+                labelEl.textContent = params.label;
+            }
+
+            // Update color
+            if (motorHousing && params.color) {
+                motorHousing.setAttribute('fill', params.color);
+                // Darker stroke for motor edge
+                const darkerColor = adjustColor(params.color, -20);
+                motorHousing.setAttribute('stroke', darkerColor);
+            }
+
+            // Handle rotation animation
+            if (motorIndicator && params.rotation) {
+                // Stop existing rotation interval to avoid multiple intervals
+                if (svgElement.rotationInterval) {
+                    clearInterval(svgElement.rotationInterval);
+                    svgElement.rotationInterval = null;
+                }
+
+                // Calculate rotation speed based on motor parameters
+                const normalizedSpeed = Math.max(params.speedMin, Math.min(params.speedMax, params.speed));
+                const rotationInterval = Math.max(10, 3000 - (normalizedSpeed / params.speedMax * 2900)); // 100ms to 3000ms
+
+                // Set initial rotation if not already set
+                if (!motorIndicator.hasAttribute('transform')) {
+                    motorIndicator.setAttribute('transform', 'rotate(0, 35, 35)');
+                }
+
+                // Create a new interval for this motor
+                let angle = parseFloat(motorIndicator.getAttribute('transform').match(/rotate\((\d+)/)?.[1] || '0');
+                svgElement.rotationInterval = setInterval(() => {
+                    if (motorIndicator.isConnected) { // Check if element still exists
+                        angle = (angle + 5) % 360; // Increment by 5 degrees
+                        motorIndicator.setAttribute('transform', `rotate(${angle}, 35, 35)`);
+                    } else {
+                        // If element was removed, stop interval
+                        clearInterval(svgElement.rotationInterval);
+                        svgElement.rotationInterval = null;
+                    }
+                }, rotationInterval / 36); // Divide by 36 to make a full rotation in 'rotationInterval' ms
+            } else if (motorIndicator) {
+                // Stop rotation
+                if (svgElement.rotationInterval) {
+                    clearInterval(svgElement.rotationInterval);
+                    svgElement.rotationInterval = null;
+                }
+                // Reset to default position
+                motorIndicator.setAttribute('transform', 'rotate(0, 35, 35)');
+            }
+        }
+
+        // Helper function to darken/lighten colors
+        function adjustColor(color, amount) {
+            // Convert hex to RGB
+            let hex = color;
+            if (hex.startsWith('#')) {
+                hex = hex.slice(1);
+            }
+
+            // Parse the color
+            let r = parseInt(hex.substr(0, 2), 16);
+            let g = parseInt(hex.substr(2, 2), 16);
+            let b = parseInt(hex.substr(4, 2), 16);
+
+            // Adjust the color
+            r = Math.max(0, Math.min(255, r + amount));
+            g = Math.max(0, Math.min(255, g + amount));
+            b = Math.max(0, Math.min(255, b + amount));
+
+            // Convert back to hex
+            return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+        }
+
+        // Toggle motor rotation function
+        function toggleMotorRotation(svgElement) {
+            const metadataElement = svgElement.querySelector('metadata component');
+            if (metadataElement) {
+                const rotationElement = metadataElement.querySelector('parameters rotation');
+
+                if (rotationElement) {
+                    const currentState = rotationElement.textContent === 'true';
+
+                    // Toggle the state
+                    rotationElement.textContent = currentState ? 'false' : 'true';
+
+                    // Update appearance immediately
+                    updateMotor(svgElement);
+                }
+            }
+        }
+
+        // Initialize
+        const svgElement = document.currentScript.closest('svg');
+        if (svgElement && !svgElement.hasAttribute('data-motor-initialized')) {
+            svgElement.setAttribute('data-motor-initialized', 'true');
+
+            // Store a unique identifier for this motor
+            svgElement.motorInstanceId = 'motor-' + Math.random().toString(36).substr(2, 9);
+
+            // Add click event listener to toggle motor
+            const motorHousing = svgElement.querySelector('.motor-housing');
+            if (motorHousing) {
+                motorHousing.addEventListener('click', function(e) {
+                    toggleMotorRotation(svgElement);
+                    e.stopPropagation(); // Prevent event bubbling
+                });
+            }
+
+            // Initial update
+            updateMotor(svgElement);
+
+            // Optional: listen for changes (if IDE overwrites metadata)
+            svgElement.pollingInterval = setInterval(() => {
+                // Safely check if element is still in DOM
+                if (!svgElement.isConnected) {
+                    // Clean up if it's been removed
+                    if (svgElement.rotationInterval) clearInterval(svgElement.rotationInterval);
+                    if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
+                    return;
+                }
+
+                const metadata = getMetadata(svgElement);
+                const params = metadata.parameters || {};
+
+                // Initialize currentParams if needed
+                if (!svgElement.currentParams) {
+                    svgElement.currentParams = {};
+                }
+
+                // Check if parameters have changed
+                const hasChanged =
+                    params.color !== svgElement.currentParams.color ||
+                    params.speed !== svgElement.currentParams.speed ||
+                    params.rotation !== svgElement.currentParams.rotation ||
+                    params.isActive !== svgElement.currentParams.isActive ||
+                    params.label !== svgElement.currentParams.label;
+
+                if (hasChanged) {
+                    svgElement.currentParams = { ...params };
+                    updateMotor(svgElement);
+                }
+            }, 500);
+        }
+    })();
+    ]]></script>
+  </defs>
 </svg>
