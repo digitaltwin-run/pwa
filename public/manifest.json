@@ -1,0 +1,90 @@
+{
+  "name": "Digital Twin PWA",
+  "short_name": "DigitalTwin",
+  "description": "Digital Twin Progressive Web Application",
+  "start_url": "/test-pwa.html",
+  "display": "standalone",
+  "background_color": "#4a90e2",
+  "theme_color": "#4a90e2",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/static/images/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/images/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/images/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/images/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/images/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/images/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/images/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/images/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/static/images/screenshot1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Digital Twin Dashboard"
+    },
+    {
+      "src": "/static/images/screenshot2.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile View"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View the main dashboard",
+      "url": "/dashboard"
+    },
+    {
+      "name": "Settings",
+      "short_name": "Settings",
+      "description": "Configure application settings",
+      "url": "/settings"
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "scope": "/",
+  "dir": "ltr",
+  "lang": "en-US",
+  "splash_pages": null
+}
