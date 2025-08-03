@@ -1,26 +1,122 @@
 {
   "name": "Digital Twin IDE",
-  "short_name": "DT-IDE",
-  "description": "Edytor cyfrowych bliźniaków z SVG, metadanymi i symulacją danych",
-  "start_url": "/index.html",
+  "short_name": "DigitalTwin",
+  "description": "Progressive Web App for designing and simulating digital twins with SVG components, real-time interactions, and collaborative editing",
+  "start_url": "/",
+  "id": "/",
   "display": "standalone",
-  "orientation": "landscape",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
   "background_color": "#2c3e50",
   "theme_color": "#3498db",
+  "categories": ["productivity", "developer", "design", "simulation"],
   "icons": [
     {
-      "src": "assets/icons/icon-192.png",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Cpath fill='%233498db' d='M96 16c44.2 0 80 35.8 80 80s-35.8 80-80 80-80-35.8-80-80 35.8-80 80-80zm0 32c-26.5 0-48 21.5-48 48s21.5 48 48 48 48-21.5 48-48-21.5-48-48-48z'/%3E%3C/svg%3E",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "assets/icons/icon-512.png",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%233498db' d='M256 32c123.7 0 224 100.3 224 224s-100.3 224-224 224S32 379.7 32 256 132.3 32 256 32zm0 64c-88.4 0-160 71.6-160 160s71.6 160 160 160 160-71.6 160-160S344.4 96 256 96z'/%3E%3C/svg%3E",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'%3E%3Cpath fill='%23ffffff' d='M36 8c15.5 0 28 12.5 28 28s-12.5 28-28 28-28-12.5-28-28S20.5 8 36 8zm0 12c-8.8 0-16 7.2-16 16s7.2 16 16 16 16-7.2 16-16-7.2-16-16-16z'/%3E%3C/svg%3E",
+      "sizes": "72x72",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'%3E%3Crect fill='%232c3e50' width='1280' height='720'/%3E%3Ctext x='640' y='360' fill='%23ffffff' text-anchor='middle' font-size='48'%3EDigital Twin IDE%3C/text%3E%3C/svg%3E",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide",
+      "label": "Main application interface"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'%3E%3Crect fill='%232c3e50' width='540' height='720'/%3E%3Ctext x='270' y='360' fill='%23ffffff' text-anchor='middle' font-size='24'%3EMobile View%3C/text%3E%3C/svg%3E",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "Mobile responsive design"
     }
   ],
   "scope": "/",
-  "lang": "pl"
+  "lang": "en",
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 480
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "handle_links": "preferred",
+  "protocol_handlers": [
+    {
+      "protocol": "web+digitaltwin",
+      "url": "/open?project=%s"
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "project",
+          "accept": [".json", ".svg", ".xml"]
+        }
+      ]
+    }
+  },
+  "shortcuts": [
+    {
+      "name": "New Project",
+      "short_name": "New",
+      "description": "Create a new digital twin project",
+      "url": "/new",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Cpath fill='%2327ae60' d='M48 16v64M16 48h64' stroke='%2327ae60' stroke-width='8'/%3E%3C/svg%3E",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Open Project",
+      "short_name": "Open",
+      "description": "Open an existing project",
+      "url": "/open",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Cpath fill='%23f39c12' d='M16 24h64v48H16z' stroke='%23f39c12' stroke-width='4'/%3E%3C/svg%3E",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Components",
+      "short_name": "Components",
+      "description": "Browse component library",
+      "url": "/components",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Ccircle cx='48' cy='48' r='32' fill='none' stroke='%239b59b6' stroke-width='8'/%3E%3C/svg%3E",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ]
 }

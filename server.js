@@ -3,12 +3,39 @@
  * Proper HTTP server with correct MIME types for ES6 modules
  */
 
+// Load environment variables from .env file
+require('dotenv').config();
+
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 4000;
+const HOST = process.env.HOST || 'localhost';
+const NODE_ENV = process.env.NODE_ENV || 'development';
+
+// Enable CORS if configured
+if (process.env.CORS_ENABLED === 'true') {
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',');
+  app.use(cors({
+    origin: function(origin, callback) {
+      // Allow requests with no origin (like mobile apps, curl, etc)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        return callback(null, false);
+      }
+      return callback(null, true);
+    },
+    credentials: true
+  }));
+  console.log('✅ CORS enabled for origins:', allowedOrigins);
+}
+
+// Setup basic middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // 🔧 Configure proper MIME types for ES6 modules
 app.use(express.static('.', {
@@ -80,19 +107,33 @@ app.get('*', (req, res) => {
 });
 
 // 🚀 Start server
-app.listen(PORT, () => {
-    console.log(`🚀 Digital Twin PWA Development Server running on port ${PORT}`);
-    console.log(`🌐 Application: http://localhost:${PORT}`);
-    console.log(`🏥 Health Check: http://localhost:${PORT}/health`);
-    console.log(`📊 Status: http://localhost:${PORT}/api/status`);
-    console.log(`🧪 Test Results: http://localhost:${PORT}/test-results/`);
-    console.log(`📚 Documentation: http://localhost:${PORT}/docs/`);
+app.listen(PORT, HOST, () => {
+    console.log(`🚀 Digital Twin PWA ${process.env.APP_NAME || ''} Server running in ${NODE_ENV} mode`);
+    console.log(`🌐 Application: http://${HOST}:${PORT}`);
+    console.log(`🏥 Health Check: http://${HOST}:${PORT}/health`);
+    console.log(`📊 Status: http://${HOST}:${PORT}/api/status`);
+    console.log(`🧪 Test Results: http://${HOST}:${PORT}/test-results/`);
+    console.log(`📚 Documentation: http://${HOST}:${PORT}/docs/`);
     console.log('');
     console.log('✅ ES6 modules properly configured');
     console.log('✅ MIME types set correctly');
     console.log('✅ Static file serving enabled');
+    
+    // Log PWA status
+    if (process.env.PWA_ENABLED === 'true') {
+        console.log('✅ PWA mode enabled');
+        console.log(`✅ Offline support: ${process.env.OFFLINE_SUPPORT === 'true' ? 'enabled' : 'disabled'}`);
+        console.log(`✅ Push notifications: ${process.env.PUSH_NOTIFICATIONS === 'true' ? 'enabled' : 'disabled'}`);
+    }
+    
+    // Log collaboration status
+    if (process.env.WEBSOCKET_ENABLED === 'true') {
+        console.log(`✅ WebSocket server enabled on port ${process.env.WEBSOCKET_PORT || PORT}`); 
+        console.log(`✅ Real-time collaboration ${process.env.COLLABORATION_MODE === 'true' ? 'enabled' : 'disabled'}`);
+    }
+    
     console.log('');
-    console.log('🔧 Development mode active');
+    console.log(`🔧 ${NODE_ENV.toUpperCase()} MODE ACTIVE`);
 });
 
 // 🛑 Graceful shutdown

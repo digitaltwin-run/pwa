@@ -40,14 +40,35 @@ export class PropertiesMapper {
         // Znajdź wszystkie komponenty SVG na canvie
         const svgComponents = canvas.querySelectorAll('[data-id]');
         
+        console.log(`[PropertiesMapper] Found ${svgComponents.length} components on canvas`);
+        
+        // Clear existing mappings to prevent stale data
+        this.mappedProperties.clear();
+        this.availableVariables.clear();
+        
         svgComponents.forEach(svgElement => {
             const componentId = svgElement.getAttribute('data-id');
+            console.log(`[PropertiesMapper] Processing component ${componentId}`);
+            
             // Pobieraj wszystko bezpośrednio z SVG
             const properties = this.extractElementPropertiesFromSvg(svgElement);
-            this.mappedProperties.set(componentId, properties);
-            // Dodaj zmienne do globalnej mapy zmiennych
-            this.addVariablesToMap(componentId, properties);
+            console.log(`[PropertiesMapper] Extracted properties for ${componentId}:`, properties);
+            
+            if (properties && componentId) {
+                this.mappedProperties.set(componentId, properties);
+                console.log(`[PropertiesMapper] Added ${componentId} to mappedProperties. Total size: ${this.mappedProperties.size}`);
+                
+                // Dodaj zmienne do globalnej mapy zmiennych
+                this.addVariablesToMap(componentId, properties);
+            } else {
+                console.error(`[PropertiesMapper] Failed to process ${componentId}:`, { properties: !!properties });
+            }
         });
+        
+        console.log(`[PropertiesMapper] Scan complete. Total mapped: ${this.mappedProperties.size} components`);
+        
+        // Force refresh interaction panels if they exist
+        this.refreshInteractionPanels();
     }
 
     // NOWA METODA: Wyciągnij właściwości tylko z SVG
@@ -436,6 +457,35 @@ export class PropertiesMapper {
         return variables;
     }
 
+    // Odśwież panele interakcji po zmianie mappingu
+    refreshInteractionPanels() {
+        try {
+            const targets = this.getAvailableTargetComponents();
+            console.log(`[PropertiesMapper] Refreshing interaction panels with ${targets.length} targets`);
+            
+            // Find all target component selects and refresh them
+            const targetSelects = document.querySelectorAll('select[onchange*="target"]');
+            targetSelects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Wybierz komponent</option>';
+                
+                targets.forEach(target => {
+                    const option = document.createElement('option');
+                    option.value = target.id;
+                    option.textContent = `${target.name} (${target.type}) - ${target.parameters.length} param.`;
+                    if (target.id === currentValue) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                });
+            });
+            
+            console.log(`[PropertiesMapper] Refreshed ${targetSelects.length} target selects`);
+        } catch (error) {
+            console.error('[PropertiesMapper] Error refreshing interaction panels:', error);
+        }
+    }
+
     // Pobierz komponenty dostępne jako cele interakcji
     getAvailableTargetComponents() {
         const components = [];
@@ -463,34 +513,37 @@ export class PropertiesMapper {
     // Automatycznie odśwież mapowanie przy zmianie canvy
     setupAutoRefresh() {
         // Obserwuj zmiany w canvas
-        const canvas = document.getElementById('canvas');
-        if (canvas) {
-            const observer = new MutationObserver((mutations) => {
-                let shouldRefresh = false;
-                
-                mutations.forEach((mutation) => {
-                    if (mutation.type === 'childList' || 
-                        (mutation.type === 'attributes' && mutation.attributeName === 'data-id')) {
-                        shouldRefresh = true;
-                    }
-                });
-
-                if (shouldRefresh) {
-                    console.log('Canvas changed, refreshing property mapping...');
-                    this.scanCanvasProperties();
+        const canvas = document.getElementById('svg-canvas');
+        if (!canvas) {
+            console.warn('[PropertiesMapper] Canvas not found for auto-refresh setup');
+            return;
+        }
+        
+        const observer = new MutationObserver((mutations) => {
+            let shouldRefresh = false;
+            
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'childList' || 
+                    (mutation.type === 'attributes' && mutation.attributeName === 'data-id')) {
+                    shouldRefresh = true;
                 }
             });
 
-            observer.observe(canvas, {
-                childList: true,
-                subtree: true,
-                attributes: true,
-                attributeFilter: ['data-id']
-            });
-            
-            // Store the observer instance for potential cleanup
-            this.canvasObserver = observer;
-        }
+            if (shouldRefresh) {
+                console.log('Canvas changed, refreshing property mapping...');
+                this.scanCanvasProperties();
+            }
+        });
+
+        observer.observe(canvas, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['data-id']
+        });
+        
+        // Store the observer instance for potential cleanup
+        this.canvasObserver = observer;
     }
     
     // Cleanup method to disconnect observers

@@ -12,6 +12,7 @@ import { SimulationManager } from './simulation.js';
 import { ConnectionManager } from './connections.js';
 import { ExportManager } from './export.js';
 import { ActionManager } from './actions.js';
+import { PWAManager } from './pwa-manager.js';
 // Conditional imports for development tools
 let TestingSystem, FunctionalTests, ErrorDetector;
 try {
