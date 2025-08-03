@@ -10,6 +10,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
+const { updateComponentsJson } = require('./scripts/update-components');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -107,8 +108,21 @@ app.get('*', (req, res) => {
 });
 
 // 🚀 Start server
-app.listen(PORT, HOST, () => {
-    console.log(`🚀 Digital Twin PWA ${process.env.APP_NAME || ''} Server running in ${NODE_ENV} mode`);
+app.listen(PORT, HOST, async () => {
+    // Update components.json on server start
+    try {
+        console.log('🔄 Updating components configuration...');
+        const success = await updateComponentsJson();
+        if (success) {
+            console.log('✅ Components configuration updated successfully');
+        } else {
+            console.warn('⚠️ Could not update components configuration, using existing file');
+        }
+    } catch (error) {
+        console.error('❌ Error updating components configuration:', error.message);
+    }
+    
+    console.log(`\n🚀 Digital Twin PWA ${process.env.APP_NAME || ''} Server running in ${NODE_ENV} mode`);
     console.log(`🌐 Application: http://${HOST}:${PORT}`);
     console.log(`🏥 Health Check: http://${HOST}:${PORT}/health`);
     console.log(`📊 Status: http://${HOST}:${PORT}/api/status`);

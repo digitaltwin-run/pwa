@@ -16,7 +16,7 @@ class CollaborationManager {
         
         // Configuration
         this.config = {
-            websocketUrl: process.env.WEBSOCKET_URL || `ws://localhost:${process.env.WEBSOCKET_PORT || 4001}`,
+            websocketUrl: 'ws://localhost:4001', // Browser-compatible hardcoded websocket URL
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' }
@@ -28,9 +28,8 @@ class CollaborationManager {
     }
 
     async init() {
-        // Check if collaboration is enabled
-        this.isEnabled = process.env.COLLABORATION_MODE === 'true' || 
-                        localStorage.getItem('collaboration-enabled') === 'true';
+        // Check if collaboration is enabled (browser-compatible)
+        this.isEnabled = localStorage.getItem('collaboration-enabled') === 'true' || false;
                         
         if (!this.isEnabled) {
             console.log('📴 Collaboration disabled');

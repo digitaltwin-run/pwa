@@ -1,0 +1,578 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="550" height="400" viewBox="0 0 550 400">
+    <title>Raspberry Pi 5 - Digital Twin</title>
+    <desc>Interactive Raspberry Pi 5 with PCIe, power button, enhanced cooling, and RP1 I/O controller</desc>
+
+    <metadata>
+        <component id="rpi-5-001" name="Raspberry Pi 5" type="rpi-5">
+            <parameters>
+                <label>RPi 5 - 8GB</label>
+                <ramSize>8</ramSize> <!-- 4 or 8 GB -->
+                <isPowered>true</isPowered>
+                <powerButtonPressed>false</powerButtonPressed>
+                <cpuTemp>42.1</cpuTemp>
+                <cpuLoad>28</cpuLoad>
+                <ramUsage>35</ramUsage>
+                <isWifiConnected>true</isWifiConnected>
+                <isEthernetConnected>true</isEthernetConnected>
+                <isBluetoothEnabled>true</isBluetoothEnabled>
+                <hdmi1Connected>true</hdmi1Connected>
+                <hdmi2Connected>false</hdmi2Connected>
+                <usb3Devices>2</usb3Devices>
+                <usb2Devices>0</usb2Devices>
+                <pcieConnected>false</pcieConnected>
+                <fanConnected>true</fanConnected>
+                <fanSpeed>50</fanSpeed>
+                <rtcBatteryConnected>true</rtcBatteryConnected>
+                <cameraConnected>false</cameraConnected>
+                <displayConnected>false</displayConnected>
+                <gpioActive>true</gpioActive>
+            </parameters>
+        </component>
+    </metadata>
+
+    <!-- PCB Board -->
+    <rect class="pcb-board" x="50" y="50" width="450" height="300" rx="5" ry="5"
+          fill="#0d6b0d" stroke="#095009" stroke-width="2"/>
+
+    <!-- Board label -->
+    <text class="board-label" x="275" y="35" font-size="18" text-anchor="middle" fill="#2c3e50">Raspberry Pi 5</text>
+
+    <!-- SoC (Broadcom BCM2712) with larger heatsink area -->
+    <rect class="soc" x="220" y="160" width="65" height="65" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+    <rect x="225" y="165" width="55" height="55" fill="#444" stroke="#666" stroke-width="1"/>
+    <!-- Heatsink fins -->
+    <line x1="230" y1="165" x2="230" y2="220" stroke="#888" stroke-width="1"/>
+    <line x1="240" y1="165" x2="240" y2="220" stroke="#888" stroke-width="1"/>
+    <line x1="250" y1="165" x2="250" y2="220" stroke="#888" stroke-width="1"/>
+    <line x1="260" y1="165" x2="260" y2="220" stroke="#888" stroke-width="1"/>
+    <line x1="270" y1="165" x2="270" y2="220" stroke="#888" stroke-width="1"/>
+    <text x="252" y="195" font-size="8" text-anchor="middle" fill="#aaa">BCM2712</text>
+
+    <!-- RP1 I/O Controller -->
+    <rect class="rp1-chip" x="320" y="170" width="45" height="45" fill="#8e44ad" stroke="#6c3483" stroke-width="1"/>
+    <text x="342" y="195" font-size="10" text-anchor="middle" fill="#ecf0f1">RP1</text>
+
+    <!-- RAM chip -->
+    <rect x="295" y="165" width="50" height="50" fill="#2c3e50" stroke="#34495e" stroke-width="1"/>
+    <text class="ram-label" x="320" y="185" font-size="10" text-anchor="middle" fill="#ecf0f1">8GB</text>
+    <text x="320" y="198" font-size="7" text-anchor="middle" fill="#bdc3c7">LPDDR4X</text>
+
+    <!-- Power Button -->
+    <g transform="translate(100, 80)">
+        <circle class="power-button" cx="15" cy="15" r="10" fill="#e74c3c" stroke="#c0392b" stroke-width="2"/>
+        <circle cx="15" cy="15" r="7" fill="#c0392b"/>
+        <text x="15" y="35" font-size="9" text-anchor="middle" fill="#333">POWER</text>
+    </g>
+
+    <!-- Status LEDs -->
+    <g class="status-leds" transform="translate(410, 250)">
+        <!-- Power LED -->
+        <text x="-10" y="3" font-size="8" fill="#333">PWR</text>
+        <rect x="15" y="-5" width="10" height="10" rx="2" ry="2" fill="#27ae60"/>
+
+        <!-- Activity LED -->
+        <text x="-10" y="18" font-size="8" fill="#333">ACT</text>
+        <rect class="activity-led" x="15" y="10" width="10" height="10" rx="2" ry="2" fill="#e74c3c"/>
+    </g>
+
+    <!-- Gigabit Ethernet Port with PoE+ support -->
+    <g transform="translate(430, 90)">
+        <rect class="ethernet-port" x="0" y="0" width="50" height="45" fill="#c0c0c0" stroke="#999" stroke-width="2"/>
+        <rect x="5" y="5" width="40" height="35" fill="#333"/>
+        <!-- Ethernet LEDs -->
+        <circle class="eth-link-led" cx="12" cy="38" r="2" fill="#27ae60"/>
+        <circle class="eth-activity-led" cx="38" cy="38" r="2" fill="#f39c12"/>
+        <text x="25" y="58" font-size="8" text-anchor="middle" fill="#333">GbE/PoE+</text>
+    </g>
+
+    <!-- USB 3.0 Ports (2x) - Blue -->
+    <g transform="translate(430, 150)">
+        <!-- USB 3.0 Stack -->
+        <rect class="usb3-port-1" x="0" y="0" width="50" height="20" fill="#3498db" stroke="#2980b9" stroke-width="1"/>
+        <rect x="5" y="3" width="40" height="14" fill="#333"/>
+        <circle class="usb3-1-indicator" cx="45" cy="10" r="2" fill="#3498db"/>
+
+        <rect class="usb3-port-2" x="0" y="25" width="50" height="20" fill="#3498db" stroke="#2980b9" stroke-width="1"/>
+        <rect x="5" y="28" width="40" height="14" fill="#333"/>
+        <circle class="usb3-2-indicator" cx="45" cy="35" r="2" fill="#3498db"/>
+
+        <text x="25" y="58" font-size="8" text-anchor="middle" fill="#333">USB 3.0</text>
+    </g>
+
+    <!-- USB 2.0 Ports (2x) -->
+    <g transform="translate(430, 210)">
+        <!-- USB 2.0 Stack -->
+        <rect class="usb2-port-1" x="0" y="0" width="50" height="20" fill="#95a5a6" stroke="#7f8c8d" stroke-width="1"/>
+        <rect x="5" y="3" width="40" height="14" fill="#333"/>
+        <circle class="usb2-1-indicator" cx="45" cy="10" r="2" fill="#333"/>
+
+        <rect class="usb2-port-2" x="0" y="25" width="50" height="20" fill="#95a5a6" stroke="#7f8c8d" stroke-width="1"/>
+        <rect x="5" y="28" width="40" height="14" fill="#333"/>
+        <circle class="usb2-2-indicator" cx="45" cy="35" r="2" fill="#333"/>
+
+        <text x="25" y="58" font-size="8" text-anchor="middle" fill="#333">USB 2.0</text>
+    </g>
+
+    <!-- Micro HDMI Ports (2x) -->
+    <g transform="translate(180, 310)">
+        <rect class="hdmi1-port" x="0" y="0" width="30" height="20" fill="#666" stroke="#333" stroke-width="1"/>
+        <text x="15" y="33" font-size="8" text-anchor="middle" fill="#333">HDMI 1</text>
+        <circle class="hdmi1-indicator" cx="15" cy="10" r="3" fill="#f39c12"/>
+    </g>
+
+    <g transform="translate(220, 310)">
+        <rect class="hdmi2-port" x="0" y="0" width="30" height="20" fill="#666" stroke="#333" stroke-width="1"/>
+        <text x="15" y="33" font-size="8" text-anchor="middle" fill="#333">HDMI 2</text>
+        <circle class="hdmi2-indicator" cx="15" cy="10" r="3" fill="#333"/>
+    </g>
+
+    <!-- USB-C Power with PD support -->
+    <g transform="translate(90, 310)">
+        <rect class="usbc-power-port" x="0" y="0" width="35" height="20" rx="10" ry="10" fill="#e74c3c" stroke="#c0392b" stroke-width="1"/>
+        <text x="17" y="33" font-size="8" text-anchor="middle" fill="#333">USB-C PD</text>
+        <circle class="pwr-indicator" cx="17" cy="10" r="3" fill="#27ae60"/>
+    </g>
+
+    <!-- PCIe FPC Connector -->
+    <g transform="translate(150, 100)">
+        <rect class="pcie-connector" x="0" y="0" width="60" height="15" fill="#f39c12" stroke="#d68910" stroke-width="1"/>
+        <text x="30" y="28" font-size="9" text-anchor="middle" fill="#333">PCIe 2.0 x1</text>
+        <circle class="pcie-indicator" cx="30" cy="7" r="3" fill="#333"/>
+    </g>
+
+    <!-- Fan Connector -->
+    <g transform="translate(270, 240)">
+        <rect class="fan-connector" x="0" y="0" width="25" height="10" fill="#3498db" stroke="#2980b9" stroke-width="1"/>
+        <text x="12" y="23" font-size="8" text-anchor="middle" fill="#333">FAN</text>
+        <circle class="fan-indicator" cx="12" cy="5" r="2" fill="#3498db"/>
+    </g>
+
+    <!-- RTC Battery Connector -->
+    <g transform="translate(150, 240)">
+        <rect class="rtc-connector" x="0" y="0" width="20" height="15" fill="#95a5a6" stroke="#7f8c8d" stroke-width="1"/>
+        <text x="10" y="28" font-size="8" text-anchor="middle" fill="#333">RTC</text>
+        <circle class="rtc-indicator" cx="10" cy="7" r="2" fill="#27ae60"/>
+    </g>
+
+    <!-- MIPI CSI Camera connectors (2x 22-pin) -->
+    <g transform="translate(300, 90)">
+        <rect class="camera-connector-1" x="0" y="0" width="30" height="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+        <text x="15" y="23" font-size="8" text-anchor="middle" fill="#333">CAM 1</text>
+        <circle class="cam1-indicator" cx="15" cy="5" r="2" fill="#333"/>
+    </g>
+
+    <g transform="translate(340, 90)">
+        <rect class="camera-connector-2" x="0" y="0" width="30" height="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+        <text x="15" y="23" font-size="8" text-anchor="middle" fill="#333">CAM 2</text>
+        <circle class="cam2-indicator" cx="15" cy="5" r="2" fill="#333"/>
+    </g>
+
+    <!-- MIPI DSI Display connectors (2x 22-pin) -->
+    <g transform="translate(90, 170)">
+        <rect class="display-connector-1" x="0" y="0" width="30" height="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+        <text x="15" y="23" font-size="8" text-anchor="middle" fill="#333">DISP 1</text>
+        <circle class="dsi1-indicator" cx="15" cy="5" r="2" fill="#333"/>
+    </g>
+
+    <g transform="translate(90, 200)">
+        <rect class="display-connector-2" x="0" y="0" width="30" height="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+        <text x="15" y="23" font-size="8" text-anchor="middle" fill="#333">DISP 2</text>
+        <circle class="dsi2-indicator" cx="15" cy="5" r="2" fill="#333"/>
+    </g>
+
+    <!-- MicroSD Card Slot -->
+    <g transform="translate(20, 170)">
+        <rect x="0" y="0" width="50" height="30" fill="#34495e" stroke="#2c3e50" stroke-width="1"/>
+        <rect x="5" y="5" width="40" height="20" fill="#7f8c8d"/>
+        <text x="25" y="45" font-size="8" text-anchor="middle" fill="#333">MicroSD</text>
+    </g>
+
+    <!-- GPIO Header (40 pin) -->
+    <g transform="translate(70, 60)">
+        <rect x="0" y="0" width="330" height="15" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+        <!-- GPIO pins -->
+        <g class="gpio-pins">
+            <rect x="2" y="2" width="326" height="4" fill="#f39c12"/>
+            <rect x="2" y="9" width="326" height="4" fill="#f39c12"/>
+        </g>
+        <text x="165" y="30" font-size="10" text-anchor="middle" fill="#333">GPIO 40-pin Header</text>
+    </g>
+
+    <!-- WiFi/BT chip and antenna -->
+    <g transform="translate(360, 240)">
+        <rect x="0" y="0" width="40" height="25" fill="#95a5a6" stroke="#7f8c8d" stroke-width="1"/>
+        <circle class="wifi-indicator" cx="20" cy="12" r="5" fill="#3498db"/>
+        <text x="20" y="38" font-size="8" text-anchor="middle" fill="#333">WiFi 6E/BT5</text>
+    </g>
+
+    <!-- Fan visualization (when connected) -->
+    <g class="fan-visual" transform="translate(252, 192)" opacity="0.8">
+        <circle cx="0" cy="0" r="15" fill="none" stroke="#3498db" stroke-width="1"/>
+        <path class="fan-blades" d="M0,-12 L4,-4 L12,0 L4,4 L0,12 L-4,4 L-12,0 L-4,-4 Z"
+              fill="#3498db" transform="rotate(0)"/>
+    </g>
+
+    <!-- Status display -->
+    <g transform="translate(275, 370)">
+        <text class="status-line1" x="0" y="0" font-size="11" text-anchor="middle" fill="#333">
+            <tspan class="cpu-temp" fill="#27ae60">CPU: 42.1°C</tspan>
+            <tspan dx="10" class="cpu-load" fill="#3498db">Load: 28%</tspan>
+            <tspan dx="10" class="ram-usage" fill="#9b59b6">RAM: 35%</tspan>
+            <tspan dx="10" class="fan-status" fill="#16a085">Fan: 50%</tspan>
+        </text>
+    </g>
+
+    <defs>
+        <!-- Internal SVG script -->
+        <script><![CDATA[
+        (function() {
+            // Function to read metadata
+            function getMetadata(svgElement) {
+                const metadataElement = svgElement.querySelector('metadata component');
+                if (metadataElement) {
+                    try {
+                        const parametersElement = metadataElement.querySelector('parameters');
+                        if (parametersElement) {
+                            const result = {
+                                parameters: {
+                                    label: parametersElement.querySelector('label')?.textContent || 'RPi 5',
+                                    ramSize: parseInt(parametersElement.querySelector('ramSize')?.textContent || '8'),
+                                    isPowered: parametersElement.querySelector('isPowered')?.textContent === 'true',
+                                    powerButtonPressed: parametersElement.querySelector('powerButtonPressed')?.textContent === 'true',
+                                    cpuTemp: parseFloat(parametersElement.querySelector('cpuTemp')?.textContent || '0'),
+                                    cpuLoad: parseFloat(parametersElement.querySelector('cpuLoad')?.textContent || '0'),
+                                    ramUsage: parseFloat(parametersElement.querySelector('ramUsage')?.textContent || '0'),
+                                    isWifiConnected: parametersElement.querySelector('isWifiConnected')?.textContent === 'true',
+                                    isEthernetConnected: parametersElement.querySelector('isEthernetConnected')?.textContent === 'true',
+                                    isBluetoothEnabled: parametersElement.querySelector('isBluetoothEnabled')?.textContent === 'true',
+                                    hdmi1Connected: parametersElement.querySelector('hdmi1Connected')?.textContent === 'true',
+                                    hdmi2Connected: parametersElement.querySelector('hdmi2Connected')?.textContent === 'true',
+                                    usb3Devices: parseInt(parametersElement.querySelector('usb3Devices')?.textContent || '0'),
+                                    usb2Devices: parseInt(parametersElement.querySelector('usb2Devices')?.textContent || '0'),
+                                    pcieConnected: parametersElement.querySelector('pcieConnected')?.textContent === 'true',
+                                    fanConnected: parametersElement.querySelector('fanConnected')?.textContent === 'true',
+                                    fanSpeed: parseInt(parametersElement.querySelector('fanSpeed')?.textContent || '0'),
+                                    rtcBatteryConnected: parametersElement.querySelector('rtcBatteryConnected')?.textContent === 'true',
+                                    cameraConnected: parametersElement.querySelector('cameraConnected')?.textContent === 'true',
+                                    displayConnected: parametersElement.querySelector('displayConnected')?.textContent === 'true',
+                                    gpioActive: parametersElement.querySelector('gpioActive')?.textContent === 'true'
+                                }
+                            };
+                            return result;
+                        }
+                    } catch (e) {
+                        console.warn('Error parsing metadata:', e);
+                    }
+                }
+                return {};
+            }
+
+            // Function to update board appearance
+            function updateBoard(svgElement) {
+                const metadata = getMetadata(svgElement);
+                const params = metadata.parameters || {};
+
+                const ramLabel = svgElement.querySelector('.ram-label');
+                const powerButton = svgElement.querySelector('.power-button');
+                const activityLed = svgElement.querySelector('.activity-led');
+                const wifiIndicator = svgElement.querySelector('.wifi-indicator');
+                const ethLinkLed = svgElement.querySelector('.eth-link-led');
+                const ethActivityLed = svgElement.querySelector('.eth-activity-led');
+                const hdmi1Indicator = svgElement.querySelector('.hdmi1-indicator');
+                const hdmi2Indicator = svgElement.querySelector('.hdmi2-indicator');
+                const pcieIndicator = svgElement.querySelector('.pcie-indicator');
+                const fanIndicator = svgElement.querySelector('.fan-indicator');
+                const fanVisual = svgElement.querySelector('.fan-visual');
+                const fanBlades = svgElement.querySelector('.fan-blades');
+                const rtcIndicator = svgElement.querySelector('.rtc-indicator');
+                const cam1Indicator = svgElement.querySelector('.cam1-indicator');
+                const dsi1Indicator = svgElement.querySelector('.dsi1-indicator');
+                const pwrIndicator = svgElement.querySelector('.pwr-indicator');
+                const cpuTempText = svgElement.querySelector('.cpu-temp');
+                const cpuLoadText = svgElement.querySelector('.cpu-load');
+                const ramUsageText = svgElement.querySelector('.ram-usage');
+                const fanStatusText = svgElement.querySelector('.fan-status');
+                const gpioPins = svgElement.querySelector('.gpio-pins');
+
+                // Update RAM label
+                if (ramLabel) {
+                    ramLabel.textContent = `${params.ramSize}GB`;
+                }
+
+                // Update power button
+                if (powerButton) {
+                    powerButton.setAttribute('fill', params.powerButtonPressed ? '#27ae60' : '#e74c3c');
+                }
+
+                // Update power indicator
+                if (pwrIndicator) {
+                    pwrIndicator.setAttribute('fill', params.isPowered ? '#27ae60' : '#333');
+                }
+
+                // Update activity LED (blink simulation)
+                if (activityLed && params.isPowered) {
+                    if (!svgElement.activityInterval) {
+                        let on = true;
+                        svgElement.activityInterval = setInterval(() => {
+                            if (activityLed.isConnected) {
+                                activityLed.setAttribute('fill', on ? '#e74c3c' : '#333');
+                                on = !on;
+                            } else {
+                                clearInterval(svgElement.activityInterval);
+                                svgElement.activityInterval = null;
+                            }
+                        }, params.cpuLoad > 50 ? 100 : 500);
+                    }
+                } else if (activityLed) {
+                    if (svgElement.activityInterval) {
+                        clearInterval(svgElement.activityInterval);
+                        svgElement.activityInterval = null;
+                    }
+                    activityLed.setAttribute('fill', '#333');
+                }
+
+                // Update WiFi/BT indicator
+                if (wifiIndicator) {
+                    if (params.isWifiConnected && params.isBluetoothEnabled) {
+                        wifiIndicator.setAttribute('fill', '#16a085');
+                    } else if (params.isWifiConnected) {
+                        wifiIndicator.setAttribute('fill', '#3498db');
+                    } else if (params.isBluetoothEnabled) {
+                        wifiIndicator.setAttribute('fill', '#9b59b6');
+                    } else {
+                        wifiIndicator.setAttribute('fill', '#333');
+                    }
+                }
+
+                // Update Ethernet LEDs
+                if (ethLinkLed) {
+                    ethLinkLed.setAttribute('fill', params.isEthernetConnected ? '#27ae60' : '#333');
+                }
+                if (ethActivityLed && params.isEthernetConnected) {
+                    if (!svgElement.ethActivityInterval) {
+                        let on = true;
+                        svgElement.ethActivityInterval = setInterval(() => {
+                            if (ethActivityLed.isConnected) {
+                                ethActivityLed.setAttribute('fill', on ? '#f39c12' : '#333');
+                                on = !on;
+                            } else {
+                                clearInterval(svgElement.ethActivityInterval);
+                                svgElement.ethActivityInterval = null;
+                            }
+                        }, 100);
+                    }
+                } else if (ethActivityLed) {
+                    if (svgElement.ethActivityInterval) {
+                        clearInterval(svgElement.ethActivityInterval);
+                        svgElement.ethActivityInterval = null;
+                    }
+                    ethActivityLed.setAttribute('fill', '#333');
+                }
+
+                // Update USB indicators
+                for (let i = 1; i <= 2; i++) {
+                    const usb3Indicator = svgElement.querySelector(`.usb3-${i}-indicator`);
+                    if (usb3Indicator) {
+                        usb3Indicator.setAttribute('fill', i <= params.usb3Devices ? '#3498db' : '#333');
+                    }
+                    const usb2Indicator = svgElement.querySelector(`.usb2-${i}-indicator`);
+                    if (usb2Indicator) {
+                        usb2Indicator.setAttribute('fill', i <= params.usb2Devices ? '#3498db' : '#333');
+                    }
+                }
+
+                // Update other indicators
+                if (hdmi1Indicator) {
+                    hdmi1Indicator.setAttribute('fill', params.hdmi1Connected ? '#f39c12' : '#333');
+                }
+                if (hdmi2Indicator) {
+                    hdmi2Indicator.setAttribute('fill', params.hdmi2Connected ? '#f39c12' : '#333');
+                }
+                if (pcieIndicator) {
+                    pcieIndicator.setAttribute('fill', params.pcieConnected ? '#27ae60' : '#333');
+                }
+                if (fanIndicator) {
+                    fanIndicator.setAttribute('fill', params.fanConnected ? '#3498db' : '#333');
+                }
+                if (rtcIndicator) {
+                    rtcIndicator.setAttribute('fill', params.rtcBatteryConnected ? '#27ae60' : '#333');
+                }
+                if (cam1Indicator) {
+                    cam1Indicator.setAttribute('fill', params.cameraConnected ? '#e74c3c' : '#333');
+                }
+                if (dsi1Indicator) {
+                    dsi1Indicator.setAttribute('fill', params.displayConnected ? '#3498db' : '#333');
+                }
+
+                // Update GPIO
+                if (gpioPins) {
+                    gpioPins.style.opacity = params.gpioActive ? '1' : '0.3';
+                }
+
+                // Update fan visualization
+                if (fanVisual && fanBlades) {
+                    fanVisual.style.opacity = params.fanConnected ? '0.8' : '0';
+                    if (params.fanConnected && params.fanSpeed > 0) {
+                        const rotationSpeed = 3000 / params.fanSpeed; // Faster fan = faster rotation
+                        if (!svgElement.fanRotationInterval) {
+                            let rotation = 0;
+                            svgElement.fanRotationInterval = setInterval(() => {
+                                rotation = (rotation + 10) % 360;
+                                fanBlades.setAttribute('transform', `rotate(${rotation})`);
+                            }, rotationSpeed);
+                        }
+                    } else if (svgElement.fanRotationInterval) {
+                        clearInterval(svgElement.fanRotationInterval);
+                        svgElement.fanRotationInterval = null;
+                    }
+                }
+
+                // Update status display
+                if (cpuTempText) {
+                    cpuTempText.textContent = `CPU: ${params.cpuTemp.toFixed(1)}°C`;
+                    // Pi 5 has better cooling
+                    if (params.cpuTemp > 65) {
+                        cpuTempText.setAttribute('fill', '#e74c3c');
+                    } else if (params.cpuTemp > 50) {
+                        cpuTempText.setAttribute('fill', '#f39c12');
+                    } else {
+                        cpuTempText.setAttribute('fill', '#27ae60');
+                    }
+                }
+                if (cpuLoadText) {
+                    cpuLoadText.textContent = `Load: ${params.cpuLoad.toFixed(0)}%`;
+                }
+                if (ramUsageText) {
+                    ramUsageText.textContent = `RAM: ${params.ramUsage.toFixed(0)}%`;
+                }
+                if (fanStatusText) {
+                    fanStatusText.textContent = params.fanConnected ? `Fan: ${params.fanSpeed}%` : 'Fan: OFF';
+                }
+            }
+
+            // Simulate system parameters
+            function simulateSystem(svgElement) {
+                const metadataElement = svgElement.querySelector('metadata component parameters');
+                if (!metadataElement) return;
+
+                const tempElement = metadataElement.querySelector('cpuTemp');
+                const loadElement = metadataElement.querySelector('cpuLoad');
+                const ramElement = metadataElement.querySelector('ramUsage');
+                const fanSpeedElement = metadataElement.querySelector('fanSpeed');
+                const fanConnectedElement = metadataElement.querySelector('fanConnected');
+
+                if (tempElement && loadElement && ramElement) {
+                    let currentTemp = parseFloat(tempElement.textContent);
+                    let currentLoad = parseFloat(loadElement.textContent);
+                    let currentRam = parseFloat(ramElement.textContent);
+
+                    // Simulate load and RAM changes
+                    currentLoad += (Math.random() - 0.5) * 12;
+                    currentLoad = Math.max(0, Math.min(100, currentLoad));
+
+                    currentRam += (Math.random() - 0.5) * 6;
+                    currentRam = Math.max(10, Math.min(85, currentRam));
+
+                    // Pi 5 with fan runs much cooler
+                    const fanConnected = fanConnectedElement && fanConnectedElement.textContent === 'true';
+                    const baseTempModifier = fanConnected ? 0.2 : 0.3;
+                    const targetTemp = 30 + (currentLoad * baseTempModifier);
+                    currentTemp += (targetTemp - currentTemp) * 0.1;
+
+                    // Adjust fan speed based on temperature
+                    if (fanSpeedElement && fanConnected) {
+                        let fanSpeed = 0;
+                        if (currentTemp > 60) fanSpeed = 100;
+                        else if (currentTemp > 50) fanSpeed = 75;
+                        else if (currentTemp > 40) fanSpeed = 50;
+                        else if (currentTemp > 35) fanSpeed = 25;
+                        fanSpeedElement.textContent = fanSpeed.toString();
+                    }
+
+                    tempElement.textContent = currentTemp.toFixed(1);
+                    loadElement.textContent = currentLoad.toFixed(0);
+                    ramElement.textContent = currentRam.toFixed(0);
+                }
+
+                updateBoard(svgElement);
+            }
+
+            // Toggle power button
+            function togglePowerButton(svgElement) {
+                const metadataElement = svgElement.querySelector('metadata component parameters');
+                if (metadataElement) {
+                    const powerButtonElement = metadataElement.querySelector('powerButtonPressed');
+                    const isPoweredElement = metadataElement.querySelector('isPowered');
+
+                    if (powerButtonElement && isPoweredElement) {
+                        powerButtonElement.textContent = 'true';
+                        // Simulate button release after 500ms
+                        setTimeout(() => {
+                            powerButtonElement.textContent = 'false';
+                            // Toggle power state
+                            const currentPower = isPoweredElement.textContent === 'true';
+                            isPoweredElement.textContent = (!currentPower).toString();
+                            updateBoard(svgElement);
+                        }, 500);
+                        updateBoard(svgElement);
+                    }
+                }
+            }
+
+            // Initialize
+            let svgElement = document.currentScript ? document.currentScript.closest('svg') : null;
+
+            if (!svgElement) {
+                const allSvgs = document.querySelectorAll('svg');
+                for (const svg of allSvgs) {
+                    if (svg.querySelector('.pcb-board') && svg.querySelector('.rp1-chip')) {
+                        svgElement = svg;
+                        break;
+                    }
+                }
+            }
+
+            if (svgElement && !svgElement.hasAttribute('data-rpi-5-initialized')) {
+                svgElement.setAttribute('data-rpi-5-initialized', 'true');
+                svgElement.rpiInstanceId = 'rpi-5-' + Math.random().toString(36).substr(2, 9);
+
+                // Add click event listeners
+                const powerButton = svgElement.querySelector('.power-button');
+                if (powerButton) {
+                    powerButton.addEventListener('click', function(e) {
+                        togglePowerButton(svgElement);
+                        e.stopPropagation();
+                    });
+                    powerButton.style.cursor = 'pointer';
+                }
+
+                // Initial update
+                updateBoard(svgElement);
+
+                // Start simulation
+                svgElement.simulationInterval = setInterval(() => {
+                    if (!svgElement.isConnected) {
+                        if (svgElement.activityInterval) clearInterval(svgElement.activityInterval);
+                        if (svgElement.ethActivityInterval) clearInterval(svgElement.ethActivityInterval);
+                        if (svgElement.fanRotationInterval) clearInterval(svgElement.fanRotationInterval);
+                        clearInterval(svgElement.simulationInterval);
+                        return;
+                    }
+                    simulateSystem(svgElement);
+                }, 2000);
+
+                // Cleanup
+                function cleanup() {
+                    if (svgElement.simulationInterval) clearInterval(svgElement.simulationInterval);
+                    if (svgElement.activityInterval) clearInterval(svgElement.activityInterval);
+                    if (svgElement.ethActivityInterval) clearInterval(svgElement.ethActivityInterval);
+                    if (svgElement.fanRotationInterval) clearInterval(svgElement.fanRotationInterval);
+                }
+
+                window.addEventListener('beforeunload', cleanup);
+            }
+        })();
+        ]]></script>
+    </defs>
+</svg>

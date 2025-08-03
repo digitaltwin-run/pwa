@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="350" viewBox="0 0 500 350">
+    <title>Raspberry Pi 4 Model B - Digital Twin</title>
+    <desc>Interactive Raspberry Pi 4B with dual micro HDMI, USB 3.0, and enhanced features</desc>
+
+    <metadata>
+        <component id="rpi-4-001" name="Raspberry Pi 4 Model B" type="rpi-4">
+            <parameters>
+                <label>RPi 4B - 4GB</label>
+                <ramSize>4</ramSize> <!-- 2, 4, or 8 GB -->
+                <isPowered>true</isPowered>
+                <cpuTemp>48.7</cpuTemp>
+                <cpuLoad>35</cpuLoad>
+                <ramUsage>42</ramUsage>
+                <isWifiConnected>true</isWifiConnected>
+                <isEthernetConnected>true</isEthernetConnected>
+                <isBluetoothEnabled>true</isBluetoothEnabled>
+                <hdmi1Connected>true</hdmi1Connected>
+                <hdmi2Connected>false</hdmi2Connected>
+                <usb3Devices>1</usb3Devices>
+                <usb2Devices>1</usb2Devices>
+                <audioConnected>false</audioConnected>
+                <cameraConnected>true</cameraConnected>
+                <displayConnected>false</displayConnected>
+                <gpioActive>true</gpioActive>
+            </parameters>
+        </component>
+    </metadata>
+
+    <!-- PCB Board -->
+    <rect class="pcb-board" x="50" y="50" width="400" height="250" rx="5" ry="5"
+          fill="#0d6b0d" stroke="#095009" stroke-width="2"/>
+
+    <!-- Board label -->
+    <text class="board-label" x="250" y="35" font-size="16" text-anchor="middle" fill="#2c3e50">Raspberry Pi 4 Model B</text>
+
+    <!-- SoC (Broadcom BCM2711) with heatsink -->
+    <rect class="soc" x="200" y="150" width="55" height="55" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+    <rect x="205" y="155" width="45" height="45" fill="#666" stroke="#999" stroke-width="1"/>
+    <text x="227" y="180" font-size="9" text-anchor="middle" fill="#ccc">BCM2711</text>
+
+    <!-- RAM chip -->
+    <rect x="265" y="155" width="45" height="45" fill="#2c3e50" stroke="#34495e" stroke-width="1"/>
+    <text class="ram-label" x="287" y="178" font-size="10" text-anchor="middle" fill="#ecf0f1">4GB</text>
+    <text x="287" y="190" font-size="7" text-anchor="middle" fill="#bdc3c7">LPDDR4</text>
+
+    <!-- Status LEDs -->
+    <g class="status-leds" transform="translate(365, 220)">
+        <!-- Power LED -->
+        <text x="-10" y="3" font-size="8" fill="#333">PWR</text>
+        <rect x="15" y="-5" width="10" height="10" rx="2" ry="2" fill="#27ae60"/>
+
+        <!-- Activity LED -->
+        <text x="-10" y="18" font-size="8" fill="#333">ACT</text>
+        <rect class="activity-led" x="15" y="10" width="10" height="10" rx="2" ry="2" fill="#e74c3c"/>
+    </g>
+
+    <!-- Gigabit Ethernet Port with LEDs -->
+    <g transform="translate(380, 80)">
+        <rect class="ethernet-port" x="0" y="0" width="50" height="45" fill="#c0c0c0" stroke="#999" stroke-width="2"/>
+        <rect x="5" y="5" width="40" height="35" fill="#333"/>
+        <!-- Ethernet LEDs -->
+        <circle class="eth-link-led" cx="12" cy="38" r="2" fill="#27ae60"/>
+        <circle class="eth-activity-led" cx="38" cy="38" r="2" fill="#f39c12"/>
+        <text x="25" y="58" font-size="9" text-anchor="middle" fill="#333">GbE</text>
+    </g>
+
+    <!-- USB 3.0 Ports (2x) -->
+    <g transform="translate(380, 140)">
+        <!-- USB 3.0 Stack -->
+        <rect class="usb3-port-1" x="0" y="0" width="50" height="20" fill="#3498db" stroke="#2980b9" stroke-width="1"/>
+        <rect x="5" y="3" width="40" height="14" fill="#333"/>
+        <circle class="usb3-1-indicator" cx="45" cy="10" r="2" fill="#3498db"/>
+
+        <rect class="usb3-port-2" x="0" y="25" width="50" height="20" fill="#3498db" stroke="#2980b9" stroke-width="1"/>
+        <rect x="5" y="28" width="40" height="14" fill="#333"/>
+        <circle class="usb3-2-indicator" cx="45" cy="35" r="2" fill="#333"/>
+
+        <text x="25" y="58" font-size="9" text-anchor="middle" fill="#333">USB 3.0</text>
+    </g>
+
+    <!-- USB 2.0 Ports (2x) -->
+    <g transform="translate(380, 200)">
+        <!-- USB 2.0 Stack -->
+        <rect class="usb2-port-1" x="0" y="0" width="50" height="20" fill="#95a5a6" stroke="#7f8c8d" stroke-width="1"/>
+        <rect x="5" y="3" width="40" height="14" fill="#333"/>
+        <circle class="usb2-1-indicator" cx="45" cy="10" r="2" fill="#3498db"/>
+
+        <rect class="usb2-port-2" x="0" y="25" width="50" height="20" fill="#95a5a6" stroke="#7f8c8d" stroke-width="1"/>
+        <rect x="5" y="28" width="40" height="14" fill="#333"/>
+        <circle class="usb2-2-indicator" cx="45" cy="35" r="2" fill="#333"/>
+
+        <text x="25" y="58" font-size="9" text-anchor="middle" fill="#333">USB 2.0</text>
+    </g>
+
+    <!-- Micro HDMI Ports (2x) -->
+    <g transform="translate(150, 260)">
+        <rect class="hdmi1-port" x="0" y="0" width="30" height="20" fill="#666" stroke="#333" stroke-width="1"/>
+        <text x="15" y="33" font-size="9" text-anchor="middle" fill="#333">HDMI1</text>
+        <circle class="hdmi1-indicator" cx="15" cy="10" r="3" fill="#f39c12"/>
+    </g>
+
+    <g transform="translate(190, 260)">
+        <rect class="hdmi2-port" x="0" y="0" width="30" height="20" fill="#666" stroke="#333" stroke-width="1"/>
+        <text x="15" y="33" font-size="9" text-anchor="middle" fill="#333">HDMI2</text>
+        <circle class="hdmi2-indicator" cx="15" cy="10" r="3" fill="#333"/>
+    </g>
+
+    <!-- USB-C Power -->
+    <g transform="translate(70, 260)">
+        <rect class="usbc-power-port" x="0" y="0" width="30" height="20" rx="10" ry="10" fill="#e74c3c" stroke="#c0392b" stroke-width="1"/>
+        <text x="15" y="33" font-size="9" text-anchor="middle" fill="#333">USB-C</text>
+        <circle class="pwr-indicator" cx="15" cy="10" r="3" fill="#27ae60"/>
+    </g>
+
+    <!-- Audio Jack -->
+    <g transform="translate(110, 260)">
+        <circle cx="15" cy="10" r="12" fill="#333" stroke="#666" stroke-width="2"/>
+        <circle cx="15" cy="10" r="5" fill="#666"/>
+        <text x="15" y="33" font-size="9" text-anchor="middle" fill="#333">Audio</text>
+        <circle class="audio-indicator" cx="15" cy="10" r="2" fill="#333"/>
+    </g>
+
+    <!-- Camera CSI connector -->
+    <g transform="translate(250, 80)">
+        <rect class="camera-connector" x="0" y="0" width="40" height="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+        <text x="20" y="23" font-size="9" text-anchor="middle" fill="#333">CAMERA</text>
+        <circle class="cam-indicator" cx="20" cy="5" r="2" fill="#e74c3c"/>
+    </g>
+
+    <!-- Display DSI connector -->
+    <g transform="translate(90, 150)">
+        <rect class="display-connector" x="0" y="0" width="40" height="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+        <text x="20" y="23" font-size="9" text-anchor="middle" fill="#333">DISPLAY</text>
+        <circle class="dsi-indicator" cx="20" cy="5" r="2" fill="#333"/>
+    </g>
+
+    <!-- MicroSD Card Slot (bottom) -->
+    <g transform="translate(20, 150)">
+        <rect x="0" y="0" width="50" height="30" fill="#34495e" stroke="#2c3e50" stroke-width="1"/>
+        <rect x="5" y="5" width="40" height="20" fill="#7f8c8d"/>
+        <text x="25" y="45" font-size="9" text-anchor="middle" fill="#333">MicroSD</text>
+    </g>
+
+    <!-- GPIO Header (40 pin) -->
+    <g transform="translate(70, 60)">
+        <rect x="0" y="0" width="300" height="15" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+        <!-- GPIO pins -->
+        <g class="gpio-pins">
+            <rect x="2" y="2" width="296" height="4" fill="#f39c12"/>
+            <rect x="2" y="9" width="296" height="4" fill="#f39c12"/>
+        </g>
+        <text x="150" y="30" font-size="10" text-anchor="middle" fill="#333">GPIO 40-pin Header</text>
+    </g>
+
+    <!-- WiFi/BT chip and antenna -->
+    <g transform="translate(310, 210)">
+        <rect x="0" y="0" width="35" height="25" fill="#95a5a6" stroke="#7f8c8d" stroke-width="1"/>
+        <circle class="wifi-indicator" cx="17" cy="12" r="5" fill="#3498db"/>
+        <text x="17" y="38" font-size="9" text-anchor="middle" fill="#333">WiFi 5/BT5</text>
+    </g>
+
+    <!-- Status display -->
+    <g transform="translate(250, 320)">
+        <text class="status-line1" x="0" y="0" font-size="11" text-anchor="middle" fill="#333">
+            <tspan class="cpu-temp" fill="#e74c3c">CPU: 48.7°C</tspan>
+            <tspan dx="10" class="cpu-load" fill="#3498db">Load: 35%</tspan>
+            <tspan dx="10" class="ram-usage" fill="#9b59b6">RAM: 42%</tspan>
+        </text>
+    </g>
+
+    <defs>
+        <!-- Internal SVG script -->
+        <script><![CDATA[
+        (function() {
+            // Function to read metadata
+            function getMetadata(svgElement) {
+                const metadataElement = svgElement.querySelector('metadata component');
+                if (metadataElement) {
+                    try {
+                        const parametersElement = metadataElement.querySelector('parameters');
+                        if (parametersElement) {
+                            const result = {
+                                parameters: {
+                                    label: parametersElement.querySelector('label')?.textContent || 'RPi 4B',
+                                    ramSize: parseInt(parametersElement.querySelector('ramSize')?.textContent || '4'),
+                                    isPowered: parametersElement.querySelector('isPowered')?.textContent === 'true',
+                                    cpuTemp: parseFloat(parametersElement.querySelector('cpuTemp')?.textContent || '0'),
+                                    cpuLoad: parseFloat(parametersElement.querySelector('cpuLoad')?.textContent || '0'),
+                                    ramUsage: parseFloat(parametersElement.querySelector('ramUsage')?.textContent || '0'),
+                                    isWifiConnected: parametersElement.querySelector('isWifiConnected')?.textContent === 'true',
+                                    isEthernetConnected: parametersElement.querySelector('isEthernetConnected')?.textContent === 'true',
+                                    isBluetoothEnabled: parametersElement.querySelector('isBluetoothEnabled')?.textContent === 'true',
+                                    hdmi1Connected: parametersElement.querySelector('hdmi1Connected')?.textContent === 'true',
+                                    hdmi2Connected: parametersElement.querySelector('hdmi2Connected')?.textContent === 'true',
+                                    usb3Devices: parseInt(parametersElement.querySelector('usb3Devices')?.textContent || '0'),
+                                    usb2Devices: parseInt(parametersElement.querySelector('usb2Devices')?.textContent || '0'),
+                                    audioConnected: parametersElement.querySelector('audioConnected')?.textContent === 'true',
+                                    cameraConnected: parametersElement.querySelector('cameraConnected')?.textContent === 'true',
+                                    displayConnected: parametersElement.querySelector('displayConnected')?.textContent === 'true',
+                                    gpioActive: parametersElement.querySelector('gpioActive')?.textContent === 'true'
+                                }
+                            };
+                            return result;
+                        }
+                    } catch (e) {
+                        console.warn('Error parsing metadata:', e);
+                    }
+                }
+                return {};
+            }
+
+            // Function to update board appearance
+            function updateBoard(svgElement) {
+                const metadata = getMetadata(svgElement);
+                const params = metadata.parameters || {};
+
+                const ramLabel = svgElement.querySelector('.ram-label');
+                const activityLed = svgElement.querySelector('.activity-led');
+                const wifiIndicator = svgElement.querySelector('.wifi-indicator');
+                const ethLinkLed = svgElement.querySelector('.eth-link-led');
+                const ethActivityLed = svgElement.querySelector('.eth-activity-led');
+                const hdmi1Indicator = svgElement.querySelector('.hdmi1-indicator');
+                const hdmi2Indicator = svgElement.querySelector('.hdmi2-indicator');
+                const audioIndicator = svgElement.querySelector('.audio-indicator');
+                const camIndicator = svgElement.querySelector('.cam-indicator');
+                const dsiIndicator = svgElement.querySelector('.dsi-indicator');
+                const pwrIndicator = svgElement.querySelector('.pwr-indicator');
+                const cpuTempText = svgElement.querySelector('.cpu-temp');
+                const cpuLoadText = svgElement.querySelector('.cpu-load');
+                const ramUsageText = svgElement.querySelector('.ram-usage');
+                const gpioPins = svgElement.querySelector('.gpio-pins');
+
+                // Update RAM label
+                if (ramLabel) {
+                    ramLabel.textContent = `${params.ramSize}GB`;
+                }
+
+                // Update power indicator
+                if (pwrIndicator) {
+                    pwrIndicator.setAttribute('fill', params.isPowered ? '#27ae60' : '#333');
+                }
+
+                // Update activity LED (blink simulation)
+                if (activityLed && params.isPowered) {
+                    if (!svgElement.activityInterval) {
+                        let on = true;
+                        svgElement.activityInterval = setInterval(() => {
+                            if (activityLed.isConnected) {
+                                activityLed.setAttribute('fill', on ? '#e74c3c' : '#333');
+                                on = !on;
+                            } else {
+                                clearInterval(svgElement.activityInterval);
+                                svgElement.activityInterval = null;
+                            }
+                        }, params.cpuLoad > 50 ? 100 : 500);
+                    }
+                } else if (activityLed) {
+                    if (svgElement.activityInterval) {
+                        clearInterval(svgElement.activityInterval);
+                        svgElement.activityInterval = null;
+                    }
+                    activityLed.setAttribute('fill', '#333');
+                }
+
+                // Update WiFi/BT indicator
+                if (wifiIndicator) {
+                    if (params.isWifiConnected && params.isBluetoothEnabled) {
+                        wifiIndicator.setAttribute('fill', '#16a085');
+                    } else if (params.isWifiConnected) {
+                        wifiIndicator.setAttribute('fill', '#3498db');
+                    } else if (params.isBluetoothEnabled) {
+                        wifiIndicator.setAttribute('fill', '#9b59b6');
+                    } else {
+                        wifiIndicator.setAttribute('fill', '#333');
+                    }
+                }
+
+                // Update Ethernet LEDs
+                if (ethLinkLed) {
+                    ethLinkLed.setAttribute('fill', params.isEthernetConnected ? '#27ae60' : '#333');
+                }
+                if (ethActivityLed && params.isEthernetConnected) {
+                    if (!svgElement.ethActivityInterval) {
+                        let on = true;
+                        svgElement.ethActivityInterval = setInterval(() => {
+                            if (ethActivityLed.isConnected) {
+                                ethActivityLed.setAttribute('fill', on ? '#f39c12' : '#333');
+                                on = !on;
+                            } else {
+                                clearInterval(svgElement.ethActivityInterval);
+                                svgElement.ethActivityInterval = null;
+                            }
+                        }, 150);
+                    }
+                } else if (ethActivityLed) {
+                    if (svgElement.ethActivityInterval) {
+                        clearInterval(svgElement.ethActivityInterval);
+                        svgElement.ethActivityInterval = null;
+                    }
+                    ethActivityLed.setAttribute('fill', '#333');
+                }
+
+                // Update USB 3.0 indicators
+                for (let i = 1; i <= 2; i++) {
+                    const usb3Indicator = svgElement.querySelector(`.usb3-${i}-indicator`);
+                    if (usb3Indicator) {
+                        usb3Indicator.setAttribute('fill', i <= params.usb3Devices ? '#3498db' : '#333');
+                    }
+                }
+
+                // Update USB 2.0 indicators
+                for (let i = 1; i <= 2; i++) {
+                    const usb2Indicator = svgElement.querySelector(`.usb2-${i}-indicator`);
+                    if (usb2Indicator) {
+                        usb2Indicator.setAttribute('fill', i <= params.usb2Devices ? '#3498db' : '#333');
+                    }
+                }
+
+                // Update HDMI indicators
+                if (hdmi1Indicator) {
+                    hdmi1Indicator.setAttribute('fill', params.hdmi1Connected ? '#f39c12' : '#333');
+                }
+                if (hdmi2Indicator) {
+                    hdmi2Indicator.setAttribute('fill', params.hdmi2Connected ? '#f39c12' : '#333');
+                }
+
+                // Update other port indicators
+                if (audioIndicator) {
+                    audioIndicator.setAttribute('fill', params.audioConnected ? '#9b59b6' : '#333');
+                }
+                if (camIndicator) {
+                    camIndicator.setAttribute('fill', params.cameraConnected ? '#e74c3c' : '#333');
+                }
+                if (dsiIndicator) {
+                    dsiIndicator.setAttribute('fill', params.displayConnected ? '#3498db' : '#333');
+                }
+
+                // Update GPIO
+                if (gpioPins) {
+                    gpioPins.style.opacity = params.gpioActive ? '1' : '0.3';
+                }
+
+                // Update status display
+                if (cpuTempText) {
+                    cpuTempText.textContent = `CPU: ${params.cpuTemp.toFixed(1)}°C`;
+                    // Color based on temperature
+                    if (params.cpuTemp > 70) {
+                        cpuTempText.setAttribute('fill', '#e74c3c');
+                    } else if (params.cpuTemp > 55) {
+                        cpuTempText.setAttribute('fill', '#f39c12');
+                    } else {
+                        cpuTempText.setAttribute('fill', '#27ae60');
+                    }
+                }
+                if (cpuLoadText) {
+                    cpuLoadText.textContent = `Load: ${params.cpuLoad.toFixed(0)}%`;
+                }
+                if (ramUsageText) {
+                    ramUsageText.textContent = `RAM: ${params.ramUsage.toFixed(0)}%`;
+                }
+            }
+
+            // Simulate system parameters
+            function simulateSystem(svgElement) {
+                const metadataElement = svgElement.querySelector('metadata component parameters');
+                if (!metadataElement) return;
+
+                const tempElement = metadataElement.querySelector('cpuTemp');
+                const loadElement = metadataElement.querySelector('cpuLoad');
+                const ramElement = metadataElement.querySelector('ramUsage');
+
+                if (tempElement && loadElement && ramElement) {
+                    let currentTemp = parseFloat(tempElement.textContent);
+                    let currentLoad = parseFloat(loadElement.textContent);
+                    let currentRam = parseFloat(ramElement.textContent);
+
+                    // Simulate temperature based on load (Pi 4 runs cooler than Pi 3)
+                    const targetTemp = 35 + (currentLoad * 0.35);
+                    currentTemp += (targetTemp - currentTemp) * 0.1;
+
+                    // Simulate load and RAM changes
+                    currentLoad += (Math.random() - 0.5) * 15;
+                    currentLoad = Math.max(0, Math.min(100, currentLoad));
+
+                    currentRam += (Math.random() - 0.5) * 8;
+                    currentRam = Math.max(15, Math.min(90, currentRam));
+
+                    tempElement.textContent = currentTemp.toFixed(1);
+                    loadElement.textContent = currentLoad.toFixed(0);
+                    ramElement.textContent = currentRam.toFixed(0);
+                }
+
+                updateBoard(svgElement);
+            }
+
+            // Toggle HDMI
+            function toggleHDMI(svgElement, hdmiNum) {
+                const metadataElement = svgElement.querySelector('metadata component parameters');
+                if (metadataElement) {
+                    const hdmiElement = metadataElement.querySelector(`hdmi${hdmiNum}Connected`);
+                    if (hdmiElement) {
+                        hdmiElement.textContent = hdmiElement.textContent === 'true' ? 'false' : 'true';
+                        updateBoard(svgElement);
+                    }
+                }
+            }
+
+            // Initialize
+            let svgElement = document.currentScript ? document.currentScript.closest('svg') : null;
+
+            if (!svgElement) {
+                const allSvgs = document.querySelectorAll('svg');
+                for (const svg of allSvgs) {
+                    if (svg.querySelector('.pcb-board') && svg.querySelector('.usbc-power-port')) {
+                        svgElement = svg;
+                        break;
+                    }
+                }
+            }
+
+            if (svgElement && !svgElement.hasAttribute('data-rpi-4-initialized')) {
+                svgElement.setAttribute('data-rpi-4-initialized', 'true');
+                svgElement.rpiInstanceId = 'rpi-4-' + Math.random().toString(36).substr(2, 9);
+
+                // Add click event listeners
+                const hdmi1Port = svgElement.querySelector('.hdmi1-port');
+                if (hdmi1Port) {
+                    hdmi1Port.addEventListener('click', function(e) {
+                        toggleHDMI(svgElement, 1);
+                        e.stopPropagation();
+                    });
+                    hdmi1Port.style.cursor = 'pointer';
+                }
+
+                const hdmi2Port = svgElement.querySelector('.hdmi2-port');
+                if (hdmi2Port) {
+                    hdmi2Port.addEventListener('click', function(e) {
+                        toggleHDMI(svgElement, 2);
+                        e.stopPropagation();
+                    });
+                    hdmi2Port.style.cursor = 'pointer';
+                }
+
+                // Initial update
+                updateBoard(svgElement);
+
+                // Start simulation
+                svgElement.simulationInterval = setInterval(() => {
+                    if (!svgElement.isConnected) {
+                        if (svgElement.activityInterval) clearInterval(svgElement.activityInterval);
+                        if (svgElement.ethActivityInterval) clearInterval(svgElement.ethActivityInterval);
+                        clearInterval(svgElement.simulationInterval);
+                        return;
+                    }
+                    simulateSystem(svgElement);
+                }, 2000);
+
+                // Cleanup
+                function cleanup() {
+                    if (svgElement.simulationInterval) clearInterval(svgElement.simulationInterval);
+                    if (svgElement.activityInterval) clearInterval(svgElement.activityInterval);
+                    if (svgElement.ethActivityInterval) clearInterval(svgElement.ethActivityInterval);
+                }
+
+                window.addEventListener('beforeunload', cleanup);
+            }
+        })();
+        ]]></script>
+    </defs>
+</svg>

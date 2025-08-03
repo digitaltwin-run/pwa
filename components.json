@@ -1,204 +1,119 @@
 {
   "components": [
     {
-      "svg": "components/motor.svg",
-      "name": "Silnik",
-      "id": "motor",
-      "defaultEvents": {
-        "click": [
-          {
-            "type": "http-request",
-            "params": {
-              "method": "POST",
-              "url": "http://localhost:3000/api/motor/toggle",
-              "body": {
-                "action": "toggle"
-              }
-            }
-          }
-        ]
-      }
+      "svg": "components/gauge.svg",
+      "name": "Analog Gauge",
+      "id": "gauge-001"
     },
     {
       "svg": "components/led.svg",
-      "name": "Diody LED",
-      "id": "led",
-      "defaultState": {
-        "on": false,
-        "color": "#00ff00"
-      }
-    },
-    {
-      "svg": "components/switch.svg",
-      "name": "Przełącznik",
-      "id": "switch",
-      "defaultState": {
-        "on": false
-      }
-    },
-    {
-      "svg": "components/relay.svg",
-      "name": "Przekaźnik",
-      "id": "relay",
-      "defaultState": {
-        "active": false
-      }
-    },
-    {
-      "svg": "components/button.svg",
-      "name": "Przycisk",
-      "id": "button",
-      "defaultEvents": {
-        "click": [
-          {
-            "type": "http-request",
-            "params": {
-              "method": "POST",
-              "url": "http://localhost:3000/api/button/press",
-              "body": {
-                "pressed": true
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "svg": "components/knob.svg",
-      "name": "Pokrętło",
-      "id": "knob",
-      "defaultState": {
-        "value": 0,
-        "min": 0,
-        "max": 100
-      }
-    },
-    {
-      "svg": "components/slider.svg",
-      "name": "Suwak",
-      "id": "slider",
-      "defaultState": {
-        "value": 50,
-        "min": 0,
-        "max": 100
-      }
-    },
-    {
-      "svg": "components/gauge.svg",
-      "name": "Miernik",
-      "id": "gauge",
-      "defaultState": {
-        "value": 0,
-        "min": 0,
-        "max": 100,
-        "unit": "°C"
-      }
-    },
-    {
-      "svg": "components/counter.svg",
-      "name": "Licznik",
-      "id": "counter",
-      "defaultState": {
-        "value": 0
-      }
-    },
-    {
-      "svg": "components/toggle.svg",
-      "name": "Przełącznik suwakowy",
-      "id": "toggle",
-      "defaultState": {
-        "on": false
-      }
-    },
-    {
-      "svg": "components/sensor.svg",
-      "name": "Czujnik temperatury",
-      "id": "temp-sensor",
-      "defaultState": {
-        "value": 22.5,
-        "unit": "°C"
-      }
-    },
-    {
-      "svg": "components/display.svg",
-      "name": "Wyświetlacz",
-      "id": "display",
-      "defaultState": {
-        "text": "Ready",
-        "value": 0
-      }
-    },
-    {
-      "svg": "components/button2.svg",
-      "name": "Przycisk Kwadratowy",
-      "id": "button2",
-      "defaultState": {
-        "pressed": false,
-        "color": "#9b59b6",
-        "label": "Button 2"
-      },
-      "defaultEvents": {
-        "click": [
-          {
-            "type": "http-request",
-            "params": {
-              "method": "POST",
-              "url": "http://localhost:3000/api/button/press",
-              "body": {
-                "pressed": true
-              }
-            }
-          }
-        ]
-      }
+      "name": "Animated LED",
+      "id": "led-001"
     },
     {
       "svg": "components/pump.svg",
-      "name": "Pompa",
-      "id": "pump",
-      "defaultState": {
-        "active": false,
-        "flowRate": 0,
-        "maxFlowRate": 100
-      },
-      "defaultEvents": {
-        "click": [
-          {
-            "type": "http-request",
-            "params": {
-              "method": "POST",
-              "url": "http://localhost:3000/api/pump/toggle",
-              "body": {
-                "action": "toggle"
-              }
-            }
-          }
-        ]
-      }
+      "name": "Centrifugal Pump",
+      "id": "pump-001"
     },
     {
       "svg": "components/valve.svg",
-      "name": "Zawór",
-      "id": "valve",
-      "defaultState": {
-        "open": false,
-        "position": 0,
-        "flowRate": 0
-      },
-      "defaultEvents": {
-        "change": [
-          {
-            "type": "http-request",
-            "params": {
-              "method": "POST",
-              "url": "http://localhost:3000/api/valve/position",
-              "body": {
-                "position": "${value}"
-              }
-            }
-          }
-        ]
-      }
+      "name": "Control Valve",
+      "id": "valve-001"
+    },
+    {
+      "svg": "components/motor.svg",
+      "name": "Electric Motor",
+      "id": "motor-001"
+    },
+    {
+      "svg": "components/display.svg",
+      "name": "HTML Display",
+      "id": "display-001"
+    },
+    {
+      "svg": "components/modbus8adc.svg",
+      "name": "Modbus RTU Analog Input 8CH",
+      "id": "modbus-analog-8ch-001"
+    },
+    {
+      "svg": "components/modbus8i8o.svg",
+      "name": "Modbus RTU IO 8CH",
+      "id": "modbus-io-8ch-001"
+    },
+    {
+      "svg": "components/counter.svg",
+      "name": "Numeric Counter",
+      "id": "counter-001"
+    },
+    {
+      "svg": "components/button.svg",
+      "name": "Push Button",
+      "id": "button-001"
+    },
+    {
+      "svg": "components/rpi3b.svg",
+      "name": "Raspberry Pi 3B",
+      "id": "rpi-3b-001"
+    },
+    {
+      "svg": "components/rpi4b.svg",
+      "name": "Raspberry Pi 4 Model B",
+      "id": "rpi-4-001"
+    },
+    {
+      "svg": "components/rpi5b.svg",
+      "name": "Raspberry Pi 5",
+      "id": "rpi-5-001"
+    },
+    {
+      "svg": "components/rpizero2w.svg",
+      "name": "Raspberry Pi Zero 2 W",
+      "id": "rpi-zero2w-001"
+    },
+    {
+      "svg": "components/relay.svg",
+      "name": "Relay",
+      "id": "relay-001"
+    },
+    {
+      "svg": "components/knob.svg",
+      "name": "Rotary Knob",
+      "id": "knob-001"
+    },
+    {
+      "svg": "components/button-new.svg",
+      "name": "Round Button",
+      "id": "button-001"
+    },
+    {
+      "svg": "components/slider.svg",
+      "name": "Slider",
+      "id": "slider-001"
+    },
+    {
+      "svg": "components/button2.svg",
+      "name": "Square Button",
+      "id": "button-square-001"
+    },
+    {
+      "svg": "components/sensor.svg",
+      "name": "Temperature Sensor",
+      "id": "sensor-001"
+    },
+    {
+      "svg": "components/toggle.svg",
+      "name": "Toggle Button",
+      "id": "toggle-001"
+    },
+    {
+      "svg": "components/switch.svg",
+      "name": "Toggle Switch",
+      "id": "switch-001"
+    },
+    {
+      "svg": "components/USB2RS485.svg",
+      "name": "USB TO RS485 Converter",
+      "id": "usb-rs485-001"
     }
   ]
 }
