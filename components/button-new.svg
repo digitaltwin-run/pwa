@@ -1,30 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+<svg width="100" height="100" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
   <!-- Component Metadata -->
   <metadata>
-    <component id="button-square-001" name="Square Button" type="button">
+    <component id="button-001" name="Round Button" type="button">
       <parameters>
-        <label>Button 2</label>
+        <label>Button</label>
         <pressed>false</pressed>
-        <size>100</size>
+        <color>#3498db</color>
+        <size>40</size>
         <momentary>true</momentary>
         <isActive>true</isActive>
       </parameters>
+      <interactions>
+        <binding targetId="motor-001" event="press" action="start" />
+        <binding targetId="motor-001" event="release" action="stop" />
+      </interactions>
     </component>
   </metadata>
 
   <!-- Button Background -->
-  <rect id="button-bg" x="5" y="5" width="90" height="90" rx="10" ry="10"
-        fill="#4CAF50" stroke="#2E7D32" stroke-width="2" class="button-bg"/>
-
+  <circle cx="20" cy="20" r="15" fill="#3498db" stroke="#2980b9" stroke-width="1.5" class="button-bg"/>
+  
   <!-- Button Label -->
-  <text x="50%" y="58%"
-        font-family="Arial, sans-serif"
-        font-size="14"
-        font-weight="bold"
-        text-anchor="middle"
+  <text x="50%" y="55%" 
+        font-family="Arial, sans-serif" 
+        font-size="10" 
+        font-weight="bold" 
+        text-anchor="middle" 
         fill="white"
-        class="button-label">Button 2</text>
+        class="button-label">Button</text>
 
   <!-- Interaction Script -->
   <script>
@@ -36,23 +40,23 @@
 
     function getMetadata(svgElement) {
       const metadata = {
-        id: 'button-square-001',
-        name: 'Square Button',
+        id: 'button-001',
+        name: 'Round Button',
         type: 'button',
         parameters: {
-          label: 'Button 2',
+          label: 'Button',
           pressed: false,
-          color: '#9b59b6',
-          size: 100,
+          color: '#3498db',
+          size: 40,
           momentary: true,
           isActive: true
         }
       };
 
       try {
+        // Try to get metadata from SVG element
         const metadataElement = svgElement.querySelector('metadata component');
         if (metadataElement) {
-          // Get component attributes
           metadata.id = metadataElement.getAttribute('id') || metadata.id;
           metadata.name = metadataElement.getAttribute('name') || metadata.name;
           metadata.type = metadataElement.getAttribute('type') || metadata.type;
@@ -60,16 +64,23 @@
           // Get parameters
           const params = metadataElement.querySelector('parameters');
           if (params) {
-            Array.from(params.children).forEach(param => {
-              const value = param.textContent.trim();
-              if (value === 'true' || value === 'false') {
-                metadata.parameters[param.tagName] = value === 'true';
-              } else if (!isNaN(value) && value.trim() !== '') {
-                metadata.parameters[param.tagName] = Number(value);
-              } else {
-                metadata.parameters[param.tagName] = value;
-              }
-            });
+            const labelEl = params.querySelector('label');
+            if (labelEl) metadata.parameters.label = labelEl.textContent;
+            
+            const pressedEl = params.querySelector('pressed');
+            if (pressedEl) metadata.parameters.pressed = pressedEl.textContent === 'true';
+            
+            const colorEl = params.querySelector('color');
+            if (colorEl) metadata.parameters.color = colorEl.textContent;
+            
+            const sizeEl = params.querySelector('size');
+            if (sizeEl) metadata.parameters.size = parseInt(sizeEl.textContent, 10) || 40;
+            
+            const momentaryEl = params.querySelector('momentary');
+            if (momentaryEl) metadata.parameters.momentary = momentaryEl.textContent === 'true';
+            
+            const isActiveEl = params.querySelector('isActive');
+            if (isActiveEl) metadata.parameters.isActive = isActiveEl.textContent === 'true';
           }
         }
       } catch (e) {
@@ -91,29 +102,26 @@
 
       // Update button appearance
       buttonBg.setAttribute('opacity', '1');
-      buttonBg.setAttribute('fill', params.pressed ? '#8e44ad' : params.color); // Darker shade for pressed state
-      buttonLabel.textContent = params.label || 'Button 2';
-
+      buttonBg.setAttribute('fill', params.pressed ? '#2980b9' : params.color); // Darker shade for pressed state
+      buttonLabel.textContent = params.label || 'Button';
+      
       // Update button size
-      const size = params.size || 100;
+      const size = params.size || 40;
       svg.setAttribute('width', size);
       svg.setAttribute('height', size);
       svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
-
+      
       // Adjust button elements for new size
-      const padding = size * 0.05;
-      const cornerRadius = size * 0.1;
-      buttonBg.setAttribute('x', padding);
-      buttonBg.setAttribute('y', padding);
-      buttonBg.setAttribute('width', size - (padding * 2));
-      buttonBg.setAttribute('height', size - (padding * 2));
-      buttonBg.setAttribute('rx', cornerRadius);
-      buttonBg.setAttribute('ry', cornerRadius);
-
+      const radius = (size / 2) * 0.75; // 75% of half the size
+      buttonBg.setAttribute('cx', size / 2);
+      buttonBg.setAttribute('cy', size / 2);
+      buttonBg.setAttribute('r', radius);
+      
       // Adjust text size and position
-      const fontSize = Math.max(12, size * 0.14);
+      const fontSize = Math.max(8, size * 0.25);
       buttonLabel.setAttribute('font-size', fontSize);
-      buttonLabel.setAttribute('y', size * 0.58);
+      buttonLabel.setAttribute('x', '50%');
+      buttonLabel.setAttribute('y', '55%');
     }
 
     // Initial setup
@@ -123,15 +131,25 @@
     function handleButtonPress() {
       const metadata = getMetadata(svg);
       const params = metadata.parameters || {};
-
+      
       if (params.momentary) {
         // For momentary button, show pressed state while mouse is down
-        buttonBg.setAttribute('fill', '#8e44ad'); // Darker shade for pressed state
+        buttonBg.setAttribute('fill', '#2980b9'); // Darker shade for pressed state
       } else {
         // For toggle button, toggle the pressed state
         params.pressed = !params.pressed;
         updateButton();
       }
+      
+      // Trigger press event for the IDE to handle
+      svg.dispatchEvent(new CustomEvent('componentEvent', {
+        detail: {
+          componentId: metadata.id,
+          event: 'press',
+          data: { pressed: true }
+        },
+        bubbles: true
+      }));
     }
 
     function handleButtonRelease() {
@@ -142,15 +160,13 @@
         // For momentary button, return to normal state on release
         buttonBg.setAttribute('fill', params.color);
       }
-
-      // Trigger click event for the IDE to handle
-      svg.dispatchEvent(new CustomEvent('componentClick', {
+      
+      // Trigger release event for the IDE to handle
+      svg.dispatchEvent(new CustomEvent('componentEvent', {
         detail: {
-          componentId: svg.getAttribute('data-component-id') || 'button2',
-          type: 'button',
-          state: {
-            pressed: params.pressed
-          }
+          componentId: metadata.id,
+          event: 'release',
+          data: { pressed: false }
         },
         bubbles: true
       }));
@@ -177,10 +193,8 @@
       const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
           if (Array.from(mutation.removedNodes).includes(svg)) {
+            // Component was removed from DOM, clean up
             clearInterval(pollInterval);
-            svg.removeEventListener('mousedown', handleButtonPress);
-            svg.removeEventListener('mouseup', handleButtonRelease);
-            svg.removeEventListener('mouseleave', handleButtonRelease);
             observer.disconnect();
           }
         });
@@ -190,7 +204,7 @@
         observer.observe(svg.parentNode, { childList: true });
       }
     } catch (e) {
-      console.warn("Could not set up observer:", e);
+      console.warn('Could not set up removal observer:', e);
     }
   })();
   ]]>

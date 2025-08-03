@@ -100,7 +100,8 @@ export class ColorManager {
         const selectedComponent = this.componentManager.getSelectedComponent();
         if (!selectedComponent) return;
 
-        const svgElement = selectedComponent.element;
+        // Handle both direct element and object with element property
+        const svgElement = selectedComponent.element || selectedComponent;
         if (!svgElement) return;
 
         // Pobierz ID komponentu

@@ -1,8 +1,19 @@
 // Digital Twin IDE - Properties Interactions Module
 
+import { PropertiesMapper } from './properties-mapper.js';
+
 export class InteractionsManager {
     constructor(componentManager) {
         this.componentManager = componentManager;
+        this.propertiesMapper = new PropertiesMapper(componentManager);
+        
+        // Automatycznie skanuj właściwości przy inicjalizacji
+        this.refreshPropertiesMapping();
+    }
+    
+    // Odśwież mapowanie właściwości
+    refreshPropertiesMapping() {
+        this.propertiesMapper.scanCanvasProperties();
     }
 
     // Generuj sekcję interakcji dla komponentu
@@ -38,15 +49,17 @@ export class InteractionsManager {
             html += this.generateTargetOptions(interaction.target);
             html += `</select><br>`;
 
-            // Właściwość
-            html += `<label>Właściwość:</label>`;
-            html += `<input type="text" value="${interaction.property || ''}" 
-                           onchange="updateInteraction('${componentData.id}', ${index}, 'property', this.value)"><br>`;
+            // Właściwość/Zmienna
+            html += `<label>Właściwość/Zmienna:</label>`;
+            html += `<select onchange="updateInteraction('${componentData.id}', ${index}, 'property', this.value)">`;
+            html += this.generatePropertyOptions(interaction.target, interaction.property, interaction.action);
+            html += `</select><br>`;
 
             // Wartość
             html += `<label>Wartość:</label>`;
-            html += `<input type="text" value="${interaction.value || ''}" 
-                           onchange="updateInteraction('${componentData.id}', ${index}, 'value', this.value)"><br>`;
+            const propertyType = this.getPropertyType(interaction.target, interaction.property);
+            html += this.generateValueInput(componentData.id, index, interaction.value || '', propertyType);
+            html += `<br>`;
 
             // Przycisk usuwania
             html += `<button onclick="removeInteraction('${componentData.id}', ${index})" 
@@ -69,51 +82,163 @@ export class InteractionsManager {
 
     // Generuj opcje dla zdarzeń w zależności od typu komponentu
     generateEventOptions(selectedEvent, componentType) {
-        const commonEvents = [
-            { value: 'click', label: 'Kliknięcie' },
-            { value: 'hover', label: 'Najechanie' },
-            { value: 'change', label: 'Zmiana' }
-        ];
-
-        const buttonEvents = [
-            { value: 'press', label: 'Naciśnięcie' },
-            { value: 'release', label: 'Zwolnienie' }
-        ];
-
-        const sensorEvents = [
-            { value: 'threshold', label: 'Przekroczenie progu' },
-            { value: 'update', label: 'Aktualizacja wartości' }
-        ];
-
-        let events = [...commonEvents];
+        // Użyj mapowanych zdarzeń z properties mapper
+        let events = [];
         
-        if (componentType === 'button') {
-            events.push(...buttonEvents);
-        } else if (componentType === 'sensor') {
-            events.push(...sensorEvents);
+        // Znajdź komponent o danym typie w mapowanych właściwościach
+        const mappedProperties = this.propertiesMapper.mappedProperties;
+        let availableEvents = [];
+        
+        // Znajdź pierwszy komponent o danym typie i użyj jego zdarzeń
+        for (const [componentId, properties] of mappedProperties) {
+            if (properties.type === componentType) {
+                availableEvents = properties.events;
+                break;
+            }
+        }
+        
+        // Fallback do domyślnych zdarzeń jeśli nie znaleziono
+        if (availableEvents.length === 0) {
+            const defaultEvents = {
+                'button': ['click', 'press', 'release', 'hover'],
+                'switch': ['toggle', 'on', 'off', 'change'],
+                'led': ['on', 'off', 'blink', 'change'],
+                'sensor': ['change', 'threshold', 'update', 'alert'],
+                'display': ['change', 'update', 'clear'],
+                'gauge': ['change', 'min', 'max', 'threshold'],
+                'motor': ['start', 'stop', 'change', 'speed'],
+                'default': ['click', 'change', 'hover']
+            };
+            
+            availableEvents = defaultEvents[componentType] || defaultEvents['default'];
         }
 
         let html = '<option value="">Wybierz zdarzenie</option>';
-        events.forEach(event => {
-            const selected = event.value === selectedEvent ? 'selected' : '';
-            html += `<option value="${event.value}" ${selected}>${event.label}</option>`;
+        availableEvents.forEach(eventValue => {
+            const selected = eventValue === selectedEvent ? 'selected' : '';
+            const eventLabel = this.getEventLabel(eventValue);
+            html += `<option value="${eventValue}" ${selected}>${eventLabel}</option>`;
         });
 
         return html;
     }
+    
+    // Pobierz czytelną etykietę dla zdarzenia
+    getEventLabel(eventValue) {
+        const eventLabels = {
+            'click': 'Kliknięcie',
+            'press': 'Naciśnięcie',
+            'release': 'Zwolnienie', 
+            'hover': 'Najechanie',
+            'change': 'Zmiana',
+            'toggle': 'Przełączenie',
+            'on': 'Włączenie',
+            'off': 'Wyłączenie',
+            'blink': 'Miganie',
+            'threshold': 'Przekroczenie progu',
+            'update': 'Aktualizacja wartości',
+            'alert': 'Alarm',
+            'clear': 'Wyczyść',
+            'min': 'Minimum',
+            'max': 'Maksimum',
+            'start': 'Start',
+            'stop': 'Stop',
+            'speed': 'Zmiana prędkości'
+        };
+        
+        return eventLabels[eventValue] || eventValue;
+    }
 
     // Generuj opcje dla wyboru komponentu docelowego
     generateTargetOptions(selectedTargetId) {
-        const components = this.componentManager.getAllComponents();
+        // Użyj mapowaných komponentów z properties mapper
+        const availableComponents = this.propertiesMapper.getAvailableTargetComponents();
         let html = '<option value="">Wybierz komponent</option>';
 
-        components.forEach(comp => {
+        availableComponents.forEach(comp => {
             const selected = comp.id === selectedTargetId ? 'selected' : '';
-            const name = comp.metadata?.name || comp.id;
-            html += `<option value="${comp.id}" ${selected}>${name}</option>`;
+            const paramCount = comp.parameters.length;
+            const typeInfo = comp.type !== 'unknown' ? ` (${comp.type})` : '';
+            
+            html += `<option value="${comp.id}" ${selected}>${comp.name}${typeInfo} - ${paramCount} param.</option>`;
         });
 
         return html;
+    }
+    
+    // Generuj opcje dla właściwości/zmiennych na podstawie wybranego komponentu i akcji
+    generatePropertyOptions(targetComponentId, selectedProperty, actionType) {
+        let html = '<option value="">Wybierz właściwość</option>';
+        
+        if (!targetComponentId) {
+            return html;
+        }
+        
+        // Pobierz dostępne zmienne dla danego typu akcji
+        const availableVariables = this.propertiesMapper.getVariablesForActionType(actionType || 'set');
+        
+        // Filtruj zmienne dla wybranego komponentu
+        const componentVariables = availableVariables.filter(variable => 
+            variable.componentId === targetComponentId
+        );
+        
+        componentVariables.forEach(variable => {
+            const selected = variable.parameter === selectedProperty ? 'selected' : '';
+            const typeInfo = variable.type ? ` (${variable.type})` : '';
+            html += `<option value="${variable.parameter}" ${selected}>${variable.parameter}${typeInfo}</option>`;
+        });
+        
+        return html;
+    }
+    
+    // Pobierz typ właściwości dla danego komponentu i właściwości
+    getPropertyType(targetComponentId, propertyName) {
+        if (!targetComponentId || !propertyName) {
+            return 'string';
+        }
+        
+        const mappedProperties = this.propertiesMapper.mappedProperties;
+        const componentProps = mappedProperties.get(targetComponentId);
+        
+        if (componentProps && componentProps.parameters && componentProps.parameters[propertyName]) {
+            return componentProps.parameters[propertyName].type;
+        }
+        
+        // Sprawdź w kolorach
+        if (componentProps && componentProps.colors && componentProps.colors[propertyName]) {
+            return 'color';
+        }
+        
+        // Sprawdź w stanach
+        if (componentProps && componentProps.states && componentProps.states[propertyName] !== undefined) {
+            return typeof componentProps.states[propertyName] === 'boolean' ? 'boolean' : 'string';
+        }
+        
+        return 'string';
+    }
+    
+    // Generuj odpowiednie pole wprowadzania wartości na podstawie typu właściwości
+    generateValueInput(componentId, index, currentValue, propertyType) {
+        const onChangeHandler = `updateInteraction('${componentId}', ${index}, 'value', this.value)`;
+        
+        switch (propertyType) {
+            case 'boolean':
+                const checked = currentValue === 'true' || currentValue === true ? 'checked' : '';
+                return `<input type="checkbox" ${checked} onchange="updateInteraction('${componentId}', ${index}, 'value', this.checked.toString())">`;
+                
+            case 'number':
+                return `<input type="number" value="${currentValue}" onchange="${onChangeHandler}" step="any">`;
+                
+            case 'color':
+                const colorValue = currentValue || '#ffffff';
+                return `<input type="color" value="${colorValue}" onchange="${onChangeHandler}">`;
+                
+            case 'range':
+                return `<input type="range" value="${currentValue || 50}" min="0" max="100" onchange="${onChangeHandler}">`;
+                
+            default:
+                return `<input type="text" value="${currentValue}" onchange="${onChangeHandler}">`;
+        }
     }
 
     // Pobierz interakcje z metadanych komponentu

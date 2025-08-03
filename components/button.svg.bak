@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xhtml="http://www.w3.org/1999/xhtml" width="40" height="40" viewBox="0 0 40 40">
+
+    <title>Button Component</title>
+    <desc>Interactive button component for digital twin</desc>
+
+    <metadata>
+        <component id="button-001" name="Push Button" type="button">
+            <parameters>
+                <label>Button</label>
+                <pressed>false</pressed>
+                <size>40</size>
+                <momentary>true</momentary>
+                <isActive>true</isActive>
+            </parameters>
+            <interactions>
+                <binding targetId="motor-001" event="press" action="start" />
+                <binding targetId="motor-001" event="release" action="stop" />
+            </interactions>
+        </component>
+    </metadata>
+
+    <!-- Button base -->
+    <circle cx="20" cy="20" r="15" fill="#34495e" stroke="#2c3e50" stroke-width="1.5"/>
+
+    <!-- Button surface -->
+    <circle class="button-surface" cx="20" cy="20" r="10" fill="#9b59b6" stroke="#8e44ad" stroke-width="1"/>
+
+    <!-- Button shadow -->
+    <circle class="button-shadow" cx="20" cy="20" r="12" fill="none" stroke="#2c3e50" stroke-width="1" opacity="0.3"/>
+
+    <!-- Label -->
+    <text class="button-label" x="20" y="36" font-size="8" text-anchor="middle" fill="#bdc3c7">Button</text>
+
+    <defs>
+        <!-- Wewnętrzny skrypt SVG -->
+        <script><![CDATA[
+        (function() {
+            // Function to read metadata
+            function getMetadata(svgElement) {
+                const metadataElement = svgElement.querySelector('metadata component');
+                if (metadataElement) {
+                    try {
+                        const parametersElement = metadataElement.querySelector('parameters');
+                        if (parametersElement) {
+                            const result = {
+                                parameters: {
+                                    label: parametersElement.querySelector('label')?.textContent || 'Button',
+                                    color: parametersElement.querySelector('color')?.textContent || '#9b59b6',
+                                    pressed: parametersElement.querySelector('pressed')?.textContent === 'true',
+                                    momentary: parametersElement.querySelector('momentary')?.textContent === 'true',
+                                    isActive: parametersElement.querySelector('isActive')?.textContent === 'true'
+                                }
+                            };
+                            return result;
+                        }
+                    } catch (e) {
+                        console.warn('Error parsing metadata:', e);
+                    }
+                }
+                return {};
+            }
+
+            // Function to update button appearance
+            function updateButton(svgElement) {
+                const metadata = getMetadata(svgElement);
+                const params = metadata.parameters || {};
+                const buttonSurface = svgElement.querySelector('.button-surface');
+                const buttonShadow = svgElement.querySelector('.button-shadow');
+                const labelEl = svgElement.querySelector('.button-label');
+
+                if (!buttonSurface || params.isActive === false) {
+                    if (buttonSurface) buttonSurface.setAttribute('fill', '#555');
+                    return;
+                }
+
+                // Update label
+                if (labelEl && params.label) {
+                    labelEl.textContent = params.label;
+                }
+
+                // Update color
+                if (buttonSurface && params.color) {
+                    buttonSurface.setAttribute('fill', params.color);
+                    // Darker stroke for button edge
+                    const darkerColor = adjustColor(params.color, -20);
+                    buttonSurface.setAttribute('stroke', darkerColor);
+                }
+
+                // Update pressed state
+                if (buttonSurface && buttonShadow) {
+                    if (params.pressed) {
+                        // Pressed appearance
+                        buttonSurface.setAttribute('transform', 'translate(0, 2)');
+                        buttonShadow.setAttribute('opacity', '0.1');
+                    } else {
+                        // Normal appearance
+                        buttonSurface.setAttribute('transform', '');
+                        buttonShadow.setAttribute('opacity', '0.3');
+                    }
+                }
+            }
+
+            // Helper function to darken/lighten colors
+            function adjustColor(color, amount) {
+                // Convert hex to RGB
+                let hex = color;
+                if (hex.startsWith('#')) {
+                    hex = hex.slice(1);
+                }
+
+                // Parse the color
+                let r = parseInt(hex.substr(0, 2), 16);
+                let g = parseInt(hex.substr(2, 2), 16);
+                let b = parseInt(hex.substr(4, 2), 16);
+
+                // Adjust the color
+                r = Math.max(0, Math.min(255, r + amount));
+                g = Math.max(0, Math.min(255, g + amount));
+                b = Math.max(0, Math.min(255, b + amount));
+
+                // Convert back to hex
+                return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+            }
+
+            // Toggle button function
+            function toggleButton(svgElement) {
+                const metadataElement = svgElement.querySelector('metadata component');
+                if (metadataElement) {
+                    const pressedElement = metadataElement.querySelector('parameters pressed');
+                    const momentaryElement = metadataElement.querySelector('parameters momentary');
+
+                    if (pressedElement) {
+                        const isMomentary = momentaryElement && momentaryElement.textContent === 'true';
+                        const currentState = pressedElement.textContent === 'true';
+
+                        // Toggle the state
+                        pressedElement.textContent = currentState ? 'false' : 'true';
+
+                        // Update appearance immediately
+                        updateButton(svgElement);
+
+                        // If momentary, automatically reset after a delay
+                        if (isMomentary && !currentState) {
+                            setTimeout(() => {
+                                if (svgElement.isConnected) { // Check if element is still in DOM
+                                    pressedElement.textContent = 'false';
+                                    updateButton(svgElement);
+                                }
+                            }, 300);
+                        }
+                    }
+                }
+            }
+
+            // Initialize - bardziej odporna metoda znajdowania elementu SVG
+            // Najpierw spróbuj standardową metodę (działa w IDE)
+            let svgElement = document.currentScript ? document.currentScript.closest('svg') : null;
+
+            // Jeśli nie znaleziono (np. w wyeksportowanym pliku), spróbuj znaleźć wszystkie SVG
+            // i wybierz ten, który zawiera ten skrypt
+            if (!svgElement) {
+                // Pobierz wszystkie elementy SVG w dokumencie
+                const allSvgs = document.querySelectorAll('svg');
+
+                // Dla każdego SVG sprawdź, czy zawiera ten skrypt
+                const scripts = document.querySelectorAll('script');
+                const currentScriptContent = document.currentScript ? document.currentScript.textContent : null;
+
+                // Jeśli nie możemy znaleźć przez currentScript, użyjemy innej metody
+                // Przeszukaj wszystkie SVG i znajdź ten z przyciskiem
+                for (const svg of allSvgs) {
+                    if (svg.querySelector('.button-surface') && svg.querySelector('.button-label')) {
+                        svgElement = svg;
+                        break;
+                    }
+                }
+            }
+
+            if (svgElement && !svgElement.hasAttribute('data-button-initialized')) {
+                svgElement.setAttribute('data-button-initialized', 'true');
+
+                // Store a unique identifier for this button
+                svgElement.buttonInstanceId = 'button-' + Math.random().toString(36).substr(2, 9);
+
+                // Add click event listener
+                const buttonSurface = svgElement.querySelector('.button-surface');
+                if (buttonSurface) {
+                    buttonSurface.addEventListener('click', function(e) {
+                        toggleButton(svgElement);
+                        e.stopPropagation(); // Prevent event bubbling
+                    });
+                }
+
+                // Initial update
+                updateButton(svgElement);
+
+                // Optional: listen for changes (if IDE overwrites metadata)
+                svgElement.pollingInterval = setInterval(() => {
+                    // Safely check if element is still in DOM
+                    if (!svgElement.isConnected) {
+                        // Clean up if it's been removed
+                        if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
+                        return;
+                    }
+
+                    const metadata = getMetadata(svgElement);
+                    const params = metadata.parameters || {};
+
+                    // Initialize currentParams if needed
+                    if (!svgElement.currentParams) {
+                        svgElement.currentParams = {};
+                    }
+
+                    // Check if parameters have changed
+                    const hasChanged =
+                        params.color !== svgElement.currentParams.color ||
+                        params.pressed !== svgElement.currentParams.pressed ||
+                        params.momentary !== svgElement.currentParams.momentary ||
+                        params.isActive !== svgElement.currentParams.isActive ||
+                        params.label !== svgElement.currentParams.label;
+
+                    if (hasChanged) {
+                        svgElement.currentParams = { ...params };
+                        updateButton(svgElement);
+                    }
+                }, 500);
+            }
+        })();
+    ]]></script>
+    </defs>
+</svg>

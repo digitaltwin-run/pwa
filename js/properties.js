@@ -63,3 +63,39 @@ window.updateSvgColor = function(selector, type, color) {
         window.propertiesManager.updateSvgColor(selector, type, color);
     }
 };
+
+// Funkcje mapowania właściwości
+window.refreshPropertiesMapping = function() {
+    if (window.propertiesManager) {
+        window.propertiesManager.refreshPropertiesMapping();
+    }
+};
+
+window.exportPropertiesToJson = function() {
+    if (window.propertiesManager) {
+        const exported = window.propertiesManager.exportPropertiesToJson();
+        console.log('Exported properties:', exported);
+        
+        // Stwórz i pobierz plik JSON
+        const blob = new Blob([JSON.stringify(exported, null, 2)], 
+            { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'canvas-properties.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        return exported;
+    }
+};
+
+window.getAvailableVariables = function() {
+    if (window.propertiesManager) {
+        const variables = window.propertiesManager.getAvailableVariables();
+        console.log('Available variables:', variables);
+        return variables;
+    }
+};

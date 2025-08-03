@@ -3,6 +3,8 @@
 import { ColorManager } from './properties-colors.js';
 import { MetadataManager } from './properties-metadata.js';
 import { InteractionsManager } from './properties-interactions.js';
+import { PropertiesMapper } from './properties-mapper.js';
+import { getComponentProperties } from './component-properties.js';
 
 export class PropertiesManager {
     constructor(componentManager) {
@@ -12,6 +14,10 @@ export class PropertiesManager {
         this.colorManager = new ColorManager(componentManager);
         this.metadataManager = new MetadataManager(componentManager);
         this.interactionsManager = new InteractionsManager(componentManager);
+        this.propertiesMapper = new PropertiesMapper(componentManager);
+        
+        // Uruchom automatyczne odświeżanie mapowania
+        this.propertiesMapper.setupAutoRefresh();
     }
 
     // Wybór komponentu
@@ -32,6 +38,104 @@ export class PropertiesManager {
         }
     }
 
+    // Generate properties HTML based on component type
+    generateComponentProperties(componentData) {
+        if (!componentData) return '';
+        
+        const componentType = componentData.metadata?.type || componentData.element?.getAttribute('data-type') || 'default';
+        const componentDef = getComponentProperties(componentType);
+        const currentValues = componentData.metadata?.parameters || {};
+        
+        // Group properties by category
+        const propertiesByCategory = {};
+        componentDef.properties.forEach(prop => {
+            if (!propertiesByCategory[prop.category]) {
+                propertiesByCategory[prop.category] = [];
+            }
+            propertiesByCategory[prop.category].push(prop);
+        });
+        
+        let html = '';
+        
+        // Generate HTML for each category
+        Object.entries(propertiesByCategory).forEach(([category, properties]) => {
+            html += `<div class="property-category" style="margin-bottom: 15px;">`;
+            html += `<h5>${category}</h5>`;
+            
+            properties.forEach(prop => {
+                const value = currentValues[prop.id] !== undefined ? currentValues[prop.id] : prop.default;
+                const inputId = `prop-${componentData.id}-${prop.id}`;
+                
+                html += `<div class="form-group" style="margin-bottom: 10px;">`;
+                html += `<label for="${inputId}" style="display: block; margin-bottom: 4px; font-size: 13px; color: #555;">${prop.name}</label>`;
+                
+                // Generate appropriate input based on type
+                switch (prop.type) {
+                    case 'boolean':
+                        html += `
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="${inputId}" 
+                                    ${value ? 'checked' : ''}
+                                    onchange="updateParam('${componentData.id}', '${prop.id}', this.checked, 'boolean')">
+                            </div>
+                        `;
+                        break;
+                        
+                    case 'color':
+                        html += `
+                            <div style="display: flex; align-items: center;">
+                                <input type="color" id="${inputId}" value="${value}" 
+                                    style="width: 60px; height: 30px; padding: 0; border: 1px solid #ddd;"
+                                    onchange="updateParam('${componentData.id}', '${prop.id}', this.value, 'color')">
+                                <span style="margin-left: 8px; font-family: monospace; font-size: 12px;">${value}</span>
+                            </div>
+                        `;
+                        break;
+                        
+                    case 'range':
+                        html += `
+                            <div>
+                                <input type="range" class="form-range" id="${inputId}" 
+                                    min="${prop.min || 0}" max="${prop.max || 100}" step="${prop.step || 1}" 
+                                    value="${value}" 
+                                    oninput="document.getElementById('${inputId}-value').textContent = this.value + '${prop.unit || ''}'; updateParam('${componentData.id}', '${prop.id}', parseFloat(this.value), 'number');">
+                                <div id="${inputId}-value" style="text-align: center; font-size: 12px; color: #666;">
+                                    ${value}${prop.unit || ''}
+                                </div>
+                            </div>
+                        `;
+                        break;
+                        
+                    case 'select':
+                        html += `
+                            <select class="form-select form-select-sm" id="${inputId}" 
+                                onchange="updateParam('${componentData.id}', '${prop.id}', this.value, 'text')">
+                                ${prop.options.map(opt => 
+                                    `<option value="${opt.value}" ${value === opt.value ? 'selected' : ''}>${opt.label}</option>`
+                                ).join('')}
+                            </select>
+                        `;
+                        break;
+                        
+                    default: // text, number, etc.
+                        const inputType = prop.type === 'number' ? 'number' : 'text';
+                        const step = inputType === 'number' ? 'step="any"' : '';
+                        html += `
+                            <input type="${inputType}" class="form-control form-control-sm" id="${inputId}" 
+                                value="${value}" ${step}
+                                onchange="updateParam('${componentData.id}', '${prop.id}', this.value, '${prop.type}')">
+                        `;
+                }
+                
+                html += `</div>`; // Close form-group
+            });
+            
+            html += `</div>`; // Close property-category
+        });
+        
+        return html;
+    }
+    
     // Pokaż właściwości komponentu
     showProperties(svgElement) {
         console.log('showProperties called with element:', svgElement);
@@ -50,55 +154,91 @@ export class PropertiesManager {
             this.clearProperties();
             return;
         }
-
-        let html = `<h4>Komponent: ${id}</h4>`;
-
-        // Pozycja
-        const x = parseFloat(svgElement.getAttribute('x')) || 0;
-        const y = parseFloat(svgElement.getAttribute('y')) || 0;
-
-        html += `
-            <label>Pozycja X:</label>
-            <input type="number" value="${x}" onchange="updatePosition('${id}', 'x', this.value)">
-            <label>Pozycja Y:</label>
-            <input type="number" value="${y}" onchange="updatePosition('${id}', 'y', this.value)">
+        
+        // Get component type from metadata or element
+        const componentType = componentData.metadata?.type || componentData.element?.getAttribute('data-type') || 'default';
+        const componentDef = getComponentProperties(componentType);
+        
+        // Start building the properties panel HTML
+        let html = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">${componentDef.icon || '📦'} ${componentDef.name}</h4>
+                <span class="badge bg-secondary">${componentType}</span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">ID komponentu</label>
+                <div class="input-group input-group-sm">
+                    <input type="text" class="form-control" value="${id}" readonly>
+                    <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('${id}')">
+                        Kopiuj
+                    </button>
+                </div>
+            </div>
         `;
-
-        // Parametry z metadanych
-        html += this.generateParametersSection(componentData);
+        
+        // Add component-specific properties
+        html += this.generateComponentProperties(componentData);
+        
+        // Add position controls
+        html += `
+            <div class="property-category" style="margin-top: 20px;">
+                <h5>Pozycja</h5>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label small">X</label>
+                        <input type="number" class="form-control form-control-sm" 
+                            value="${parseInt(svgElement.getAttribute('x') || 0)}" 
+                            onchange="updatePosition('${id}', 'x', this.value)">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small">Y</label>
+                        <input type="number" class="form-control form-control-sm" 
+                            value="${parseInt(svgElement.getAttribute('y') || 0)}" 
+                            onchange="updatePosition('${id}', 'y', this.value)">
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Odśwież mapowanie właściwości przed pokazaniem panelu
+        this.propertiesMapper.scanCanvasProperties();
         
         // Sekcja kolorów SVG
         const colorsHtml = this.colorManager.generateColorsSection(svgElement);
         if (colorsHtml) {
             html += colorsHtml;
         }
-
-        // Sekcja interakcji
-        const interactionsHtml = this.interactionsManager.generateInteractionsSection(componentData);
-        if (interactionsHtml) {
-            html += interactionsHtml;
-        }
-
-        // Usuń komponent
+        
+        // Add interactions section
+        html += this.interactionsManager.generateInteractionsSection(componentData);
+        
+        // Add delete button
         html += `
-            <button onclick="removeComponent('${id}')" class="btn btn-danger" style="margin-top: 20px;">
-                🗑️ Usuń komponent
-            </button>
+            <div class="d-grid gap-2 mt-3">
+                <button class="btn btn-danger btn-sm" onclick="removeComponent('${id}')">
+                    <i class="bi bi-trash"></i> Usuń komponent
+                </button>
+            </div>
+            
+            <div class="mt-3 small text-muted">
+                <div>ID: <code>${id}</code></div>
+                <div>Typ: <code>${componentType}</code></div>
+            </div>
         `;
-
-        // Edytuj metadane (raw JSON)
-        html += `
-            <button onclick="editMetadataRaw('${id}')" class="btn btn-secondary" style="margin-top: 10px;">
-                📝 Edytuj metadane (JSON)
-            </button>
-        `;
-
+        
+        // Set the HTML and add event listeners
         propertiesPanel.innerHTML = html;
-
-        // Add event listener for add parameter button
-        const addParamBtn = document.getElementById(`add-param-btn-${id}`);
+        
+        // Initialize any dynamic controls if needed
+        this.initializePropertyControls(componentData);
+    }
+    
+    // Initialize any dynamic property controls
+    initializePropertyControls(componentData) {
+        // Add event listener for add parameter button if it exists
+        const addParamBtn = document.getElementById(`add-param-btn-${componentData.id}`);
         if (addParamBtn) {
-            addParamBtn.addEventListener('click', () => this.addParameter(id));
+            addParamBtn.addEventListener('click', () => this.addParameter(componentData.id));
         }
     }
 
@@ -267,5 +407,29 @@ export class PropertiesManager {
 
     editMetadataRaw(id) {
         return this.metadataManager.editMetadataRaw(id);
+    }
+    
+    // Eksportuj zmapowane właściwości do JSON
+    exportPropertiesToJson() {
+        return this.propertiesMapper.exportToMetadataJson();
+    }
+    
+    // Pobierz dostępne zmienne dla systemów zewnętrznych
+    getAvailableVariables() {
+        return this.propertiesMapper.availableVariables;
+    }
+    
+    // Pobierz komponenty dostępne jako cele interakcji
+    getAvailableTargetComponents() {
+        return this.propertiesMapper.getAvailableTargetComponents();
+    }
+    
+    // Ręczne odświeżenie mapowania właściwości
+    refreshPropertiesMapping() {
+        this.propertiesMapper.scanCanvasProperties();
+        console.log('Properties mapping refreshed:', {
+            components: this.propertiesMapper.mappedProperties.size,
+            variables: this.propertiesMapper.availableVariables.size
+        });
     }
 }
