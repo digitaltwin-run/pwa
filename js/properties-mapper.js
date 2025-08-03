@@ -4,8 +4,19 @@
 export class PropertiesMapper {
     constructor(componentManager) {
         this.componentManager = componentManager;
+        // Ensure Maps are properly initialized
         this.mappedProperties = new Map();
         this.availableVariables = new Map();
+        console.log('[PropertiesMapper] Initialized with empty Maps');
+        
+        // Set up auto-refresh and initial scan
+        this.setupAutoRefresh();
+        
+        // Initial scan after a short delay to ensure DOM is ready
+        setTimeout(() => {
+            console.log('[PropertiesMapper] Running initial canvas scan...');
+            this.scanCanvasProperties();
+        }, 100);
     }
 
     // Skanuj wszystkie elementy na canvie i wyciągnij ich właściwości

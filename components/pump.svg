@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="70" height="60" viewBox="0 0 70 60">
+<svg xmlns="http://www.w3.org/2000/svg" width="70" height="60" viewBox="0 0 70 60" onload="initPump(evt)">
     <metadata>
         <component id="pump-001" name="Centrifugal Pump" type="pump">
             <parameters>
@@ -10,14 +10,101 @@
                 <flowRateMax>100</flowRateMax>
                 <unit>m³/h</unit>
                 <isActive>true</isActive>
+                <animationSpeed>1.0</animationSpeed>
             </parameters>
         </component>
     </metadata>
 
+    <defs>
+        <script type="text/ecmascript">
+        <![CDATA[
+            var pump = {
+                flow: 45,
+                min: 0,
+                max: 100,
+                unit: ' m³/h',
+                isOn: false,
+                targetFlow: 45,
+                angle: 0,
+                speed: 1.0
+            };
 
+            function initPump(evt) {
+                var svg = evt.target.ownerDocument;
+                var params = getParams(svg);
+                
+                pump.flow = parseFloat(params.flowRate) || 45;
+                pump.min = parseFloat(params.flowRateMin) || 0;
+                pump.max = parseFloat(params.flowRateMax) || 100;
+                pump.unit = ' ' + (params.unit || 'm³/h');
+                pump.speed = parseFloat(params.animationSpeed) || 1.0;
+                pump.isOn = params.isActive === 'true';
+                
+                updateDisplay(svg);
+                animate(svg);
+            }
+            
+            function getParams(svg) {
+                var p = {};
+                var elems = svg.getElementsByTagName('parameters')[0].children;
+                for (var i = 0; i < elems.length; i++) {
+                    p[elems[i].tagName] = elems[i].textContent;
+                }
+                return p;
+            }
+            
+            function animate(svg) {
+                if (pump.isOn && pump.flow > 0) {
+                    var speed = pump.flow / pump.max * pump.speed;
+                    pump.angle = (pump.angle + speed) % 360;
+                    
+                    var impeller = svg.getElementById('impeller');
+                    if (impeller) {
+                        impeller.setAttribute('transform', `rotate(${pump.angle}, 35, 30)`);
+                    }
+                }
+                
+                if (Math.abs(pump.flow - pump.targetFlow) > 0.1) {
+                    pump.flow += (pump.targetFlow - pump.flow) * 0.1;
+                    updateDisplay(svg);
+                }
+                
+                requestAnimationFrame(function() { animate(svg); });
+            }
+            
+            function updateDisplay(svg) {
+                var value = svg.getElementById('value');
+                if (value) value.textContent = Math.round(pump.flow) + pump.unit;
+                
+                var status = svg.getElementById('statusIndicator');
+                if (status) {
+                    status.setAttribute('fill', 
+                        pump.isOn && pump.flow > 0 ? '#2ecc71' : '#e74c3c');
+                }
+            }
+            
+            // Public API
+            function setPumpFlow(flow) {
+                pump.targetFlow = Math.max(pump.min, Math.min(pump.max, flow));
+            }
+            
+            function setPumpState(on) {
+                pump.isOn = on;
+                if (!on) pump.targetFlow = 0;
+            }
+            
+            function getPumpFlow() {
+                return pump.flow;
+            }
+        ]]>
+        </script>
+    </defs>
 
-  <circle cx="35" cy="30" r="25" fill="#16a085" stroke="#138a76" stroke-width="3"/>
-  <path d="M25 20 L45 40 M45 20 L25 40" stroke="white" stroke-width="3" stroke-linecap="round"/>
-  <text id="label" x="35" y="20" font-size="12" text-anchor="middle" fill="white">P1</text>
-  <text id="value" x="35" y="50" font-size="12" text-anchor="middle" fill="white">45 m³/h</text>
+    <circle cx="35" cy="30" r="25" fill="#16a085" stroke="#138a76" stroke-width="3"/>
+    <g id="impeller">
+        <path d="M25 20 L45 40 M45 20 L25 40" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <circle id="statusIndicator" cx="55" cy="15" r="4" fill="#e74c3c"/>
+    <text id="label" x="35" y="20" font-size="12" text-anchor="middle" fill="white">P1</text>
+    <text id="value" x="35" y="50" font-size="12" text-anchor="middle" fill="white">45 m³/h</text>
 </svg>

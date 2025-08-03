@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60">
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60" onload="initSensor(evt)">
     <metadata>
         <component id="sensor-001" name="Temperature Sensor" type="sensor">
             <parameters>
@@ -11,13 +11,134 @@
                 <maxValue>120</maxValue>
                 <unit>°C</unit>
                 <isActive>true</isActive>
+                <updateInterval>1000</updateInterval>
+                <variance>2</variance>
             </parameters>
         </component>
     </metadata>
 
+    <defs>
+        <script type="text/ecmascript">
+        <![CDATA[
+            var sensorParams = {
+                value: 25,
+                min: -20,
+                max: 120,
+                unit: '°C',
+                variance: 2,
+                updateInterval: 1000,
+                isActive: true,
+                targetValue: 25,
+                animationFrame: null
+            };
 
-  <rect id="body" x="5" y="5" width="50" height="50" rx="8" fill="#e74c3c" stroke="#c0392b" stroke-width="2"/>
-  <text id="label" x="30" y="20" font-size="12" text-anchor="middle" fill="white">Temp</text>
-  <text id="value" x="30" y="38" font-size="14" text-anchor="middle" fill="white">25°C</text>
-  <circle cx="30" cy="50" r="4" fill="#ecf0f1"/>
+            function initSensor(evt) {
+                var svg = evt.target.ownerDocument;
+                var params = getParameters(svg);
+                
+                // Initialize parameters
+                sensorParams.value = parseFloat(params.value) || 25;
+                sensorParams.min = parseFloat(params.minValue) || -20;
+                sensorParams.max = parseFloat(params.maxValue) || 120;
+                sensorParams.unit = params.unit || '°C';
+                sensorParams.variance = parseFloat(params.variance) || 2;
+                sensorParams.updateInterval = parseInt(params.updateInterval) || 1000;
+                sensorParams.isActive = params.isActive !== 'false';
+                
+                // Set initial state
+                updateSensorDisplay(svg);
+                
+                // Start simulation
+                startSensorSimulation(svg);
+            }
+            
+            function getParameters(svg) {
+                var params = {};
+                var paramElements = svg.getElementsByTagName('parameters')[0].children;
+                for (var i = 0; i < paramElements.length; i++) {
+                    var el = paramElements[i];
+                    params[el.tagName] = el.textContent;
+                }
+                return params;
+            }
+            
+            function startSensorSimulation(svg) {
+                if (sensorParams.animationFrame) {
+                    clearTimeout(sensorParams.animationFrame);
+                }
+                
+                function update() {
+                    if (sensorParams.isActive) {
+                        // Add small random variation to simulate real sensor
+                        var variation = (Math.random() * 2 - 1) * sensorParams.variance;
+                        sensorParams.value = Math.max(sensorParams.min, 
+                                                   Math.min(sensorParams.max, 
+                                                           sensorParams.targetValue + variation));
+                        
+                        updateSensorDisplay(svg);
+                    }
+                    
+                    sensorParams.animationFrame = setTimeout(update, sensorParams.updateInterval);
+                }
+                
+                update();
+            }
+            
+            function updateSensorDisplay(svg) {
+                var valueText = svg.getElementById('value');
+                var indicator = svg.getElementById('indicator');
+                
+                if (valueText) {
+                    valueText.textContent = Math.round(sensorParams.value * 10) / 10 + sensorParams.unit;
+                }
+                
+                if (indicator) {
+                    // Update indicator color based on value
+                    var normalized = (sensorParams.value - sensorParams.min) / 
+                                   (sensorParams.max - sensorParams.min);
+                    
+                    // Calculate color gradient from blue to red
+                    var r, g, b;
+                    if (normalized < 0.5) {
+                        // Blue to green
+                        r = Math.round(0 * 255);
+                        g = Math.round(normalized * 2 * 255);
+                        b = Math.round((1 - normalized * 2) * 255);
+                    } else {
+                        // Green to red
+                        r = Math.round((normalized - 0.5) * 2 * 255);
+                        g = Math.round((1 - (normalized - 0.5) * 2) * 255);
+                        b = 0;
+                    }
+                    
+                    var color = `rgb(${r}, ${g}, ${b})`;
+                    indicator.setAttribute('fill', color);
+                }
+            }
+            
+            // Public API for external control
+            function setSensorValue(value) {
+                sensorParams.targetValue = Math.max(sensorParams.min, 
+                                                 Math.min(sensorParams.max, 
+                                                         parseFloat(value) || 0));
+            }
+            
+            function getSensorValue() {
+                return sensorParams.value;
+            }
+            
+            function setActive(isActive) {
+                sensorParams.isActive = isActive;
+                if (isActive && !sensorParams.animationFrame) {
+                    startSensorSimulation(document);
+                }
+            }
+        ]]>
+        </script>
+    </defs>
+
+    <rect id="body" x="5" y="5" width="50" height="50" rx="8" fill="#e74c3c" stroke="#c0392b" stroke-width="2"/>
+    <text id="label" x="30" y="20" font-size="12" text-anchor="middle" fill="white">Temp</text>
+    <text id="value" x="30" y="38" font-size="14" text-anchor="middle" fill="white">25°C</text>
+    <circle id="indicator" cx="30" cy="50" r="4" fill="#ecf0f1"/>
 </svg>

@@ -12,6 +12,17 @@ import { SimulationManager } from './simulation.js';
 import { ConnectionManager } from './connections.js';
 import { ExportManager } from './export.js';
 import { ActionManager } from './actions.js';
+// Conditional imports for development tools
+let TestingSystem, FunctionalTests, ErrorDetector;
+try {
+    // Only import if files exist (avoid MIME type errors)
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        import('./error-detector.js').catch(e => console.log('Error detector not available'));
+        import('./tests/interaction-bug-detector.js').catch(e => console.log('Interaction bug detector not available'));
+    }
+} catch (error) {
+    console.log('Development tools not available:', error.message);
+}
 
 // Import testing system in development mode
 let FunctionalTester = null;

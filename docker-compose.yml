@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  digitaltwin-app:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./test-results:/app/test-results
+      - ./docs:/app/docs
+      - ./tests:/app/tests
+    environment:
+      - NODE_ENV=development
+      - TESTING_MODE=true
+    command: npm run dev
+
+  test-runner:
+    build: .
+    depends_on:
+      - digitaltwin-app
+    volumes:
+      - ./test-results:/app/test-results
+      - ./tests:/app/tests
+    environment:
+      - NODE_ENV=test
+      - TARGET_URL=http://digitaltwin-app:8080
+    command: npm run test:docker
+
+  selenium-chrome:
+    image: selenium/standalone-chrome:latest
+    ports:
+      - "4444:4444"
+    volumes:
+      - /dev/shm:/dev/shm
+    environment:
+      - SE_NODE_MAX_SESSIONS=2
+    
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - .:/usr/share/nginx/html
+    depends_on:
+      - digitaltwin-app

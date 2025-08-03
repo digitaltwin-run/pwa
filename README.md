@@ -1,484 +1,353 @@
-# pwa
-pwa app for Digital Twin runtime
+# 🚀 Digital Twin PWA - Advanced SVG IDE
 
-Digital Twin IDE – Dokumentacja
+A progressive web application for creating and simulating digital twins using interactive SVG components. Now with comprehensive automation, Docker support, and advanced testing capabilities.
 
-To prosty, ale zaawansowany edytor webowy do tworzenia **cyfrowych bliźniaków (Digital Twin)**
-przy użyciu **SVG, HTML, CSS i JavaScript**. Projekt działa jako **PWA (Progressive Web App)** i pozwala:
+## ✨ Key Features
 
-- Przeciągać komponenty SVG na planszę
-- Edytować ich parametry w czasie rzeczywistym
-- Zapisywać stan wewnętrzny komponentów w metadanym SVG
-- Działać offline dzięki Service Worker
+### 🎨 Visual Component Design
+- **Drag & Drop Interface** - Intuitive component placement
+- **SVG Component Library** - Pre-built industrial components (motors, buttons, LEDs, switches, gauges, sensors)
+- **Real-time Visual Feedback** - Instant component updates and interactions
+- **Responsive Canvas** - Scalable design workspace
+- **Color Management System** - CSS-class based theming with automatic property extraction
 
----
+### ⚙️ Smart Property Management
+- **Automatic Property Mapping** - Heuristic SVG metadata extraction
+- **Dynamic Type Detection** - Intelligent component type recognition
+- **Interactive Property Panels** - Real-time component configuration
+- **Variable System** - Automatic extraction for interaction bindings
 
-## 🧱 Główne cechy
+### 🔗 Advanced Interaction System
+- **Component Interactions** - Define complex relationships between components
+- **Event-driven Architecture** - Trigger-based component communication
+- **Property Binding** - Dynamic value connections with type validation
+- **Simulation Ready** - Real-time interaction testing and debugging
 
-- ✅ **Modułowe komponenty SVG** z metadanymi
-- ✅ **Edytor właściwości po prawej stronie**
-- ✅ **Siatka (grid) na planszy**
-- ✅ **Zmiana wyglądu SVG na podstawie parametrów**
-- ✅ **PWA – można zainstalować jak aplikację**
-- ✅ **Brak serwera – działa lokalnie**
+### 🧪 Comprehensive Testing Suite
+- **E2E Testing** - Puppeteer-based automated browser testing
+- **Performance Auditing** - Lighthouse integration for PWA validation
+- **Accessibility Testing** - WCAG compliance verification
+- **Visual Regression Testing** - Screenshot comparison and validation
+- **Docker Testing Environment** - Isolated, reproducible test execution
 
----
+### 📱 PWA Features (In Development)
+- **Offline Mode** - Service Worker with intelligent caching strategies
+- **Push Notifications** - Real-time updates and collaboration alerts
+- **App Installation** - Native app-like experience
+- **Background Sync** - Offline data synchronization
 
-## 🗂️ Struktura projektu
+### 🌐 Collaboration Features (Planned)
+- **Real-time Collaboration** - WebSocket-based multi-user editing
+- **WebRTC Integration** - Peer-to-peer communication
+- **Version Control** - Change tracking and conflict resolution
+- **Team Workspaces** - Shared project environments
 
-```
-digital-twin-ide/
-├── index.html              # Główny plik – interfejs edytora
-├── css/styles.css          # Stylowanie UI
-├── js/script.js            # Logika: przeciąganie, edycja, metadane
-├── components/             # Komponenty SVG (silniki, czujniki)
-├── assets/icons/           # Ikony dla PWA
-├── manifest.json           # Metadane PWA
-├── sw.js                   # Service Worker (offline)
-└── docs/                   # Dokumentacja
-```
+### 🌍 Internationalization (Planned)
+- **Multi-language Support** - i18next integration
+- **Dynamic Language Switching** - Runtime language changes
+- **Localized Components** - Culturally appropriate UI elements
+- **RTL Support** - Right-to-left language compatibility
 
----
+## 🚀 Quick Start
 
-## 🚀 Jak uruchomić?
+### Using Makefile (Recommended)
+```bash
+# Show all available commands
+make help
 
-Uruchom serwer lokalny:
-   ```bash
-   npx http-server
-   ```
-   lub
-   ```bash
-   python3 -m http.server 8008
-   ```
-4. Otwórz w przeglądarce: `http://localhost:8008`
+# Initial setup
+make setup
 
-> ⚠️ Wymagane: dostęp do plików przez serwer (nie działaj z `file://`) – fetch SVG nie zadziała bez serwera.
+# Start development server
+make dev
 
----
+# Run all tests
+make test
 
-## 📖 Dokumentacja
-
-- [ARCHITECTURE.md](ARCHITECTURE.md) – jak działa edytor
-- [COMPONENTS.md](COMPONENTS.md) – jak budować komponenty SVG
-
----
-
-## 🌐 Technologie
-
-- **HTML5** – struktura
-- **CSS3** – stylowanie
-- **JavaScript (ES6+)** – logika
-- **SVG** – grafika wektorowa
-- **PWA** – offline, instalacja
-- **Fetch API** – ładowanie komponentów
-- **DOMParser** – parsowanie SVG
-
----
-
-## 🎯 Przeznaczenie
-
-Idealny do:
-- Symulacji przemysłowych układów
-- Szkoleń operatorów
-- Prototypowania UI dla IoT
-- Edukacji (cyfrowe bliźniaki maszyn)
-
-
-## 🖼️ Przykład komponentu SVG: `components/sensor.svg`
-
-```xml
-<!-- components/sensor.svg -->
-<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60">
-  <metadata>
-  {
-    "id": "sensor-001",
-    "name": "Temperature Sensor",
-    "type": "sensor",
-    "parameters": {
-      "label": "Temp",
-      "color": "#e74c3c",
-      "size": 50,
-      "unit": "°C",
-      "minValue": 0,
-      "maxValue": 100,
-      "isActive": true
-    }
-  }
-  </metadata>
-
-  <rect id="body" x="5" y="5" width="50" height="50" rx="8" fill="#e74c3c" stroke="#c0392b" stroke-width="2"/>
-  <text id="label" x="30" y="35" font-size="14" text-anchor="middle" fill="white">Temp</text>
-  <circle cx="30" cy="50" r="4" fill="#ecf0f1"/>
-</svg>
+# Docker environment
+make docker-up
 ```
 
-### 🔍 Jak działa?
+### Manual Setup
+```bash
+# Install dependencies
+npm install
 
-- **`color`** → zmienia `fill` prostokąta
-- **`label`** → zmienia tekst
-- **`size`** → zmienia rozmiar i pozycję prostokąta
-- **`isActive`** → zmienia przezroczystość całego komponentu
+# Start development server
+npm run dev
 
+# Run tests
+npm test
+```
 
+### Prerequisites
+- **Node.js 18+** - For build tools and testing
+- **Docker & Docker Compose** - For containerized testing (optional)
+- **Modern Browser** - Chrome, Firefox, Safari, Edge with ES6+ support
 
-- Ładuje komponenty SVG z dysku
-- Wstawia je na planszę z siatką
-- Czyta ich `<metadata>`
-- Generuje panel edycji
-- Aktualizuje SVG i dane wewnętrzne w czasie rzeczywistym
+## 🧪 Testing & Quality Assurance
 
+### Test Types
+- **Unit Tests** - Individual component and function testing
+- **Integration Tests** - Module interaction and data flow testing
+- **E2E Tests** - Full user journey automation with Puppeteer
+- **Performance Tests** - Lighthouse auditing and Core Web Vitals
+- **Accessibility Tests** - WCAG compliance and screen reader compatibility
+- **Visual Regression Tests** - UI consistency validation
 
+### Running Tests
+```bash
+# All tests
+make test
 
+# Specific test types
+make test-e2e           # End-to-end browser tests
+make test-lighthouse    # Performance and PWA audit
+make test-accessibility # WCAG compliance check
+make test-docker        # Tests in Docker environment
 
+# Development
+make test-watch         # Watch mode for development
+make test-coverage      # Coverage reporting
+```
 
+### Test Reports
+Generated reports available in `test-results/`:
+- **Coverage Report** - `coverage/index.html`
+- **Lighthouse Audit** - `lighthouse-report.html`
+- **E2E Test Results** - `puppeteer-report.html`
+- **Accessibility Report** - `accessibility-report.html`
 
+## 🐳 Docker Development
 
+### Docker Services
+- **digitaltwin-app** - Main application server
+- **test-runner** - Automated testing environment
+- **selenium-chrome** - Browser automation for E2E tests
+- **nginx** - Production-ready web server
 
+### Docker Commands
+```bash
+# Build and start all services
+make docker-up
 
+# Run tests in containerized environment
+make docker-test
 
+# View logs
+make docker-logs
 
+# Clean up
+make docker-down
+```
 
+## 📊 Code Quality & Automation
 
+### Quality Tools
+- **ESLint** - JavaScript linting and style enforcement
+- **Prettier** - Code formatting and consistency
+- **Jest** - Unit and integration testing framework
+- **Lighthouse** - Performance and PWA auditing
+- **Axe-core** - Accessibility testing
 
+### Automation Commands
+```bash
+# Code quality
+make lint               # Run ESLint
+make format             # Format with Prettier
+make validate           # Project structure validation
 
+# Reports and analysis
+make report             # Comprehensive test report
+make lighthouse         # Performance audit
+make bundle-analysis    # Bundle size analysis
 
+# Utilities
+make debug              # System information
+make health-check       # Application health status
+make backup             # Create project backup
+```
 
+## 🏗️ Architecture
 
+### Core System
+- **`app.js`** - Main application initialization and module coordination
+- **`properties-core.js`** - Central properties management system
+- **`properties-mapper.js`** - Automatic SVG property extraction and heuristic mapping
+- **`properties-colors.js`** - Advanced color management with CSS class targeting
+- **`properties-metadata.js`** - Metadata processing and validation
+- **`properties-interactions.js`** - Component interaction definitions and event handling
+- **`dragdrop.js`** - Advanced drag and drop with collision detection
+- **`components.js`** - Component library management and loading
 
+### Testing Infrastructure
+- **`tests/puppeteer-tests.js`** - E2E testing with virtual browser
+- **`tests/lighthouse-tests.js`** - Performance and PWA auditing
+- **`tests/functional-tests.js`** - Automated functional validation
+- **`tests/ui-tests.html`** - Interactive visual testing interface
 
+### Development Tools
+- **`Makefile`** - Unified project automation and command interface
+- **`Dockerfile` & `docker-compose.yml`** - Containerized development and testing
+- **`package.json`** - NPM scripts and dependency management
 
+## 📚 Documentation
 
+- **[Testing Guide](docs/TESTING_GUIDE.md)** - Comprehensive testing documentation
+- **[API Documentation](docs/API.md)** - Developer API reference
+- **[Component Guide](docs/COMPONENTS.md)** - Component creation and customization
+- **[Docker Guide](docs/DOCKER.md)** - Container setup and deployment
+- **[PWA Guide](docs/PWA.md)** - Progressive Web App features
+- **[Collaboration Guide](docs/COLLABORATION.md)** - Real-time features
 
+## 🛠️ Technology Stack
 
+### Frontend
+- **JavaScript ES6+** - Modern JavaScript with modules
+- **HTML5 & CSS3** - Semantic markup and modern styling
+- **SVG** - Scalable vector graphics with embedded metadata
+- **Service Worker** - PWA capabilities and offline support
 
+### Testing & Automation
+- **Puppeteer** - Headless browser automation
+- **Jest** - Testing framework with coverage
+- **Lighthouse** - Performance and PWA auditing
+- **Docker** - Containerized development and testing
+- **Make** - Build automation and task running
 
-## 📄 3. Przykład wygenerowanego pliku `.dtwin.json`
+### Development Tools
+- **ESLint + Prettier** - Code quality and formatting
+- **Nodemon** - Development server with hot reload
+- **Git Hooks** - Pre-commit validation
+- **NPM Scripts** - Task automation and dependency management
 
-Po eksporcie otrzymasz plik np.:
+## 🔧 Configuration
 
+### Application Config (`config.json`)
 ```json
 {
-  "version": "1.0",
-  "createdAt": "2025-04-05T12:34:56.789Z",
-  "components": [
-    {
-      "id": "sensor-001",
-      "svgUrl": "components/sensor.svg",
-      "x": 300,
-      "y": 200,
-      "metadata": {
-        "id": "sensor-001",
-        "name": "Temperature Sensor",
-        "type": "sensor",
-        "parameters": {
-          "label": "Temp",
-          "color": "#e74c3c",
-          "size": 50,
-          "unit": "°C",
-          "minValue": 0,
-          "maxValue": 100,
-          "isActive": true
-        }
-      }
-    },
-    {
-      "id": "motor-001",
-      "svgUrl": "components/motor.svg",
-      "x": 500,
-      "y": 300,
-      "metadata": {
-        "id": "motor-001",
-        "name": "Rotating Motor",
-        "type": "motor",
-        "parameters": {
-          "color": "#3498db",
-          "speed": 2,
-          "label": "M1",
-          "rotation": true
-        }
-      }
-    }
-  ]
-}
-```
-
----
-
-## 📁 4. Aktualizacja `docs/ARCHITECTURE.md` – dodaj sekcję eksportu
-
-Dodaj na końcu:
-
-```markdown
-## 💾 4. Eksport i Import
-
-### Eksport
-- Kliknij "Eksportuj projekt"
-- Generowany jest plik `.dtwin.json`
-- Zawiera:
-  - ID komponentów
-  - URL SVG
-  - Pozycje (x, y)
-  - Pełne metadane (w tym parametry)
-
-### Import
-- Kliknij "Importuj projekt"
-- Wybierz plik `.dtwin.json`
-- Układ jest odtwarzany:
-  - Komponenty są ponownie ładowane z URL-i
-  - Metadane są nadpisywane
-  - Pozycje są przywracane
-
-> ⚠️ Uwaga: pliki SVG muszą być dostępne pod tymi samymi ścieżkami!
-```
-
----
-
-## ✅ Podsumowanie nowych funkcji
-
-| Funkcja | Opis |
-|-------|------|
-| 📥 **Import** | Wczytuje zapisany projekt z pliku `.dtwin.json` |
-| 📤 **Eksport** | Zapisuje aktualny stan do pliku JSON |
-| 🔁 **Pełne odtworzenie** | Komponenty, pozycje, metadane, kolory, etykiety |
-| 📂 **Format pliku** | `.dtwin.json` – czytelny, przenośny, łatwy do wersjonowania |
-
----
-
-## 🚀 Co możesz dodać dalej?
-
-| Funkcja | Opis |
-|-------|------|
-| 💾 **Zapis do `localStorage`** | Automatyczny zapis/odczyt przy odświeżeniu |
-| 🔗 **Łączenie komponentów** | Linie między nimi (przewody, strzałki) |
-| 🔄 **Symulacja danych** | Symuluj zmieniające się wartości (np. temperatura) |
-| 🧩 **Edytor komponentów** | Umożliwia dodawanie nowych parametrów w UI |
-| 📊 **Eksport do PNG/SVG** | Zapis całej planszy jako obraz |
-
-
-Oczywiście! Poniżej znajduje się **pełna dokumentacja projektu w formacie `README.md`**, gotowa do umieszczenia w folderze projektu. Zawiera opis, funkcje, architekturę, sposób użycia, strukturę komponentów i instrukcje dla deweloperów.
-
----
-
-# 🏗️ Digital Twin IDE – Web-based Editor for Digital Twins
-
-**Digital Twin IDE** to lekkie, offline-działające środowisko do tworzenia **cyfrowych bliźniaków (Digital Twin)** przy użyciu **SVG, HTML i JavaScript**. Projekt działa jako **PWA (Progressive Web App)** i umożliwia budowanie interaktywnych schematów przemysłowych, układów czujników, symulacji i paneli HMI.
-
----
-
-## 🚀 Cechy
-
-| Funkcja | Opis |
-|-------|------|
-| 🔌 **Przeciąganie komponentów** | Przeciągaj gotowe komponenty SVG na planszę |
-| 🧩 **Komponenty z metadanymi** | Każdy SVG zawiera konfigurację w `<metadata>` (JSON) |
-| ⚙️ **Edycja parametrów w czasie rzeczywistym** | Edytuj kolor, etykietę, rozmiar, wartości |
-| 🔗 **Łączenie komponentów** | Tryb łączenia: rysuj linie i strzałki między elementami |
-| 💾 **Eksport projektu** | Zapisuj całość jako `.dtwin.json` (z pozycjami, danymi) |
-| 📥 **Import projektu** | Wczytaj zapisany projekt i kontynuuj pracę |
-| 🖼️ **Eksport jako obraz** | Zapisz planszę jako PNG lub SVG |
-| 📊 **Symulacja danych** | Automatyczna zmiana wartości (np. temperatura, ciśnienie) |
-| ➕ **Dynamiczne parametry** | Dodawaj własne parametry w UI (np. `vibration`) |
-| 🌐 **PWA (Progressive Web App)** | Działa offline, można zainstalować jak aplikację |
-| 📏 **Siatka (raster)** | Wspomaganie układania komponentów |
-| 🧑‍💻 **Open-source & modularny** | Łatwo rozwijać, dodawać nowe komponenty |
-
----
-
-## 🖼️ Zrzut ekranu (przykładowy układ)
-
-```
-+---------------------+------------------------------+-----------------------+
-| Biblioteka          |                              | Właściwości           |
-| komponentów         |                              | komponentu            |
-|                     |                              |                       |
-| • Czujnik           |                              | Nazwa: Temperature    |
-| • Silnik            |                              | Kolor: █ #e74c3c      |
-| • Zawór             |                              | Wartość: 37           |
-|                     |                              | [ Dodaj parametr ]    |
-|                     |                              | [ Usuń ]              |
-|                     |                              |                       |
-|                     |                              |                       |
-|                     |       PLANSZA (CANVAS)       |                       |
-|                     |                              |                       |
-|                     |   ┌──────────┐               |                       |
-|                     |   │  Czujnik │───────▶        |                       |
-|                     |   └──────────┘               |                       |
-|                     |                              |                       |
-|                     |   ┌──────────┐               |                       |
-|                     |   │  Silnik  │               |                       |
-|                     |   └──────────┘               |                       |
-|                     |                              |                       |
-+---------------------+------------------------------+-----------------------+
-```
-
----
-
-## 📁 Struktura projektu
-
-```
-digital-twin-ide/
-├── index.html                  # Główny plik – interfejs edytora
-├── css/
-│   └── styles.css              # Stylowanie (może być pusty)
-├── js/
-│   └── script.js               # Cała logika (opcjonalnie – obecnie inline)
-├── components/                 # Komponenty SVG
-│   ├── sensor.svg              # Przykład: czujnik z metadanymi
-│   ├── motor.svg               # Przykład: silnik
-│   └── valve.svg               # Przykład: zawór
-├── assets/icons/               # Ikony dla PWA
-│   ├── icon-192.png
-│   └── icon-512.png
-├── manifest.json               # Konfiguracja PWA
-├── sw.js                       # Service Worker (offline)
-└── README.md                   # Ta dokumentacja
-```
-
----
-
-## 🛠️ Jak uruchomić?
-
-1. **Pobierz lub utwórz projekt** (np. przez `git clone` lub ręcznie)
-2. **Uruchom serwer lokalny** (nie działaj z `file://` – fetch SVG nie zadziała):
-
-```bash
-# Wymagany serwer HTTP (np. http-server)
-npx http-server
-
-# Lub Python
-python3 -m http.server 8000
-```
-
-3. Otwórz w przeglądarce: `http://localhost:8000`
-
-4. **Zainstaluj jako aplikację** (opcjonalnie):
-   - W Chrome: Kliknij ikonę „Zainstaluj” w pasku adresu
-   - Działa offline!
-
----
-
-## 🧱 Jak budować komponenty SVG?
-
-Każdy komponent to plik `.svg` z dwoma częściami:
-
-### 1. `<metadata>` – dane konfiguracyjne
-
-```xml
-<metadata>
-{
-  "id": "sensor-001",
-  "name": "Temperature Sensor",
-  "type": "sensor",
-  "parameters": {
-    "label": "Temp",
-    "color": "#e74c3c",
-    "size": 50,
-    "value": 25,
-    "minValue": 0,
-    "maxValue": 100,
-    "unit": "°C",
-    "isActive": true
+  "canvas": {
+    "width": 800,
+    "height": 600,
+    "backgroundColor": "#ffffff"
+  },
+  "appearance": {
+    "theme": "default",
+    "componentOutlineColor": "#007bff"
+  },
+  "testing": {
+    "enabled": true,
+    "autoRun": false
   }
 }
-</metadata>
 ```
 
-### 2. Ciało SVG – grafika
-
-```xml
-<rect id="body" x="5" y="5" width="50" height="50" rx="8" fill="#e74c3c"/>
-<text id="label" x="30" y="20" font-size="12" fill="white" text-anchor="middle">Temp</text>
-<text id="value" x="30" y="38" font-size="14" fill="white" text-anchor="middle">25°C</text>
+### Environment Variables
+```bash
+NODE_ENV=development     # Enable development features
+TESTING_MODE=true        # Enable testing tools
+TARGET_URL=http://localhost:8080  # Test target URL
 ```
 
-> Używaj `id` w elementach, które chcesz edytować (np. `#body`, `#value`).
+## 🚀 Deployment
+
+### Staging Deployment
+```bash
+make deploy-staging
+```
+
+### Production Deployment
+```bash
+make deploy-prod        # Includes confirmation prompt
+```
+
+### CI/CD Integration
+```bash
+# CI pipeline commands
+make ci-setup           # Setup CI environment
+make ci-test            # Run CI test suite
+make ci-build           # Build and validate
+```
+
+## 🤝 Contributing
+
+### Development Workflow
+1. **Fork** the repository
+2. **Setup** development environment: `make setup`
+3. **Create** feature branch: `git checkout -b feature/amazing-feature`
+4. **Develop** with tests: `make test-watch`
+5. **Validate** code quality: `make lint && make test`
+6. **Submit** pull request with comprehensive description
+
+### Code Standards
+- **ESLint** configuration for consistent code style
+- **Test coverage** minimum 80% for new features
+- **Documentation** updates for all public APIs
+- **Accessibility** compliance (WCAG 2.1 Level AA)
+
+## 📈 Performance Metrics
+
+### Lighthouse Scores (Target)
+- **Performance**: 90+ / 100
+- **Accessibility**: 95+ / 100
+- **Best Practices**: 90+ / 100
+- **SEO**: 90+ / 100
+- **PWA**: 90+ / 100
+
+### Core Web Vitals
+- **LCP** (Largest Contentful Paint): < 2.5s
+- **CLS** (Cumulative Layout Shift): < 0.1
+- **FID** (First Input Delay): < 100ms
+
+## 🎯 Roadmap
+
+### 🔧 Core Features (In Progress)
+- [x] **Automated Testing Suite** - Comprehensive test coverage
+- [x] **Docker Development Environment** - Containerized workflow
+- [x] **Advanced Property Mapping** - Heuristic SVG analysis
+- [ ] **PWA Implementation** - Offline mode and push notifications
+- [ ] **Real-time Collaboration** - WebSocket-based multi-user editing
+- [ ] **Internationalization** - Multi-language support
+
+### 🚀 Advanced Features (Planned)
+- [ ] **Physics Simulation** - Realistic component behavior
+- [ ] **Cloud Integration** - Save and sync projects
+- [ ] **Mobile Optimization** - Touch-friendly interface
+- [ ] **Component Marketplace** - Community component sharing
+- [ ] **Code Generation** - Export to various platforms
+- [ ] **Advanced Analytics** - Usage tracking and insights
+
+### 🎨 UX Enhancements (Future)
+- [ ] **Dark Mode Theme** - Alternative visual theme
+- [ ] **Accessibility Improvements** - Enhanced screen reader support
+- [ ] **Keyboard Shortcuts** - Power user productivity features
+- [ ] **Context Menus** - Right-click functionality
+- [ ] **Undo/Redo System** - Action history management
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-## 🔧 Jak działają funkcje?
+## 🎉 Getting Started Today
 
-### 🔗 Łączenie komponentów
-- Kliknij przycisk **🔗 Łącz komponenty**
-- Kliknij dwa komponenty – pojawi się strzałka
-- Linie są zapisywane w eksporcie
+```bash
+# Quick start in 3 commands
+make setup              # Install and configure
+make dev                # Start development server
+make test               # Verify everything works
+```
 
-### 💾 Eksport/Import `.dtwin.json`
-- **Eksport**: Zapisuje:
-  - ID, pozycję, URL SVG
-  - Pełne metadane (w tym parametry)
-  - Wszystkie połączenia
-- **Import**: Odtwarza cały układ
+**🌐 Open `http://localhost:8080` and start building your digital twin!**
 
-### 📊 Symulacja danych
-- Szuka komponentów z parametrem `value`
-- Co sekundę losuje nową wartość w zakresie `minValue` – `maxValue`
-- Aktualizuje SVG i panel symulacji
-- Obsługuje również własne parametry (np. `pressure`)
-
-### ➕ Dynamiczne parametry
-- Kliknij komponent → „Dodaj parametr”
-- Wpisz nazwę i typ
-- Nowy parametr będzie dostępny w edycji i symulacji
-
-### 🖼️ Eksport jako obraz
-- **PNG**: obraz rastrowy, gotowy do druku
-- **SVG**: wektorowy, edytowalny w programach graficznych
+*Built with ❤️ for the future of digital twin technology*
 
 ---
 
-## 🧪 Przykład użycia
+### 📞 Support & Community
 
-1. Stwórz schemat kotłowni:
-   - Umieść czujniki temperatury
-   - Połącz je z zaworami
-   - Dodaj symulację zmieniającej się temperatury
-2. Zapisz jako `kotlownia.dtwin.json`
-3. Udostępnij zespołowi
-4. Otwórz na tablecie – działa offline!
-
----
-
-## 🧩 Rozszerzenia (plany)
-
-| Funkcja | Opis |
-|-------|------|
-| 📈 Wykres czasu rzeczywistego | Wyświetlanie historii wartości (Chart.js) |
-| 🔌 Integracja z MQTT/WebSocket | Podłączenie do prawdziwych czujników |
-| 🔁 Undo/Redo | Cofanie i ponawianie akcji |
-| 📂 Folder projektów | Zarządzanie wieloma plikami |
-| 🎨 Edytor SVG w UI | Modyfikacja kształtów w przeglądarce |
-
----
-
-## 📄 Licencja
-
-Ten projekt jest **open-source** i możesz go używać, modyfikować i rozwijać bez ograniczeń.  
-Zachęcamy do współtworzenia i dzielenia się komponentami!
-
----
-
-## 🙌 Autor
-
-Digital Twin IDE stworzony przez [Twoje Imię]  
-Dla potrzeb symulacji przemysłowej, IoT i edukacji.
-
----
-
-## 📬 Kontakt / Współpraca
-
-Masz pomysł? Znalazłeś błąd? Chcesz dodać funkcję?
-
-👉 Otwórz issue na GitHubie lub napisz: `kontakt@digitaltwin-ide.dev`
-
----
-
-> ✅ **Gotowy do użycia. Po prostu uruchom i twórz!**  
-> 🌐 Działa w każdej nowoczesnej przeglądarce: Chrome, Edge, Firefox, Safari.
-
----
-
-Chcesz, żebym:
-- wygenerował **gotowy ZIP projektu** z przykładowymi komponentami?
-- dodał **obsługę historii (undo/redo)**?
-- stworzył **dokumentację API komponentów**?
-
+- **Issues**: GitHub Issues for bug reports and feature requests
+- **Discussions**: GitHub Discussions for questions and ideas
+- **Documentation**: `/docs/` directory for detailed guides
+- **Testing**: `make test` for comprehensive validation
