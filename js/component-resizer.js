@@ -127,10 +127,40 @@ export class ComponentResizer {
             handle.setAttribute('height', handleSize);
             handle.setAttribute('fill', '#007bff');
             handle.setAttribute('stroke', '#ffffff');
-            handle.setAttribute('stroke-width', '1');
+            handle.setAttribute('stroke-width', '2');
             handle.setAttribute('class', 'resize-handle');
             handle.setAttribute('data-direction', pos.direction);
+            handle.setAttribute('rx', '2'); // Rounded corners
+            handle.setAttribute('ry', '2');
             handle.style.cursor = pos.cursor;
+            handle.style.opacity = '0.8';
+            handle.style.transition = 'all 0.2s ease';
+            
+            // Add hover highlighting effects
+            handle.addEventListener('mouseenter', () => {
+                handle.setAttribute('fill', '#0056b3');
+                handle.setAttribute('stroke', '#ffffff');
+                handle.setAttribute('stroke-width', '3');
+                handle.style.opacity = '1';
+                handle.style.transform = 'scale(1.2)';
+                handle.style.transformOrigin = 'center';
+                
+                // Show resize cursor feedback
+                document.body.style.cursor = pos.cursor;
+            });
+            
+            handle.addEventListener('mouseleave', () => {
+                if (!this.isResizing) {
+                    handle.setAttribute('fill', '#007bff');
+                    handle.setAttribute('stroke', '#ffffff');
+                    handle.setAttribute('stroke-width', '2');
+                    handle.style.opacity = '0.8';
+                    handle.style.transform = 'scale(1)';
+                    
+                    // Reset cursor
+                    document.body.style.cursor = '';
+                }
+            });
             
             // Add resize event listeners
             this.addResizeEventListeners(handle);

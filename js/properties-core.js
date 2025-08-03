@@ -37,9 +37,13 @@ export class PropertiesManager {
 
     // Wybór komponentu
     selectComponent(element) {
-        // Usuń poprzednie zaznaczenie
+        // Usuń poprzednie zaznaczenie i resize handles
         document.querySelectorAll('.draggable-component').forEach(comp => {
             comp.style.outline = '';
+            // Remove resize handles from previously selected component
+            if (window.componentResizer) {
+                window.componentResizer.disableResizing(comp);
+            }
         });
 
         // Zaznacz nowy komponent
@@ -47,6 +51,11 @@ export class PropertiesManager {
             element.style.outline = '2px solid #3498db';
             this.componentManager.setSelectedComponent(element);
             this.showProperties(element);
+            
+            // Enable interactive resize handles for selected component
+            if (window.componentResizer) {
+                window.componentResizer.enableResizing(element);
+            }
         } else {
             this.componentManager.setSelectedComponent(null);
             this.clearProperties();

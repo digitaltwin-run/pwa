@@ -59,7 +59,6 @@
         // Function to update appearance
         function updateLED(svgElement) {
           const metadata = getMetadata(svgElement);
-          console.log('Metadane:', metadata);
 
           const params = metadata.parameters || {};
           const ledCore = svgElement.querySelector('.led-core');

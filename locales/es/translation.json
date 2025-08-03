@@ -1,0 +1,22 @@
+{
+  "app": {
+    "title": "IDE de Gemelo Digital",
+    "menu": {
+      "file": "Archivo",
+      "simulation": "Simulación",
+      "view": "Vista",
+      "help": "Ayuda"
+    },
+    "buttons": {
+      "export": "Exportar",
+      "import": "Importar",
+      "connect": "Conectar Componentes",
+      "start": "Iniciar",
+      "stop": "Detener"
+    },
+    "simulation": {
+      "title": "📊 Simulación de Datos",
+      "noComponents": "No hay componentes para simular"
+    }
+  }
+}

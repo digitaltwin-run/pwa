@@ -3,7 +3,7 @@ class I18nManager {
     constructor() {
         this.currentLanguage = 'pl'; // Default language
         this.translations = {};
-        this.availableLanguages = ['en', 'pl'];
+        this.availableLanguages = ['en', 'pl', 'de', 'es']; // Added German (de) and Spanish (es)
         
         // Elements that need translation
         this.translatableElements = [];
@@ -100,6 +100,50 @@ class I18nManager {
                     'simulation': {
                         'title': '📊 Symulacja Danych',
                         'noComponents': 'Brak komponentów do symulacji'
+                    }
+                }
+            },
+            'de': {
+                'app': {
+                    'title': 'Digital Twin IDE',
+                    'menu': {
+                        'file': 'Datei',
+                        'simulation': 'Simulation',
+                        'view': 'Ansicht',
+                        'help': 'Hilfe'
+                    },
+                    'buttons': {
+                        'export': 'Exportieren',
+                        'import': 'Importieren',
+                        'connect': 'Komponenten verbinden',
+                        'start': 'Starten',
+                        'stop': 'Stoppen'
+                    },
+                    'simulation': {
+                        'title': '📊 Datensimulation',
+                        'noComponents': 'Keine Komponenten zur Simulation'
+                    }
+                }
+            },
+            'es': {
+                'app': {
+                    'title': 'IDE de Gemelo Digital',
+                    'menu': {
+                        'file': 'Archivo',
+                        'simulation': 'Simulación',
+                        'view': 'Vista',
+                        'help': 'Ayuda'
+                    },
+                    'buttons': {
+                        'export': 'Exportar',
+                        'import': 'Importar',
+                        'connect': 'Conectar Componentes',
+                        'start': 'Iniciar',
+                        'stop': 'Detener'
+                    },
+                    'simulation': {
+                        'title': '📊 Simulación de Datos',
+                        'noComponents': 'No hay componentes para simular'
                     }
                 }
             }
@@ -204,12 +248,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (menu) {
         const langSwitcher = document.createElement('li');
         langSwitcher.className = 'language-switcher';
+        
+        // Create language options with flags and language codes
+        const languageOptions = {
+            'en': '🇬🇧 EN',
+            'pl': '🇵🇱 PL',
+            'de': '🇩🇪 DE',
+            'es': '🇪🇸 ES'
+        };
+        
+        // Generate select options
+        let options = '';
+        for (const [code, label] of Object.entries(languageOptions)) {
+            const selected = i18n.currentLanguage === code ? 'selected' : '';
+            options += `<option value="${code}" ${selected}>${label}</option>`;
+        }
+        
         langSwitcher.innerHTML = `
-            <select id="language-selector">
-                <option value="pl" ${i18n.currentLanguage === 'pl' ? 'selected' : ''}>🇵🇱 PL</option>
-                <option value="en" ${i18n.currentLanguage === 'en' ? 'selected' : ''}>🇬🇧 EN</option>
+            <select id="language-selector" aria-label="Select language">
+                ${options}
             </select>
         `;
+        
         menu.appendChild(langSwitcher);
         
         // Add event listener for language change

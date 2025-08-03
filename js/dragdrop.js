@@ -208,10 +208,16 @@ export class DragDropManager {
             let targetX = startElementX + normalizedDx;
             let targetY = startElementY + normalizedDy;
 
-            // Apply grid snapping to maintain consistent grid alignment
+            // Apply grid snapping with scale-adjusted grid size
+            // For scaled components, use inversely proportional grid step
+            // Example: 200% scale = 50% grid step (visually same grid size)
             if (gridManager.config.snapToGrid) {
-                targetX = gridManager.snapToGrid(targetX);
-                targetY = gridManager.snapToGrid(targetY);
+                const baseGridSize = gridManager.config.size;
+                const scaleAdjustedGridSize = baseGridSize / currentScale;
+                
+                // Snap to scale-adjusted grid to maintain visual consistency
+                targetX = Math.round(targetX / scaleAdjustedGridSize) * scaleAdjustedGridSize;
+                targetY = Math.round(targetY / scaleAdjustedGridSize) * scaleAdjustedGridSize;
             }
             
             // Apply the final position (grid-snapped)
