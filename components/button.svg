@@ -9,7 +9,6 @@
             <parameters>
                 <label>Button</label>
                 <pressed>false</pressed>
-                <color>#9b59b6</color>
                 <size>40</size>
                 <momentary>true</momentary>
                 <isActive>true</isActive>
@@ -109,17 +108,17 @@
                 if (hex.startsWith('#')) {
                     hex = hex.slice(1);
                 }
-                
+
                 // Parse the color
                 let r = parseInt(hex.substr(0, 2), 16);
                 let g = parseInt(hex.substr(2, 2), 16);
                 let b = parseInt(hex.substr(4, 2), 16);
-                
+
                 // Adjust the color
                 r = Math.max(0, Math.min(255, r + amount));
                 g = Math.max(0, Math.min(255, g + amount));
                 b = Math.max(0, Math.min(255, b + amount));
-                
+
                 // Convert back to hex
                 return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
             }
@@ -130,17 +129,17 @@
                 if (metadataElement) {
                     const pressedElement = metadataElement.querySelector('parameters pressed');
                     const momentaryElement = metadataElement.querySelector('parameters momentary');
-                    
+
                     if (pressedElement) {
                         const isMomentary = momentaryElement && momentaryElement.textContent === 'true';
                         const currentState = pressedElement.textContent === 'true';
-                        
+
                         // Toggle the state
                         pressedElement.textContent = currentState ? 'false' : 'true';
-                        
+
                         // Update appearance immediately
                         updateButton(svgElement);
-                        
+
                         // If momentary, automatically reset after a delay
                         if (isMomentary && !currentState) {
                             setTimeout(() => {
@@ -157,17 +156,17 @@
             // Initialize - bardziej odporna metoda znajdowania elementu SVG
             // Najpierw spróbuj standardową metodę (działa w IDE)
             let svgElement = document.currentScript ? document.currentScript.closest('svg') : null;
-            
+
             // Jeśli nie znaleziono (np. w wyeksportowanym pliku), spróbuj znaleźć wszystkie SVG
             // i wybierz ten, który zawiera ten skrypt
             if (!svgElement) {
                 // Pobierz wszystkie elementy SVG w dokumencie
                 const allSvgs = document.querySelectorAll('svg');
-                
+
                 // Dla każdego SVG sprawdź, czy zawiera ten skrypt
                 const scripts = document.querySelectorAll('script');
                 const currentScriptContent = document.currentScript ? document.currentScript.textContent : null;
-                
+
                 // Jeśli nie możemy znaleźć przez currentScript, użyjemy innej metody
                 // Przeszukaj wszystkie SVG i znajdź ten z przyciskiem
                 for (const svg of allSvgs) {
@@ -177,13 +176,13 @@
                     }
                 }
             }
-            
+
             if (svgElement && !svgElement.hasAttribute('data-button-initialized')) {
                 svgElement.setAttribute('data-button-initialized', 'true');
-                
+
                 // Store a unique identifier for this button
                 svgElement.buttonInstanceId = 'button-' + Math.random().toString(36).substr(2, 9);
-                
+
                 // Add click event listener
                 const buttonSurface = svgElement.querySelector('.button-surface');
                 if (buttonSurface) {
@@ -192,10 +191,10 @@
                         e.stopPropagation(); // Prevent event bubbling
                     });
                 }
-                
+
                 // Initial update
                 updateButton(svgElement);
-                
+
                 // Optional: listen for changes (if IDE overwrites metadata)
                 svgElement.pollingInterval = setInterval(() => {
                     // Safely check if element is still in DOM
@@ -204,23 +203,23 @@
                         if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
                         return;
                     }
-                    
+
                     const metadata = getMetadata(svgElement);
                     const params = metadata.parameters || {};
-                    
+
                     // Initialize currentParams if needed
                     if (!svgElement.currentParams) {
                         svgElement.currentParams = {};
                     }
-                    
+
                     // Check if parameters have changed
-                    const hasChanged = 
+                    const hasChanged =
                         params.color !== svgElement.currentParams.color ||
                         params.pressed !== svgElement.currentParams.pressed ||
                         params.momentary !== svgElement.currentParams.momentary ||
                         params.isActive !== svgElement.currentParams.isActive ||
                         params.label !== svgElement.currentParams.label;
-                    
+
                     if (hasChanged) {
                         svgElement.currentParams = { ...params };
                         updateButton(svgElement);

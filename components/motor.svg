@@ -4,7 +4,6 @@
         <component id="motor-001" name="Electric Motor" type="motor">
             <parameters>
                 <label>M1</label>
-                <color>#3498db</color>
                 <speed>1500</speed>
                 <speedMin>0</speedMin>
                 <speedMax>3000</speedMax>
@@ -161,8 +160,25 @@
             }
         }
 
-        // Initialize
-        const svgElement = document.currentScript.closest('svg');
+        // Initialize - bardziej odporna metoda znajdowania elementu SVG
+        // Najpierw spróbuj standardową metodę (działa w IDE)
+        let svgElement = document.currentScript ? document.currentScript.closest('svg') : null;
+
+        // Jeśli nie znaleziono (np. w wyeksportowanym pliku), spróbuj znaleźć wszystkie SVG
+        // i wybierz ten, który zawiera ten skrypt
+        if (!svgElement) {
+            // Pobierz wszystkie elementy SVG w dokumencie
+            const allSvgs = document.querySelectorAll('svg');
+
+            // Przeszukaj wszystkie SVG i znajdź ten z silnikiem
+            for (const svg of allSvgs) {
+                if (svg.querySelector('.motor-housing') && svg.querySelector('.motor-indicator')) {
+                    svgElement = svg;
+                    break;
+                }
+            }
+        }
+
         if (svgElement && !svgElement.hasAttribute('data-motor-initialized')) {
             svgElement.setAttribute('data-motor-initialized', 'true');
 

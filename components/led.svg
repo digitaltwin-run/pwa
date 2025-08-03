@@ -5,14 +5,13 @@
      height="40"
      viewBox="0 0 40 40">
 
-    <title>REST API Client - Interactive HTTP Request Interface</title>
-    <desc>A PHP-powered SVG interface for making REST API requests with customizable HTTP methods and request bodies</desc>
+    <title>LED Component - Digital Twin</title>
+    <desc>Interactive LED indicator with configurable colors, blinking effects, and states for digital twin interfaces</desc>
 
     <metadata>
         <component id="led-001" name="Animated LED" type="led">
             <parameters>
                 <label>LED</label>
-                <color>#e74c3c</color>
                 <isOn>true</isOn>
                 <isBlinking>true</isBlinking>
                 <blinkRate>500</blinkRate>
@@ -126,9 +125,25 @@
           }
         }
 
-        // Initialize
-        // Use this specific SVG instance, not a global query
-        const svgElement = document.currentScript.closest('svg');
+        // Initialize - bardziej odporna metoda znajdowania elementu SVG
+        // Najpierw spróbuj standardową metodę (działa w IDE)
+        let svgElement = document.currentScript ? document.currentScript.closest('svg') : null;
+
+        // Jeśli nie znaleziono (np. w wyeksportowanym pliku), spróbuj znaleźć wszystkie SVG
+        // i wybierz ten, który zawiera ten skrypt
+        if (!svgElement) {
+            // Pobierz wszystkie elementy SVG w dokumencie
+            const allSvgs = document.querySelectorAll('svg');
+
+            // Przeszukaj wszystkie SVG i znajdź ten z diodą LED
+            for (const svg of allSvgs) {
+                if (svg.querySelector('.led-core') && svg.querySelector('.led-label')) {
+                    svgElement = svg;
+                    break;
+                }
+            }
+        }
+
         if (svgElement && !svgElement.hasAttribute('data-led-initialized')) {
           svgElement.setAttribute('data-led-initialized', 'true');
 

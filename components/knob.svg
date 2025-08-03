@@ -10,7 +10,6 @@
                 <value>50</value>
                 <min>0</min>
                 <max>100</max>
-                <color>#2980b9</color>
                 <size>40</size>
                 <isActive>true</isActive>
             </parameters>
@@ -44,11 +43,11 @@
           function getMetadata(svgElement) {
             const metadataElement = svgElement.querySelector('metadata component');
             if (!metadataElement) return { parameters: {} };
-            
+
             try {
               const parametersElement = metadataElement.querySelector('parameters');
               if (!parametersElement) return { parameters: {} };
-              
+
               return {
                 parameters: {
                   label: getElementText(parametersElement, 'label') || 'Knob',
@@ -129,13 +128,31 @@
 
           // Initialize
           document.addEventListener('DOMContentLoaded', function() {
-            const svgElement = document.currentScript.closest('svg');
+            // Initialize - bardziej odporna metoda znajdowania elementu SVG
+            // Najpierw spróbuj standardową metodę (działa w IDE)
+            let svgElement = document.currentScript ? document.currentScript.closest('svg') : null;
+
+            // Jeśli nie znaleziono (np. w wyeksportowanym pliku), spróbuj znaleźć wszystkie SVG
+            // i wybierz ten, który zawiera ten skrypt
+            if (!svgElement) {
+                // Pobierz wszystkie elementy SVG w dokumencie
+                const allSvgs = document.querySelectorAll('svg');
+
+                // Przeszukaj wszystkie SVG i znajdź ten z pokrętłem
+                for (const svg of allSvgs) {
+                    if (svg.querySelector('.knob-body') && svg.querySelector('.knob-indicator')) {
+                        svgElement = svg;
+                        break;
+                    }
+                }
+            }
+
             if (!svgElement || svgElement.hasAttribute('data-knob-initialized')) {
               return;
             }
-            
+
             svgElement.setAttribute('data-knob-initialized', 'true');
-            
+
             // Store a unique identifier for this knob
             svgElement.knobInstanceId = 'knob-' + Math.random().toString(36).substr(2, 9);
 
@@ -168,7 +185,7 @@
 
                 // Update metadata
                 updateMetadataValue(svgElement, newValue);
-                
+
                 // Update display
                 updateKnob(svgElement);
               }, 150);
@@ -182,7 +199,7 @@
                   clearInterval(pollingInterval);
                   return;
                 }
-                
+
                 updateKnob(svgElement);
               } catch (e) {
                 console.error('Error in polling interval:', e);

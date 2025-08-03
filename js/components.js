@@ -46,6 +46,27 @@ export class ComponentManager {
         return this.components.get(id);
     }
 
+    // Wyzwól aktualizację komponentu
+    triggerComponentUpdate(componentId) {
+        const component = this.components.get(componentId);
+        if (component && component.element) {
+            // Wywołaj zdarzenie aktualizacji komponentu
+            const event = new CustomEvent('component-updated', {
+                detail: {
+                    componentId: componentId,
+                    element: component.element,
+                    componentData: component
+                }
+            });
+            document.dispatchEvent(event);
+            
+            // Wywołaj funkcję onUpdate, jeśli jest zdefiniowana
+            if (typeof component.onUpdate === 'function') {
+                component.onUpdate();
+            }
+        }
+    }
+
     // Update component state and notify listeners
     updateComponentState(componentId, newState) {
         const component = this.components.get(componentId);
@@ -217,40 +238,67 @@ export class ComponentManager {
                 return this.convertXMLToJSON(metadataElement);
             }
 
-            return { parameters: {} };
+            return { 
+                parameters: {},
+                colors: {}
+            };
         } catch (e) {
-            console.warn('Error parsing metadata:', e);
-            return { parameters: {} };
+            console.warn('Error parsing XML metadata:', e);
+            return { 
+                parameters: {},
+                colors: {}
+            };
         }
     }
-
-    // Helper function to convert XML metadata to JSON format
+    
+    // Convert XML metadata to JSON format
     convertXMLToJSON(componentElement) {
         const metadata = {
-            id: componentElement.getAttribute('id'),
-            name: componentElement.getAttribute('name'),
-            type: componentElement.getAttribute('type'),
-            parameters: {}
+            id: componentElement.getAttribute('id') || '',
+            name: componentElement.getAttribute('name') || '',
+            type: componentElement.getAttribute('type') || 'unknown',
+            parameters: {},
+            colors: {}
         };
 
+        // Parse parameters
         const parametersElement = componentElement.querySelector('parameters');
         if (parametersElement) {
-            for (const child of parametersElement.children) {
-                const value = child.textContent.trim();
-                // Convert string values to appropriate types
-                if (value === 'true') {
-                    metadata.parameters[child.tagName] = true;
-                } else if (value === 'false') {
-                    metadata.parameters[child.tagName] = false;
-                } else if (!isNaN(value) && value !== '') {
-                    metadata.parameters[child.tagName] = Number(value);
-                } else {
-                    metadata.parameters[child.tagName] = value;
-                }
+            for (const paramElement of parametersElement.children) {
+                metadata.parameters[paramElement.tagName] = this.convertValue(paramElement.textContent.trim());
             }
         }
 
+        // Parse colors
+        const colorsElement = componentElement.querySelector('colors');
+        if (colorsElement) {
+            const colorElements = colorsElement.querySelectorAll('color');
+            colorElements.forEach(colorElement => {
+                const selector = colorElement.getAttribute('selector');
+                if (!selector) return;
+
+                if (!metadata.colors[selector]) {
+                    metadata.colors[selector] = {};
+                }
+
+                // Get all attributes (fill, stroke, etc.)
+                for (const attr of colorElement.attributes) {
+                    if (attr.name !== 'selector') {
+                        metadata.colors[selector][attr.name] = attr.value;
+                    }
+                }
+            });
+        }
+
         return metadata;
+    }
+    
+    // Helper function to convert string values to appropriate types
+    convertValue(value) {
+        if (value === 'true') return true;
+        if (value === 'false') return false;
+        if (!isNaN(value) && value !== '') return Number(value);
+        return value;
     }
 
     // Helper function to update XML metadata in SVG element
@@ -260,27 +308,51 @@ export class ComponentManager {
 
         // Also update XML metadata element if it exists
         const metadataElement = svgElement.querySelector('metadata > component');
-        if (metadataElement && metadata.parameters) {
-            const parametersElement = metadataElement.querySelector('parameters');
-            if (parametersElement) {
-                for (const [key, value] of Object.entries(metadata.parameters)) {
-                    const paramElement = parametersElement.querySelector(key);
-                    if (paramElement) {
-                        paramElement.textContent = value;
-                    }
+        if (!metadataElement) return;
+
+        // Update parameters
+        if (metadata.parameters) {
+            let parametersElement = metadataElement.querySelector('parameters');
+            if (!parametersElement) {
+                parametersElement = document.createElementNS(null, 'parameters');
+                metadataElement.appendChild(parametersElement);
+            }
+
+            for (const [key, value] of Object.entries(metadata.parameters)) {
+                let paramElement = parametersElement.querySelector(key);
+                if (!paramElement) {
+                    paramElement = document.createElementNS(null, key);
+                    parametersElement.appendChild(paramElement);
                 }
+                paramElement.textContent = value;
             }
         }
-    }
 
-    // Pobierz komponent z mapy
-    getComponent(id) {
-        return this.components.get(id);
-    }
+        // Update colors
+        if (metadata.colors) {
+            let colorsElement = metadataElement.querySelector('colors');
+            if (!colorsElement) {
+                colorsElement = document.createElementNS(null, 'colors');
+                metadataElement.appendChild(colorsElement);
+            }
 
-    // Usuń komponent z mapy
-    removeComponentFromMap(id) {
-        return this.components.delete(id);
+            // Clear existing color elements
+            while (colorsElement.firstChild) {
+                colorsElement.removeChild(colorsElement.firstChild);
+            }
+
+            // Add updated color elements
+            for (const [selector, colors] of Object.entries(metadata.colors)) {
+                const colorElement = document.createElementNS(null, 'color');
+                colorElement.setAttribute('selector', selector);
+                
+                for (const [type, value] of Object.entries(colors)) {
+                    colorElement.setAttribute(type, value);
+                }
+                
+                colorsElement.appendChild(colorElement);
+            }
+        }
     }
 
     // Pobierz wszystkie komponenty

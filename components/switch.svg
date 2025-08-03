@@ -9,7 +9,6 @@
             <parameters>
                 <label>Switch</label>
                 <state>false</state>
-                <color>#3498db</color>
                 <size>40</size>
                 <isActive>true</isActive>
             </parameters>
@@ -94,48 +93,48 @@
                 const metadataElement = svgElement.querySelector('metadata component');
                 if (metadataElement) {
                     const stateElement = metadataElement.querySelector('parameters state');
-                    
+
                     if (stateElement) {
                         const currentState = stateElement.textContent === 'true';
-                        
+
                         // Toggle the state
                         stateElement.textContent = currentState ? 'false' : 'true';
-                        
+
                         // Update appearance with animation
                         const switchHandle = svgElement.querySelector('.switch-handle');
                         const switchTrack = svgElement.querySelector('.switch-track');
                         const params = getMetadata(svgElement).parameters || {};
-                        
+
                         if (switchHandle && switchTrack) {
                             // Animate handle movement
                             const startX = parseFloat(switchHandle.getAttribute('cx'));
                             const targetX = !currentState ? 25 : 15;
                             const startTime = Date.now();
                             const duration = 150; // ms
-                            
+
                             // Track color
                             const startColor = currentState ? params.color : '#7f8c8d';
                             const endColor = !currentState ? params.color : '#7f8c8d';
-                            
+
                             function animate() {
                                 const elapsed = Date.now() - startTime;
                                 const progress = Math.min(elapsed / duration, 1);
-                                
+
                                 // Ease function
                                 const easeProgress = 0.5 - Math.cos(progress * Math.PI) / 2;
-                                
+
                                 // Update position
                                 const newX = startX + (targetX - startX) * easeProgress;
                                 switchHandle.setAttribute('cx', newX);
-                                
+
                                 // Update track color
                                 switchTrack.setAttribute('fill', !currentState ? params.color : '#7f8c8d');
-                                
+
                                 if (progress < 1) {
                                     requestAnimationFrame(animate);
                                 }
                             }
-                            
+
                             requestAnimationFrame(animate);
                         } else {
                             // Fallback if animation not possible
@@ -146,28 +145,46 @@
             }
 
             // Initialize
-            const svgElement = document.currentScript.closest('svg');
+            // Initialize - bardziej odporna metoda znajdowania elementu SVG
+            // Najpierw spróbuj standardową metodę (działa w IDE)
+            let svgElement = document.currentScript ? document.currentScript.closest('svg') : null;
+
+            // Jeśli nie znaleziono (np. w wyeksportowanym pliku), spróbuj znaleźć wszystkie SVG
+            // i wybierz ten, który zawiera ten skrypt
+            if (!svgElement) {
+                // Pobierz wszystkie elementy SVG w dokumencie
+                const allSvgs = document.querySelectorAll('svg');
+
+                // Przeszukaj wszystkie SVG i znajdź ten z przełącznikiem
+                for (const svg of allSvgs) {
+                    if (svg.querySelector('.switch-track') && svg.querySelector('.switch-handle')) {
+                        svgElement = svg;
+                        break;
+                    }
+                }
+            }
+
             if (svgElement && !svgElement.hasAttribute('data-switch-initialized')) {
                 svgElement.setAttribute('data-switch-initialized', 'true');
-                
+
                 // Store a unique identifier for this switch
                 svgElement.switchInstanceId = 'switch-' + Math.random().toString(36).substr(2, 9);
-                
+
                 // Add click event listeners
                 const switchTrack = svgElement.querySelector('.switch-track');
                 const switchHandle = svgElement.querySelector('.switch-handle');
-                
+
                 function handleClick(e) {
                     toggleSwitch(svgElement);
                     e.stopPropagation(); // Prevent event bubbling
                 }
-                
+
                 if (switchTrack) switchTrack.addEventListener('click', handleClick);
                 if (switchHandle) switchHandle.addEventListener('click', handleClick);
-                
+
                 // Initial update
                 updateSwitch(svgElement);
-                
+
                 // Optional: listen for changes (if IDE overwrites metadata)
                 svgElement.pollingInterval = setInterval(() => {
                     // Safely check if element is still in DOM
@@ -176,22 +193,22 @@
                         if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
                         return;
                     }
-                    
+
                     const metadata = getMetadata(svgElement);
                     const params = metadata.parameters || {};
-                    
+
                     // Initialize currentParams if needed
                     if (!svgElement.currentParams) {
                         svgElement.currentParams = {};
                     }
-                    
+
                     // Check if parameters have changed
-                    const hasChanged = 
+                    const hasChanged =
                         params.color !== svgElement.currentParams.color ||
                         params.state !== svgElement.currentParams.state ||
                         params.isActive !== svgElement.currentParams.isActive ||
                         params.label !== svgElement.currentParams.label;
-                    
+
                     if (hasChanged) {
                         svgElement.currentParams = { ...params };
                         updateSwitch(svgElement);

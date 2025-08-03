@@ -11,7 +11,6 @@
                 <value>50</value>
                 <min>0</min>
                 <max>100</max>
-                <color>#e74c3c</color>
                 <units>%</units>
                 <isActive>true</isActive>
             </parameters>
@@ -175,10 +174,28 @@
         }
 
         // Initialize
-        const svgElement = document.currentScript.closest('svg');
+        // Initialize - bardziej odporna metoda znajdowania elementu SVG
+        // Najpierw spróbuj standardową metodę (działa w IDE)
+        let svgElement = document.currentScript ? document.currentScript.closest('svg') : null;
+
+        // Jeśli nie znaleziono (np. w wyeksportowanym pliku), spróbuj znaleźć wszystkie SVG
+        // i wybierz ten, który zawiera ten skrypt
+        if (!svgElement) {
+            // Pobierz wszystkie elementy SVG w dokumencie
+            const allSvgs = document.querySelectorAll('svg');
+
+            // Przeszukaj wszystkie SVG i znajdź ten z wskaźnikiem
+            for (const svg of allSvgs) {
+                if (svg.querySelector('.gauge-face') && svg.querySelector('.gauge-needle')) {
+                    svgElement = svg;
+                    break;
+                }
+            }
+        }
+
         if (svgElement && !svgElement.hasAttribute('data-gauge-initialized')) {
           svgElement.setAttribute('data-gauge-initialized', 'true');
-          
+
           // Store a unique identifier for this gauge
           svgElement.gaugeInstanceId = 'gauge-' + Math.random().toString(36).substr(2, 9);
 
@@ -229,17 +246,17 @@
               if (svgElement.animation) clearInterval(svgElement.animation);
               return;
             }
-            
+
             const metadata = getMetadata(svgElement);
             const params = metadata.parameters || {};
-            
+
             // Initialize currentParams if needed
             if (!svgElement.currentParams) {
               svgElement.currentParams = {};
             }
-            
+
             // Check if parameters have changed
-            const hasChanged = 
+            const hasChanged =
               params.value !== svgElement.currentParams.value ||
               params.color !== svgElement.currentParams.color ||
               params.units !== svgElement.currentParams.units ||
@@ -247,7 +264,7 @@
               params.max !== svgElement.currentParams.max ||
               params.isActive !== svgElement.currentParams.isActive ||
               params.label !== svgElement.currentParams.label;
-            
+
             if (hasChanged) {
               svgElement.currentParams = { ...params };
               updateGauge(svgElement);

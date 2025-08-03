@@ -11,7 +11,6 @@
                 <min>0</min>
                 <max>100</max>
                 <step>1</step>
-                <color>#16a085</color>
                 <size>60</size>
                 <isActive>true</isActive>
             </parameters>
@@ -21,10 +20,10 @@
     <!-- Track -->
     <rect x="10" y="35" width="40" height="10" rx="5" class="slider-track" fill="#2c3e50" />
     <rect x="10" y="35" width="20" height="10" rx="5" class="slider-progress" fill="#16a085" />
-    
+
     <!-- Handle -->
     <circle cx="30" cy="40" r="6" class="slider-handle" fill="#ecf0f1" stroke="#2c3e50" stroke-width="1.5" />
-    
+
     <!-- Labels -->
     <text x="30" y="25" font-size="8" text-anchor="middle" class="slider-label" fill="#bdc3c7">Slider</text>
     <text x="30" y="70" font-size="8" text-anchor="middle" class="slider-value" fill="#bdc3c7">50</text>
@@ -123,11 +122,28 @@
             return false;
           }
 
-          // Initialize
-          const svgElement = document.currentScript.closest('svg');
+          // Initialize - bardziej odporna metoda znajdowania elementu SVG
+          // Najpierw spróbuj standardową metodę (działa w IDE)
+          let svgElement = document.currentScript ? document.currentScript.closest('svg') : null;
+
+          // Jeśli nie znaleziono (np. w wyeksportowanym pliku), spróbuj znaleźć wszystkie SVG
+          // i wybierz ten, który zawiera ten skrypt
+          if (!svgElement) {
+              // Pobierz wszystkie elementy SVG w dokumencie
+              const allSvgs = document.querySelectorAll('svg');
+
+              // Przeszukaj wszystkie SVG i znajdź ten ze sliderem
+              for (const svg of allSvgs) {
+                  if (svg.querySelector('.slider-track') && svg.querySelector('.slider-handle')) {
+                      svgElement = svg;
+                      break;
+                  }
+              }
+          }
+
           if (svgElement && !svgElement.hasAttribute('data-slider-initialized')) {
             svgElement.setAttribute('data-slider-initialized', 'true');
-            
+
             // Store a unique identifier for this slider
             svgElement.sliderInstanceId = 'slider-' + Math.random().toString(36).substr(2, 9);
 
@@ -182,7 +198,7 @@
                 // Update metadata
                 const roundedValue = Math.round(newValue);
                 updateMetadataValue(svgElement, roundedValue);
-                
+
                 // Update display with animation
                 handle.setAttribute('r', '7'); // Larger size
                 handle.setAttribute('fill', '#dfe6e9');
@@ -221,7 +237,7 @@
               // Update metadata
               const roundedValue = Math.round(newValue);
               updateMetadataValue(svgElement, roundedValue);
-              
+
               // Update display
               updateSlider(svgElement);
             }
