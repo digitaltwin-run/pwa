@@ -13,7 +13,7 @@ import { ConnectionManager } from './connections.js';
 import { ExportManager } from './export.js';
 import { ActionManager } from './actions.js';
 import { PWAManager } from './pwa-manager.js';
-import { CollaborationManager } from './collaboration-manager.js';
+import { CollaborationManager } from './collaboration-manager-patched.js';
 import { I18nManager } from './i18n-manager.js';
 // Conditional imports for development tools
 let TestingSystem, FunctionalTests, ErrorDetector;

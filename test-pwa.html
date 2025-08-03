@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px 0;
+            font-size: 16px;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+        .test-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .pass {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .fail {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>PWA Functionality Test</h1>
+    
+    <div class="test-section">
+        <div class="test-title">1. Service Worker Registration</div>
+        <div id="sw-status" class="status info">Checking service worker support...</div>
+        <button id="register-sw">Register Service Worker</button>
+        <button id="unregister-sw" disabled>Unregister Service Worker</button>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">2. Push Notifications</div>
+        <div id="push-status" class="status info">Checking push notification support...</div>
+        <button id="request-permission" disabled>Request Notification Permission</button>
+        <button id="test-notification" disabled>Test Notification</button>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">3. PWA Installation</div>
+        <div id="install-status" class="status info">Checking PWA installation status...</div>
+        <button id="install-pwa" style="display: none;">Install PWA</button>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">4. Offline Functionality</div>
+        <div id="offline-status" class="status info">Checking offline support...</div>
+        <button id="test-offline" disabled>Test Offline Mode</button>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">5. VAPID Key Test</div>
+        <div id="vapid-status" class="status info">Checking VAPID key configuration...</div>
+        <div id="vapid-key" style="word-break: break-all; margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 4px;"></div>
+    </div>
+
+    <script>
+        // Global variables
+        let registration = null;
+        let pushSubscription = null;
+        let deferredPrompt = null;
+        
+        // DOM elements
+        const swStatus = document.getElementById('sw-status');
+        const pushStatus = document.getElementById('push-status');
+        const installStatus = document.getElementById('install-status');
+        const offlineStatus = document.getElementById('offline-status');
+        const vapidStatus = document.getElementById('vapid-status');
+        const vapidKeyDisplay = document.getElementById('vapid-key');
+        
+        // Buttons
+        const registerSwBtn = document.getElementById('register-sw');
+        const unregisterSwBtn = document.getElementById('unregister-sw');
+        const requestPermissionBtn = document.getElementById('request-permission');
+        const testNotificationBtn = document.getElementById('test-notification');
+        const installPwaBtn = document.getElementById('install-pwa');
+        const testOfflineBtn = document.getElementById('test-offline');
+        
+        // 1. Service Worker Tests
+        async function checkServiceWorker() {
+            if (!('serviceWorker' in navigator)) {
+                swStatus.textContent = 'Service Worker API not supported in this browser';
+                swStatus.className = 'status error';
+                return false;
+            }
+            
+            try {
+                registration = await navigator.serviceWorker.getRegistration();
+                if (registration) {
+                    swStatus.innerHTML = `✅ Service Worker is registered:<br>Scope: ${registration.scope}`;
+                    swStatus.className = 'status success';
+                    registerSwBtn.disabled = true;
+                    unregisterSwBtn.disabled = false;
+                    return true;
+                } else {
+                    swStatus.textContent = 'Service Worker is not registered yet';
+                    swStatus.className = 'status info';
+                    registerSwBtn.disabled = false;
+                    unregisterSwBtn.disabled = true;
+                    return false;
+                }
+            } catch (error) {
+                swStatus.textContent = `Error checking Service Worker: ${error.message}`;
+                swStatus.className = 'status error';
+                return false;
+            }
+        }
+        
+        async function registerServiceWorker() {
+            try {
+                registration = await navigator.serviceWorker.register('/sw.js', {
+                    scope: '/'
+                });
+                
+                console.log('Service Worker registered with scope:', registration.scope);
+                swStatus.innerHTML = `✅ Service Worker registered successfully!<br>Scope: ${registration.scope}`;
+                swStatus.className = 'status success';
+                
+                // Enable push notification button
+                requestPermissionBtn.disabled = false;
+                testOfflineBtn.disabled = false;
+                
+                // Update UI
+                registerSwBtn.disabled = true;
+                unregisterSwBtn.disabled = false;
+                
+                return true;
+            } catch (error) {
+                console.error('Service Worker registration failed:', error);
+                swStatus.textContent = `❌ Service Worker registration failed: ${error.message}`;
+                swStatus.className = 'status error';
+                return false;
+            }
+        }
+        
+        async function unregisterServiceWorker() {
+            if (!registration) {
+                registration = await navigator.serviceWorker.getRegistration();
+            }
+            
+            if (registration) {
+                try {
+                    await registration.unregister();
+                    swStatus.textContent = 'Service Worker unregistered successfully';
+                    swStatus.className = 'status info';
+                    
+                    // Update UI
+                    registerSwBtn.disabled = false;
+                    unregisterSwBtn.disabled = true;
+                    requestPermissionBtn.disabled = true;
+                    testNotificationBtn.disabled = true;
+                    testOfflineBtn.disabled = true;
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Failed to unregister Service Worker:', error);
+                    swStatus.textContent = `Failed to unregister Service Worker: ${error.message}`;
+                    swStatus.className = 'status error';
+                    return false;
+                }
+            }
+            
+            return false;
+        }
+        
+        // 2. Push Notification Tests
+        async function checkPushSupport() {
+            if (!('PushManager' in window)) {
+                pushStatus.textContent = 'Push API not supported in this browser';
+                pushStatus.className = 'status error';
+                return false;
+            }
+            
+            if (!('serviceWorker' in navigator)) {
+                pushStatus.textContent = 'Service Worker API required for push notifications';
+                pushStatus.className = 'status error';
+                return false;
+            }
+            
+            // Check current permission
+            const permission = await Notification.requestPermission();
+            
+            if (permission === 'granted') {
+                pushStatus.textContent = '✅ Notification permission granted';
+                pushStatus.className = 'status success';
+                requestPermissionBtn.disabled = true;
+                testNotificationBtn.disabled = false;
+                return true;
+            } else if (permission === 'denied') {
+                pushStatus.textContent = '❌ Notification permission denied. Please enable it in your browser settings.';
+                pushStatus.className = 'status error';
+                requestPermissionBtn.disabled = true;
+                return false;
+            } else {
+                pushStatus.textContent = 'ℹ️ Notification permission not yet requested';
+                pushStatus.className = 'status info';
+                requestPermissionBtn.disabled = false;
+                return false;
+            }
+        }
+        
+        async function requestNotificationPermission() {
+            try {
+                const permission = await Notification.requestPermission();
+                
+                if (permission === 'granted') {
+                    pushStatus.textContent = '✅ Notification permission granted';
+                    pushStatus.className = 'status success';
+                    requestPermissionBtn.disabled = true;
+                    testNotificationBtn.disabled = false;
+                    return true;
+                } else {
+                    pushStatus.textContent = '❌ Notification permission denied';
+                    pushStatus.className = 'status error';
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error requesting notification permission:', error);
+                pushStatus.textContent = `Error: ${error.message}`;
+                pushStatus.className = 'status error';
+                return false;
+            }
+        }
+        
+        async function testNotification() {
+            try {
+                if (!('serviceWorker' in navigator) || !registration) {
+                    throw new Error('Service Worker not registered');
+                }
+                
+                // Show a test notification
+                await registration.showNotification('Test Notification', {
+                    body: 'This is a test notification from the PWA',
+                    icon: '/icons/icon-192x192.png',
+                    badge: '/icons/badge-72x72.png',
+                    vibrate: [100, 50, 100],
+                    data: {
+                        dateOfArrival: Date.now(),
+                        primaryKey: 'test-notification'
+                    },
+                    actions: [
+                        { action: 'close', title: 'Close' },
+                        { action: 'test', title: 'Test Action' }
+                    ]
+                });
+                
+                pushStatus.textContent = '✅ Test notification sent successfully';
+                pushStatus.className = 'status success';
+                return true;
+            } catch (error) {
+                console.error('Error showing notification:', error);
+                pushStatus.textContent = `❌ Failed to show notification: ${error.message}`;
+                pushStatus.className = 'status error';
+                return false;
+            }
+        }
+        
+        // 3. PWA Installation
+        function checkPWAInstallation() {
+            // Check if the browser supports the beforeinstallprompt event
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                // Already installed
+                installStatus.textContent = '✅ App is running in standalone mode (installed to home screen)';
+                installStatus.className = 'status success';
+                installPwaBtn.style.display = 'none';
+                return true;
+            } else {
+                // Not installed
+                installStatus.textContent = 'ℹ️ App can be installed to home screen';
+                installStatus.className = 'status info';
+                installPwaBtn.style.display = 'inline-block';
+                return false;
+            }
+        }
+        
+        // 4. Offline Functionality
+        async function checkOfflineSupport() {
+            if (!('caches' in window)) {
+                offlineStatus.textContent = '❌ Cache API not supported in this browser';
+                offlineStatus.className = 'status error';
+                return false;
+            }
+            
+            if (!('indexedDB' in window)) {
+                offlineStatus.textContent = '❌ IndexedDB not supported in this browser';
+                offlineStatus.className = 'status error';
+                return false;
+            }
+            
+            // Check if we have any cached data
+            try {
+                const cache = await caches.open('pwa-cache');
+                const keys = await cache.keys();
+                
+                if (keys.length > 0) {
+                    offlineStatus.textContent = `✅ Offline support is enabled (${keys.length} items cached)`;
+                } else {
+                    offlineStatus.textContent = 'ℹ️ Offline support is available but no items are cached yet';
+                }
+                
+                offlineStatus.className = 'status success';
+                testOfflineBtn.disabled = false;
+                return true;
+            } catch (error) {
+                console.error('Error checking cache:', error);
+                offlineStatus.textContent = `❌ Error checking cache: ${error.message}`;
+                offlineStatus.className = 'status error';
+                return false;
+            }
+        }
+        
+        async function testOfflineMode() {
+            try {
+                // Try to fetch a resource that should be cached
+                const response = await fetch('/offline.html');
+                
+                if (response.ok) {
+                    offlineStatus.textContent = '✅ Offline mode test passed - resources are being cached';
+                    offlineStatus.className = 'status success';
+                    return true;
+                } else {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Offline test failed:', error);
+                offlineStatus.textContent = `❌ Offline test failed: ${error.message}`;
+                offlineStatus.className = 'status error';
+                return false;
+            }
+        }
+        
+        // 5. VAPID Key Test
+        function checkVapidKey() {
+            try {
+                // Try to get the VAPID key from the configuration
+                const configScript = document.querySelector('script[type="application/json"][data-config]');
+                let vapidPublicKey = '';
+                
+                if (configScript) {
+                    try {
+                        const config = JSON.parse(configScript.textContent);
+                        vapidPublicKey = config.vapidPublicKey || '';
+                    } catch (e) {
+                        console.warn('Error parsing config:', e);
+                    }
+                }
+                
+                if (!vapidPublicKey && window.pwaManager) {
+                    // Try to get from pwaManager if available
+                    vapidPublicKey = window.pwaManager.vapidPublicKey || '';
+                }
+                
+                if (vapidPublicKey) {
+                    vapidStatus.textContent = '✅ VAPID public key is configured';
+                    vapidStatus.className = 'status success';
+                    vapidKeyDisplay.textContent = vapidPublicKey;
+                    return true;
+                } else {
+                    vapidStatus.textContent = '❌ VAPID public key is not configured';
+                    vapidStatus.className = 'status error';
+                    vapidKeyDisplay.textContent = 'Not found';
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error checking VAPID key:', error);
+                vapidStatus.textContent = `❌ Error checking VAPID key: ${error.message}`;
+                vapidStatus.className = 'status error';
+                return false;
+            }
+        }
+        
+        // Event Listeners
+        registerSwBtn.addEventListener('click', registerServiceWorker);
+        unregisterSwBtn.addEventListener('click', unregisterServiceWorker);
+        requestPermissionBtn.addEventListener('click', requestNotificationPermission);
+        testNotificationBtn.addEventListener('click', testNotification);
+        testOfflineBtn.addEventListener('click', testOfflineMode);
+        
+        // PWA Installation
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            
+            // Update UI to notify the user they can add to home screen
+            installPwaBtn.style.display = 'inline-block';
+        });
+        
+        installPwaBtn.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            
+            // Show the install prompt
+            deferredPrompt.prompt();
+            
+            // Wait for the user to respond to the prompt
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            // Optionally, send analytics event with outcome of user choice
+            console.log(`User response to the install prompt: ${outcome}`);
+            
+            // We've used the prompt, and can't use it again, throw it away
+            deferredPrompt = null;
+            
+            // Hide the install button
+            installPwaBtn.style.display = 'none';
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check service worker support
+            await checkServiceWorker();
+            
+            // Check push notification support
+            await checkPushSupport();
+            
+            // Check PWA installation status
+            checkPWAInstallation();
+            
+            // Check offline support
+            await checkOfflineSupport();
+            
+            // Check VAPID key
+            checkVapidKey();
+            
+            // Listen for app installed event
+            window.addEventListener('appinstalled', () => {
+                console.log('PWA was installed');
+                installStatus.textContent = '✅ App was successfully installed to home screen!';
+                installStatus.className = 'status success';
+                installPwaBtn.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>
