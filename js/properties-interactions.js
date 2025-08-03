@@ -428,7 +428,14 @@ export class InteractionsManager {
 
         const interactions = this.getComponentInteractions(componentData.element);
         if (index >= 0 && index < interactions.length) {
-            interactions[index][property] = value;
+            // Ensure value is properly converted to string to avoid [object Object]
+            let processedValue = value;
+            if (typeof value === 'object' && value !== null) {
+                processedValue = value.toString();
+                console.warn('Converted object value to string:', processedValue);
+            }
+            
+            interactions[index][property] = processedValue;
             this.updateInteractionsInMetadata(id, interactions);
             
             // DYNAMIC PROPERTY SELECT POPULATION

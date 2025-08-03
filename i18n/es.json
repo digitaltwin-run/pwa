@@ -1,0 +1,42 @@
+{
+  "app": {
+    "title": "IDE de Gemelo Digital",
+    "subtitle": "Entorno Avanzado de Diseño de Componentes",
+    "description": "Editor interactivo de componentes SVG con propiedades e interacciones en tiempo real"
+  },
+  "ui": {
+    "menu": {
+      "file": "Archivo",
+      "edit": "Editar",
+      "view": "Vista",
+      "tools": "Herramientas",
+      "help": "Ayuda"
+    },
+    "buttons": {
+      "add": "Añadir",
+      "remove": "Eliminar",
+      "save": "Guardar",
+      "load": "Cargar",
+      "export": "Exportar",
+      "import": "Importar",
+      "reset": "Restablecer",
+      "apply": "Aplicar",
+      "cancel": "Cancelar",
+      "close": "Cerrar",
+      "ok": "Aceptar",
+      "start": "Iniciar",
+      "stop": "Detener"
+    },
+    "labels": {
+      "name": "Nombre",
+      "type": "Tipo",
+      "value": "Valor",
+      "properties": "Propiedades",
+      "description": "Descripción"
+    },
+    "simulation": {
+      "title": "📊 Simulación de Datos",
+      "noComponents": "No hay componentes disponibles para simulación"
+    }
+  }
+}

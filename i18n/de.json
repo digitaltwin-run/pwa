@@ -1,0 +1,42 @@
+{
+  "app": {
+    "title": "Digital Twin IDE",
+    "subtitle": "Erweitertes Komponenten-Design-Umgebung",
+    "description": "Interaktiver SVG-Komponenten-Editor mit Echtzeit-Eigenschaften und Interaktionen"
+  },
+  "ui": {
+    "menu": {
+      "file": "Datei",
+      "edit": "Bearbeiten",
+      "view": "Ansicht",
+      "tools": "Werkzeuge",
+      "help": "Hilfe"
+    },
+    "buttons": {
+      "add": "Hinzufügen",
+      "remove": "Entfernen",
+      "save": "Speichern",
+      "load": "Laden",
+      "export": "Exportieren",
+      "import": "Importieren",
+      "reset": "Zurücksetzen",
+      "apply": "Übernehmen",
+      "cancel": "Abbrechen",
+      "close": "Schließen",
+      "ok": "OK",
+      "start": "Starten",
+      "stop": "Stoppen"
+    },
+    "labels": {
+      "name": "Name",
+      "type": "Typ",
+      "value": "Wert",
+      "properties": "Eigenschaften",
+      "description": "Beschreibung"
+    },
+    "simulation": {
+      "title": "📊 Datensimulation",
+      "noComponents": "Keine Komponenten für die Simulation verfügbar"
+    }
+  }
+}

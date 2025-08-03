@@ -218,8 +218,14 @@ export class ExportManager {
     // Eksportuj jako SVG z zachowaniem skryptów i interakcji
     exportAsSVG() {
         try {
-            // Stwórz kopię canvas do eksportu
+            // Stwórz kopię canvas do eksportu z głębokim klonowaniem
             const exportCanvas = this.svgCanvas.cloneNode(true);
+            
+            // Upewnij się, że wszystkie komponenty mają prawidłowe metadane i atrybuty
+            this.preserveComponentMetadata(exportCanvas);
+            
+            // Usuń zaznaczenia i resize handles z eksportowanego SVG
+            this.removeSelectionArtifacts(exportCanvas);
             
             // Dodaj niezbędne skrypty do obsługi interakcji
             const scriptElement = document.createElementNS("http://www.w3.org/2000/svg", "script");
@@ -309,12 +315,36 @@ export class ExportManager {
                     components.forEach(component => {
                         const scriptElements = component.querySelectorAll('script');
                         scriptElements.forEach(script => {
-                            if (script.textContent && script.textContent.includes('function update')) {
+                            if (script.textContent) {
                                 try {
-                                    const setupFn = new Function('element', script.textContent + '; if(typeof setup === "function") setup(element);');
-                                    setupFn(component);
+                                    // Create a more robust function execution context
+                                    const scriptContent = script.textContent;
+                                    
+                                    // Execute the script in component context
+                                    const scriptFn = new Function('component', 
+                                        '// Bind this component context\n' +
+                                        'const svgElement = component;\n' +
+                                        '\n' +
+                                        '// Execute the original script\n' +
+                                        scriptContent +
+                                        '\n' +
+                                        '// If there are any update functions, call them\n' +
+                                        'if (typeof updateMotor === "function") {\n' +
+                                        '    updateMotor(svgElement);\n' +
+                                        '}\n' +
+                                        'if (typeof updateLED === "function") {\n' +
+                                        '    updateLED(svgElement);\n' +
+                                        '}\n' +
+                                        'if (typeof update === "function") {\n' +
+                                        '    update(svgElement);\n' +
+                                        '}'
+                                    );
+                                    
+                                    scriptFn(component);
+                                    
+                                    console.log('✅ Initialized animation script for component:', component.getAttribute('data-id'));
                                 } catch (e) {
-                                    console.error('Błąd uruchomienia skryptu animacji:', e);
+                                    console.error('⚠️ Error initializing animation script:', e);
                                 }
                             }
                         });
@@ -343,6 +373,106 @@ export class ExportManager {
             console.error("Błąd eksportu SVG:", error);
             alert("Błąd podczas eksportu SVG: " + error.message);
         }
+    }
+    
+    /**
+     * Preserve component metadata and ensure correct labels during export
+     * @param {SVGElement} exportCanvas - The cloned canvas for export
+     */
+    preserveComponentMetadata(exportCanvas) {
+        const components = exportCanvas.querySelectorAll('[data-id]');
+        
+        components.forEach(component => {
+            const componentId = component.getAttribute('data-id');
+            const originalComponent = this.componentManager.getComponent(componentId);
+            
+            if (originalComponent) {
+                // Preserve original metadata attributes
+                const originalElement = originalComponent.element;
+                const dataMetadata = originalElement.getAttribute('data-metadata');
+                
+                if (dataMetadata) {
+                    component.setAttribute('data-metadata', dataMetadata);
+                    
+                    try {
+                        const metadata = JSON.parse(dataMetadata);
+                        
+                        // Update component label if it exists in metadata
+                        if (metadata.parameters && metadata.parameters.label) {
+                            const labelElements = component.querySelectorAll('.motor-label, .led-label, text[class*="label"]');
+                            labelElements.forEach(labelEl => {
+                                labelEl.textContent = metadata.parameters.label;
+                            });
+                            
+                            // Also update metadata component label in SVG
+                            const metadataLabelEl = component.querySelector('metadata component parameters label');
+                            if (metadataLabelEl) {
+                                metadataLabelEl.textContent = metadata.parameters.label;
+                            }
+                        }
+                        
+                        console.log(`✅ Preserved metadata for component ${componentId}: ${metadata.parameters?.label || 'unnamed'}`);
+                    } catch (e) {
+                        console.warn(`⚠️ Could not parse metadata for component ${componentId}:`, e);
+                    }
+                }
+                
+                // Preserve other important attributes
+                const preserveAttrs = ['data-svg-url', 'data-component-params', 'transform'];
+                preserveAttrs.forEach(attr => {
+                    const value = originalElement.getAttribute(attr);
+                    if (value) {
+                        component.setAttribute(attr, value);
+                    }
+                });
+            }
+        });
+    }
+    
+    /**
+     * Remove selection artifacts from exported SVG (highlights, resize handles, etc.)
+     * @param {SVGElement} exportCanvas - The cloned canvas for export
+     */
+    removeSelectionArtifacts(exportCanvas) {
+        // Remove component selection outlines (blue borders)
+        const components = exportCanvas.querySelectorAll('[data-id]');
+        components.forEach(component => {
+            // Remove any inline outline styles
+            component.style.outline = '';
+            component.style.border = '';
+            
+            // Remove outline attributes if they exist
+            component.removeAttribute('outline');
+        });
+        
+        // Remove resize handles groups
+        const resizeHandles = exportCanvas.querySelectorAll('.resize-handles, g.resize-handles');
+        resizeHandles.forEach(handleGroup => {
+            handleGroup.remove();
+        });
+        
+        // Remove individual resize handles
+        const handles = exportCanvas.querySelectorAll('.resize-handle');
+        handles.forEach(handle => {
+            handle.remove();
+        });
+        
+        // Remove any selection rectangles or highlight elements
+        const selectionElements = exportCanvas.querySelectorAll('[class*="selection"], [class*="highlight"], [class*="selected"]');
+        selectionElements.forEach(element => {
+            element.remove();
+        });
+        
+        // Clean up any temporary CSS classes
+        const tempClasses = ['selected', 'highlighted', 'dragging', 'resizing'];
+        const allElements = exportCanvas.querySelectorAll('*');
+        allElements.forEach(element => {
+            tempClasses.forEach(className => {
+                element.classList.remove(className);
+            });
+        });
+        
+        console.log('✅ Removed selection artifacts from exported SVG');
     }
 }
 
