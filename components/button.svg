@@ -14,6 +14,10 @@
                 <momentary>true</momentary>
                 <isActive>true</isActive>
             </parameters>
+            <interactions>
+                <binding targetId="motor-001" event="press" action="start" />
+                <binding targetId="motor-001" event="release" action="stop" />
+            </interactions>
         </component>
     </metadata>
 
@@ -150,8 +154,30 @@
                 }
             }
 
-            // Initialize
-            const svgElement = document.currentScript.closest('svg');
+            // Initialize - bardziej odporna metoda znajdowania elementu SVG
+            // Najpierw spróbuj standardową metodę (działa w IDE)
+            let svgElement = document.currentScript ? document.currentScript.closest('svg') : null;
+            
+            // Jeśli nie znaleziono (np. w wyeksportowanym pliku), spróbuj znaleźć wszystkie SVG
+            // i wybierz ten, który zawiera ten skrypt
+            if (!svgElement) {
+                // Pobierz wszystkie elementy SVG w dokumencie
+                const allSvgs = document.querySelectorAll('svg');
+                
+                // Dla każdego SVG sprawdź, czy zawiera ten skrypt
+                const scripts = document.querySelectorAll('script');
+                const currentScriptContent = document.currentScript ? document.currentScript.textContent : null;
+                
+                // Jeśli nie możemy znaleźć przez currentScript, użyjemy innej metody
+                // Przeszukaj wszystkie SVG i znajdź ten z przyciskiem
+                for (const svg of allSvgs) {
+                    if (svg.querySelector('.button-surface') && svg.querySelector('.button-label')) {
+                        svgElement = svg;
+                        break;
+                    }
+                }
+            }
+            
             if (svgElement && !svgElement.hasAttribute('data-button-initialized')) {
                 svgElement.setAttribute('data-button-initialized', 'true');
                 

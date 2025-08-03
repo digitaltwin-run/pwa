@@ -13,6 +13,7 @@ import { SimulationManager } from './simulation.js';
 import { ConnectionManager } from './connections.js';
 import { ActionManager } from './actions.js';
 import { gridManager } from './grid.js';
+import { InteractionsManager, extendComponentWithEvents } from './interactions.js';
 
 /**
  * Main application class for Digital Twin IDE
@@ -29,6 +30,7 @@ class DigitalTwinApp {
         this.simulationManager = null;
         this.connectionManager = null;
         this.actionManager = null;
+        this.interactionsManager = null;
         this.config = {
             canvas: {
                 grid: {
@@ -78,6 +80,7 @@ class DigitalTwinApp {
             this.exportManager = new ExportManager(this.componentManager, svgCanvas);
             this.simulationManager = new SimulationManager(this.componentManager);
             this.connectionManager = new ConnectionManager(this.componentManager, svgCanvas);
+            this.interactionsManager = new InteractionsManager(this.componentManager, svgCanvas);
 
             // Expose managers globally for HTML calls
             window.componentManager = this.componentManager;
@@ -85,6 +88,7 @@ class DigitalTwinApp {
             window.exportManager = this.exportManager;
             window.simulationManager = this.simulationManager;
             window.connectionManager = this.connectionManager;
+            window.interactionsManager = this.interactionsManager;
 
             // Load component library
             await this.componentManager.loadComponentLibrary();

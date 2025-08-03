@@ -215,10 +215,118 @@ export class ExportManager {
         }
     }
 
-    // Eksportuj jako SVG
+    // Eksportuj jako SVG z zachowaniem skryptów i interakcji
     exportAsSVG() {
         try {
-            const svgData = new XMLSerializer().serializeToString(this.svgCanvas);
+            // Stwórz kopię canvas do eksportu
+            const exportCanvas = this.svgCanvas.cloneNode(true);
+            
+            // Dodaj niezbędne skrypty do obsługi interakcji
+            const scriptElement = document.createElementNS("http://www.w3.org/2000/svg", "script");
+            scriptElement.setAttribute("type", "text/javascript");
+            
+            // Kod JavaScript do obsługi interakcji w samodzielnym SVG
+            const scriptContent = `
+                // Inicjalizacja obsługi interakcji po załadowaniu SVG
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Funkcja do obsługi interakcji między komponentami
+                    function setupInteractions() {
+                        // Znajdź wszystkie komponenty z interakcjami
+                        const components = document.querySelectorAll('[data-id]');
+                        components.forEach(component => {
+                            const metadataElement = component.querySelector('metadata component');
+                            if (!metadataElement) return;
+                            
+                            const interactionsElement = metadataElement.querySelector('interactions');
+                            if (!interactionsElement) return;
+                            
+                            const bindingElements = interactionsElement.querySelectorAll('binding');
+                            if (!bindingElements || bindingElements.length === 0) return;
+                            
+                            // Dodaj obsługę zdarzeń dla każdej interakcji
+                            Array.from(bindingElements).forEach(binding => {
+                                const targetId = binding.getAttribute('targetId');
+                                const event = binding.getAttribute('event');
+                                const action = binding.getAttribute('action');
+                                const parameter = binding.getAttribute('parameter');
+                                
+                                if (!targetId || !event || !action) return;
+                                
+                                // Dodaj listener zdarzeń
+                                component.addEventListener('click', function(e) {
+                                    const targetElement = document.querySelector('[data-id="' + targetId + '"]');
+                                    if (!targetElement) return;
+                                    
+                                    // Wywołaj akcję na elemencie docelowym
+                                    if (action === 'start') {
+                                        // Symulacja startu (np. dla silnika)
+                                        const speedParam = targetElement.querySelector('metadata component parameters speed');
+                                        if (speedParam) {
+                                            speedParam.textContent = parameter || '100';
+                                        }
+                                        const isOnParam = targetElement.querySelector('metadata component parameters isOn');
+                                        if (isOnParam) {
+                                            isOnParam.textContent = 'true';
+                                        }
+                                    } else if (action === 'stop') {
+                                        // Symulacja zatrzymania
+                                        const isOnParam = targetElement.querySelector('metadata component parameters isOn');
+                                        if (isOnParam) {
+                                            isOnParam.textContent = 'false';
+                                        }
+                                    } else if (action === 'toggle') {
+                                        // Przełączanie stanu
+                                        const isOnParam = targetElement.querySelector('metadata component parameters isOn');
+                                        if (isOnParam) {
+                                            const currentState = isOnParam.textContent === 'true';
+                                            isOnParam.textContent = (!currentState).toString();
+                                        }
+                                    }
+                                    
+                                    // Wywołaj skrypt animacji komponentu docelowego, jeśli istnieje
+                                    const scriptElements = targetElement.querySelectorAll('script');
+                                    scriptElements.forEach(script => {
+                                        if (script.textContent && script.textContent.includes('function update')) {
+                                            // Próba wywołania funkcji update
+                                            try {
+                                                const updateFn = new Function('element', script.textContent + '; update(element);');
+                                                updateFn(targetElement);
+                                            } catch (e) {
+                                                console.error('Błąd wywołania skryptu animacji:', e);
+                                            }
+                                        }
+                                    });
+                                });
+                            });
+                        });
+                    }
+                    
+                    // Uruchom obsługę interakcji
+                    setupInteractions();
+                    
+                    // Uruchom skrypty animacji dla wszystkich komponentów
+                    const components = document.querySelectorAll('[data-id]');
+                    components.forEach(component => {
+                        const scriptElements = component.querySelectorAll('script');
+                        scriptElements.forEach(script => {
+                            if (script.textContent && script.textContent.includes('function update')) {
+                                try {
+                                    const setupFn = new Function('element', script.textContent + '; if(typeof setup === "function") setup(element);');
+                                    setupFn(component);
+                                } catch (e) {
+                                    console.error('Błąd uruchomienia skryptu animacji:', e);
+                                }
+                            }
+                        });
+                    });
+                });
+            `;
+            
+            scriptElement.textContent = scriptContent;
+            exportCanvas.appendChild(scriptElement);
+            
+            // Eksportuj SVG z dołączonymi skryptami
+            const svgData = new XMLSerializer().serializeToString(exportCanvas);
             const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
             const url = URL.createObjectURL(blob);
             
@@ -229,9 +337,11 @@ export class ExportManager {
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+            
+            console.log("SVG wyeksportowany z obsługą interakcji i animacji");
         } catch (error) {
             console.error("Błąd eksportu SVG:", error);
-            alert("Błąd podczas eksportu SVG");
+            alert("Błąd podczas eksportu SVG: " + error.message);
         }
     }
 }

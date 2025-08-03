@@ -25,6 +25,12 @@ export class PropertiesManager {
 
     // Pokaż właściwości komponentu
     showProperties(svgElement) {
+        console.log('showProperties called with element:', svgElement);
+        if (!svgElement) {
+            console.log('No element provided to showProperties');
+            return;
+        }
+
         const propertiesPanel = document.getElementById('properties-panel');
         if (!propertiesPanel) return;
 
@@ -89,6 +95,12 @@ export class PropertiesManager {
                 ➕ Dodaj parametr
             </button>
         `;
+        
+        // Sekcja interakcji (DSL)
+        console.log('Calling generateInteractionsSection with componentData:', componentData);
+        const interactionsHtml = this.generateInteractionsSection(componentData);
+        console.log('Generated interactions HTML:', interactionsHtml);
+        html += interactionsHtml;
 
         // Usuń komponent
         html += `
@@ -111,6 +123,7 @@ export class PropertiesManager {
             const addParamBtn = document.getElementById(`add-param-btn-${id}`);
             const removeBtn = document.getElementById(`remove-component-btn-${id}`);
             const editBtn = document.getElementById(`edit-metadata-btn-${id}`);
+            const addInteractionBtn = document.getElementById(`add-interaction-btn-${id}`);
             
             if (addParamBtn) {
                 addParamBtn.addEventListener('click', () => this.addParameter(id));
@@ -122,6 +135,10 @@ export class PropertiesManager {
             
             if (editBtn) {
                 editBtn.addEventListener('click', () => this.editMetadataRaw(id));
+            }
+            
+            if (addInteractionBtn) {
+                addInteractionBtn.addEventListener('click', () => this.addInteraction(id));
             }
         }, 0);
     }
@@ -210,6 +227,213 @@ export class PropertiesManager {
         this.showProperties(componentData.element);
     }
 
+    // Generuj sekcję interakcji dla komponentu
+    generateInteractionsSection(componentData) {
+        console.log('generateInteractionsSection called with:', componentData);
+        if (!componentData || !componentData.element) {
+            console.log('No componentData or element, returning empty string');
+            return '';
+        }
+        
+        const id = componentData.element.getAttribute('data-id');
+        let html = '';
+        
+        // Pobierz interakcje z metadanych
+        const interactions = this.getComponentInteractions(componentData.element);
+        console.log('Found interactions:', interactions);
+        
+        html += '<h5>Interakcje:</h5>';
+        
+        if (interactions && interactions.length > 0) {
+            html += '<div class="interactions-list">';
+            
+            interactions.forEach((binding, index) => {
+                html += `
+                    <div class="interaction-item" style="margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                        <div>
+                            <label>Cel:</label>
+                            <select onchange="updateInteraction('${id}', ${index}, 'targetId', this.value)">
+                                ${this.generateTargetOptions(binding.targetId)}
+                            </select>
+                        </div>
+                        <div>
+                            <label>Zdarzenie:</label>
+                            <select onchange="updateInteraction('${id}', ${index}, 'event', this.value)">
+                                ${this.generateEventOptions(binding.event, componentData.metadata.type)}
+                            </select>
+                        </div>
+                        <div>
+                            <label>Akcja:</label>
+                            <input type="text" value="${binding.action || ''}" 
+                                onchange="updateInteraction('${id}', ${index}, 'action', this.value)">
+                        </div>
+                        <button class="btn btn-sm btn-danger" 
+                            onclick="removeInteraction('${id}', ${index})" style="margin-top: 5px;">
+                            🗑️ Usuń
+                        </button>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+        } else {
+            html += '<p>Brak zdefiniowanych interakcji.</p>';
+        }
+        
+        html += `
+            <button id="add-interaction-btn-${id}" class="btn btn-primary" style="margin-top: 10px;">
+                ➕ Dodaj interakcję
+            </button>
+        `;
+        
+        return html;
+    }
+    
+    // Generuj opcje dla zdarzeń w zależności od typu komponentu
+    generateEventOptions(selectedEvent, componentType) {
+        const events = {
+            'button': ['press', 'release', 'toggle'],
+            'switch': ['on', 'off', 'toggle'],
+            'slider': ['change', 'min', 'max'],
+            'knob': ['change', 'min', 'max'],
+            'default': ['change']
+        };
+        
+        const eventList = events[componentType] || events.default;
+        
+        return eventList.map(event => {
+            const selected = event === selectedEvent ? 'selected' : '';
+            return `<option value="${event}" ${selected}>${event}</option>`;
+        }).join('');
+    }
+    
+    // Generuj opcje dla wyboru komponentu docelowego
+    generateTargetOptions(selectedTargetId) {
+        // Pobierz wszystkie komponenty z canvy
+        const components = this.componentManager.getAllComponents();
+        
+        // Dodaj pustą opcję na początku
+        let options = '<option value="">-- Wybierz komponent --</option>';
+        
+        // Dodaj opcje dla każdego komponentu
+        if (components && components.length > 0) {
+            components.forEach(comp => {
+                if (comp && comp.element) {
+                    // Zawsze używaj data-id jako identyfikatora komponentu
+                    const compId = comp.element.getAttribute('data-id');
+                    const compType = comp.metadata && comp.metadata.type ? comp.metadata.type : 'unknown';
+                    const compLabel = comp.metadata && comp.metadata.parameters && comp.metadata.parameters.label ? 
+                        comp.metadata.parameters.label : compId;
+                    
+                    const selected = compId === selectedTargetId ? 'selected' : '';
+                    options += `<option value="${compId}" ${selected}>${compLabel} (${compType}: ${compId})</option>`;
+                }
+            });
+        }
+        
+        return options;
+    }
+    
+    // Pobierz interakcje z metadanych komponentu
+    getComponentInteractions(svgElement) {
+        console.log('getComponentInteractions called with:', svgElement);
+        if (!svgElement) {
+            console.log('No svgElement, returning empty array');
+            return [];
+        }
+        
+        const metadataElement = svgElement.querySelector('metadata component');
+        console.log('metadataElement:', metadataElement);
+        if (!metadataElement) {
+            console.log('No metadataElement, returning empty array');
+            return [];
+        }
+        
+        const interactionsElement = metadataElement.querySelector('interactions');
+        if (!interactionsElement) return [];
+        
+        const bindingElements = interactionsElement.querySelectorAll('binding');
+        if (!bindingElements || bindingElements.length === 0) return [];
+        
+        return Array.from(bindingElements).map(binding => ({
+            targetId: binding.getAttribute('targetId') || '',
+            event: binding.getAttribute('event') || '',
+            action: binding.getAttribute('action') || '',
+            parameter: binding.getAttribute('parameter') || ''
+        }));
+    }
+    
+    // Dodaj nową interakcję do komponentu
+    addInteraction(id) {
+        const componentData = this.componentManager.getComponent(id);
+        if (!componentData || !componentData.element) return;
+        
+        const svgElement = componentData.element;
+        const metadataElement = svgElement.querySelector('metadata component');
+        if (!metadataElement) return;
+        
+        let interactionsElement = metadataElement.querySelector('interactions');
+        if (!interactionsElement) {
+            interactionsElement = document.createElementNS(null, 'interactions');
+            metadataElement.appendChild(interactionsElement);
+        }
+        
+        // Utwórz nowy element binding
+        const bindingElement = document.createElementNS(null, 'binding');
+        bindingElement.setAttribute('targetId', '');
+        bindingElement.setAttribute('event', 'change');
+        bindingElement.setAttribute('action', '');
+        
+        interactionsElement.appendChild(bindingElement);
+        
+        // Odśwież panel właściwości
+        this.showProperties(svgElement);
+    }
+    
+    // Aktualizuj interakcję komponentu
+    updateInteraction(id, index, property, value) {
+        const componentData = this.componentManager.getComponent(id);
+        if (!componentData || !componentData.element) return;
+        
+        const svgElement = componentData.element;
+        const metadataElement = svgElement.querySelector('metadata component');
+        if (!metadataElement) return;
+        
+        const interactionsElement = metadataElement.querySelector('interactions');
+        if (!interactionsElement) return;
+        
+        const bindingElements = interactionsElement.querySelectorAll('binding');
+        if (!bindingElements || index >= bindingElements.length) return;
+        
+        const bindingElement = bindingElements[index];
+        bindingElement.setAttribute(property, value);
+        
+        // Odśwież panel właściwości
+        this.showProperties(svgElement);
+    }
+    
+    // Usuń interakcję z komponentu
+    removeInteraction(id, index) {
+        const componentData = this.componentManager.getComponent(id);
+        if (!componentData || !componentData.element) return;
+        
+        const svgElement = componentData.element;
+        const metadataElement = svgElement.querySelector('metadata component');
+        if (!metadataElement) return;
+        
+        const interactionsElement = metadataElement.querySelector('interactions');
+        if (!interactionsElement) return;
+        
+        const bindingElements = interactionsElement.querySelectorAll('binding');
+        if (!bindingElements || index >= bindingElements.length) return;
+        
+        const bindingElement = bindingElements[index];
+        interactionsElement.removeChild(bindingElement);
+        
+        // Odśwież panel właściwości
+        this.showProperties(svgElement);
+    }
+    
     // Aktualizuj metadane w SVG (używa atrybutów data-*)
     updateMetadataInSVG(svgElement, path, value) {
         // Pobierz obecne metadane z atrybutu data-metadata
@@ -344,5 +568,23 @@ window.removeComponent = function(id) {
 window.editMetadataRaw = function(id) {
     if (window.propertiesManager) {
         window.propertiesManager.editMetadataRaw(id);
+    }
+};
+
+window.addInteraction = function(id) {
+    if (window.propertiesManager) {
+        window.propertiesManager.addInteraction(id);
+    }
+};
+
+window.updateInteraction = function(id, index, property, value) {
+    if (window.propertiesManager) {
+        window.propertiesManager.updateInteraction(id, index, property, value);
+    }
+};
+
+window.removeInteraction = function(id, index) {
+    if (window.propertiesManager) {
+        window.propertiesManager.removeInteraction(id, index);
     }
 };

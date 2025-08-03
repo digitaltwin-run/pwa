@@ -1,102 +1,31 @@
 // Digital Twin IDE - Components Module
 
-// Lista komponentów – ścieżka, nazwa, opcjonalnie ikona (jeśli inna)
-export const COMPONENTS = [
-    { 
-        svg: "components/motor.svg", 
-        name: "Silnik", 
-        id: "motor",
-        defaultEvents: {
-            click: [
-                {
-                    type: 'http-request',
-                    params: {
-                        method: 'POST',
-                        url: 'http://localhost:3000/api/motor/toggle',
-                        body: { action: 'toggle' }
-                    }
-                }
-            ]
+// Import components from JSON file
+let COMPONENTS = [];
+
+// Function to load components asynchronously
+export async function loadComponents() {
+    try {
+        const response = await fetch('/components.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    },
-    { 
-        svg: "components/led.svg", 
-        name: "Diody LED", 
-        id: "led",
-        defaultState: { on: false, color: '#00ff00' }
-    },
-    { 
-        svg: "components/switch.svg", 
-        name: "Przełącznik", 
-        id: "switch",
-        defaultState: { on: false }
-    },
-    { 
-        svg: "components/relay.svg", 
-        name: "Przekaźnik", 
-        id: "relay",
-        defaultState: { active: false }
-    },
-    { 
-        svg: "components/button.svg", 
-        name: "Przycisk", 
-        id: "button",
-        defaultEvents: {
-            click: [
-                {
-                    type: 'http-request',
-                    params: {
-                        method: 'POST',
-                        url: 'http://localhost:3000/api/button/press',
-                        body: { pressed: true }
-                    }
-                }
-            ]
-        }
-    },
-    { 
-        svg: "components/knob.svg", 
-        name: "Pokrętło", 
-        id: "knob",
-        defaultState: { value: 0, min: 0, max: 100 }
-    },
-    { 
-        svg: "components/slider.svg", 
-        name: "Suwak", 
-        id: "slider",
-        defaultState: { value: 50, min: 0, max: 100 }
-    },
-    { 
-        svg: "components/gauge.svg", 
-        name: "Miernik", 
-        id: "gauge",
-        defaultState: { value: 0, min: 0, max: 100, unit: '°C' }
-    },
-    { 
-        svg: "components/counter.svg", 
-        name: "Licznik", 
-        id: "counter",
-        defaultState: { value: 0 }
-    },
-    { 
-        svg: "components/toggle.svg", 
-        name: "Przełącznik suwakowy", 
-        id: "toggle",
-        defaultState: { on: false }
-    },
-    { 
-        svg: "components/sensor.svg", 
-        name: "Czujnik temperatury", 
-        id: "temp-sensor",
-        defaultState: { value: 22.5, unit: '°C' }
-    },
-    { 
-        svg: "components/display.svg", 
-        name: "Wyświetlacz", 
-        id: "display",
-        defaultState: { text: 'Ready', value: 0 }
-    },
-];
+        const data = await response.json();
+        COMPONENTS = data.components || [];
+        console.log('Components loaded successfully:', COMPONENTS.length);
+        return COMPONENTS;
+    } catch (error) {
+        console.error('Error loading components:', error);
+        // Fallback to empty array if loading fails
+        COMPONENTS = [];
+        return [];
+    }
+}
+
+// Export COMPONENTS as a getter to ensure it's always up to date
+export function getComponents() {
+    return COMPONENTS;
+}
 
 export class ComponentManager {
     constructor() {
@@ -192,9 +121,16 @@ export class ComponentManager {
             return;
         }
 
-        componentLibrary.innerHTML = "";
-
-        for (const comp of COMPONENTS) {
+        componentLibrary.innerHTML = "<div class='loading'>Ładowanie komponentów...</div>";
+        
+        // Load components if not already loaded
+        if (COMPONENTS.length === 0) {
+            await loadComponents();
+        }
+        
+        const components = getComponents();
+        
+        for (const comp of components) {
             try {
                 const response = await fetch(comp.svg);
                 if (!response.ok) {
