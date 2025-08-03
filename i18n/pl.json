@@ -1,0 +1,127 @@
+{
+  "app": {
+    "title": "Digital Twin IDE",
+    "subtitle": "Zaawansowane środowisko projektowania komponentów",
+    "description": "Interaktywny edytor komponentów SVG z właściwościami i interakcjami w czasie rzeczywistym"
+  },
+  "ui": {
+    "menu": {
+      "file": "Plik",
+      "edit": "Edycja",
+      "view": "Widok",
+      "tools": "Narzędzia",
+      "help": "Pomoc"
+    },
+    "buttons": {
+      "add": "Dodaj",
+      "remove": "Usuń",
+      "save": "Zapisz",
+      "load": "Wczytaj",
+      "export": "Eksportuj",
+      "import": "Importuj",
+      "reset": "Resetuj",
+      "apply": "Zastosuj",
+      "cancel": "Anuluj",
+      "close": "Zamknij",
+      "ok": "OK"
+    },
+    "labels": {
+      "name": "Nazwa",
+      "type": "Typ",
+      "value": "Wartość",
+      "property": "Właściwość",
+      "parameter": "Parametr",
+      "interaction": "Interakcja",
+      "target": "Cel",
+      "event": "Zdarzenie",
+      "action": "Akcja"
+    }
+  },
+  "components": {
+    "led": "LED",
+    "button": "Przycisk",
+    "motor": "Silnik",
+    "sensor": "Czujnik",
+    "display": "Wyświetlacz",
+    "switch": "Przełącznik",
+    "slider": "Suwak",
+    "knob": "Pokrętło"
+  },
+  "properties": {
+    "title": "Właściwości",
+    "colors": "Kolory",
+    "scaling": "Skalowanie i powiększenie",
+    "interactions": "Interakcje",
+    "parameters": "Parametry",
+    "metadata": "Metadane",
+    "current_colors": "Aktualne kolory",
+    "quick_colors": "Szybkie kolory",
+    "custom_color": "Własny kolor",
+    "advanced": "Zaawansowane ustawienia",
+    "fill": "Wypełnienie",
+    "stroke": "Obramowanie",
+    "opacity": "Przezroczystość",
+    "reset_colors": "Resetuj kolory",
+    "quick_scale": "Szybkie skalowanie",
+    "precise_scale": "Precyzyjne skalowanie",
+    "current_scale": "Aktualne skalowanie",
+    "dimensions": "Wymiary komponentu",
+    "technical_info": "Informacje techniczne",
+    "reset_size": "Resetuj do oryginalnego rozmiaru"
+  },
+  "interactions": {
+    "title": "Interakcje",
+    "add_interaction": "Dodaj interakcję",
+    "remove_interaction": "Usuń",
+    "event": "Zdarzenie",
+    "action": "Akcja",
+    "target_component": "Komponent docelowy",
+    "property_variable": "Właściwość/Zmienna",
+    "value": "Wartość",
+    "select_component": "Wybierz komponent",
+    "select_property": "Wybierz właściwość",
+    "custom_value": "Własna wartość...",
+    "actions": {
+      "set": "Ustaw wartość",
+      "toggle": "Przełącz",
+      "increment": "Zwiększ",
+      "decrement": "Zmniejsz"
+    },
+    "events": {
+      "click": "Kliknięcie",
+      "doubleclick": "Podwójne kliknięcie",
+      "mousedown": "Naciśnięcie myszy",
+      "mouseup": "Zwolnienie myszy",
+      "mouseover": "Najechanie myszą",
+      "mouseout": "Opuszczenie myszą",
+      "focus": "Uzyskanie fokusu",
+      "blur": "Utrata fokusu",
+      "change": "Zmiana wartości",
+      "input": "Wprowadzanie tekstu",
+      "keydown": "Naciśnięcie klawisza",
+      "keyup": "Zwolnienie klawisza"
+    }
+  },
+  "values": {
+    "true": "Prawda",
+    "false": "Fałsz",
+    "colors": {
+      "red": "Czerwony",
+      "green": "Zielony",
+      "blue": "Niebieski",
+      "yellow": "Żółty",
+      "orange": "Pomarańczowy",
+      "purple": "Fioletowy",
+      "black": "Czarny",
+      "white": "Biały"
+    }
+  },
+  "messages": {
+    "loading": "Ładowanie...",
+    "saving": "Zapisywanie...",
+    "error": "Błąd",
+    "success": "Sukces",
+    "warning": "Ostrzeżenie",
+    "info": "Informacja"
+  }
+}

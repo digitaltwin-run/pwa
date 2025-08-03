@@ -1,4 +1,5 @@
 /* Digital Twin IDE - Main Styles */
+@import url('menu.css');
 
 * {
     box-sizing: border-box;

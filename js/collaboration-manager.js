@@ -538,10 +538,6 @@ export class CollaborationManager {
 // Global collaboration manager instance
 window.collaborationManager = new CollaborationManager();
 
-// Export for module usage
-export { CollaborationManager };
-export default CollaborationManager;
-
 console.log('🌐 Collaboration Manager loaded!');
 console.log('📋 Available collaboration commands:');
 console.log('  collaborationManager.enable() - Enable collaboration');

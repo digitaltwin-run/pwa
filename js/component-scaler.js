@@ -43,7 +43,7 @@ export class ComponentScaler {
     }
     
     /**
-     * Set scale for SVG component while preserving aspect ratio
+     * Set scale for SVG component while preserving aspect ratio and position
      * @param {string} componentId - Component ID
      * @param {number} scale - Scale factor (e.g., 1.5 = 150%)
      * @param {boolean} [updateMetadata=true] - Update component metadata
@@ -58,6 +58,35 @@ export class ComponentScaler {
         const svgElement = componentData.element;
         const clampedScale = this.clampScale(scale);
         
+        // Get component's current position and dimensions for center-based scaling
+        const bounds = this.getComponentBounds(svgElement);
+        const centerX = bounds.x + bounds.width / 2;
+        const centerY = bounds.y + bounds.height / 2;
+        
+        // Calculate the offset needed to keep component in same visual position
+        // When scaling from center, we need to adjust position to compensate
+        const currentScale = this.getCurrentScale(svgElement);
+        const scaleDiff = clampedScale - currentScale;
+        
+        // Get current position (x, y attributes)
+        const currentX = parseFloat(svgElement.getAttribute('x')) || 0;
+        const currentY = parseFloat(svgElement.getAttribute('y')) || 0;
+        
+        // Calculate position adjustment to keep component centered at same visual location
+        const adjustX = -(bounds.width * scaleDiff) / 2;
+        const adjustY = -(bounds.height * scaleDiff) / 2;
+        
+        // Update position to compensate for scaling offset
+        const newX = currentX + adjustX;
+        const newY = currentY + adjustY;
+        
+        // Apply position compensation
+        svgElement.setAttribute('x', newX.toString());
+        svgElement.setAttribute('y', newY.toString());
+        
+        // Set transform-origin to center for proper scaling
+        svgElement.style.transformOrigin = `${centerX}px ${centerY}px`;
+        
         // Get existing transform and preserve non-scale transformations
         const currentTransform = svgElement.getAttribute('transform') || '';
         let newTransform = this.updateTransformScale(currentTransform, clampedScale);
@@ -70,7 +99,7 @@ export class ComponentScaler {
             this.updateScaleMetadata(svgElement, clampedScale);
         }
         
-        console.log(`🔍 Scaled component ${componentId} to ${(clampedScale * 100).toFixed(0)}% (${clampedScale}x)`);
+        console.log(`🔍 Scaled component ${componentId} to ${(clampedScale * 100).toFixed(0)}% (${clampedScale}x) at position (${newX.toFixed(1)}, ${newY.toFixed(1)})`);
         
         // Trigger property panel update if component is selected
         if (window.propertiesManager) {
@@ -201,6 +230,31 @@ export class ComponentScaler {
         }
         
         this.setComponentScale(componentId, newScale);
+    }
+    
+    /**
+     * Get component bounds without scale adjustments (original bounds)
+     * @param {SVGElement} svgElement - The SVG element
+     * @returns {Object} Original bounds for positioning calculations
+     */
+    getComponentBounds(svgElement) {
+        try {
+            // Get the actual position from x, y attributes
+            const x = parseFloat(svgElement.getAttribute('x')) || 0;
+            const y = parseFloat(svgElement.getAttribute('y')) || 0;
+            const width = parseFloat(svgElement.getAttribute('width')) || 50;
+            const height = parseFloat(svgElement.getAttribute('height')) || 50;
+            
+            return {
+                x: x,
+                y: y,
+                width: width,
+                height: height
+            };
+        } catch (error) {
+            console.warn('Could not get component bounds:', error);
+            return { x: 0, y: 0, width: 50, height: 50 };
+        }
     }
     
     /**

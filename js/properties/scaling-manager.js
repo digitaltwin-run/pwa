@@ -33,73 +33,74 @@ export class ScalingManager {
         const bounds = getComponentBounds(componentData.element);
         
         return `
-            <div class="scale-section" style="margin-top: 15px; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px;">
-                <h6 style="margin: 0 0 10px 0; color: #333;">🔍 Zoom & Scale</h6>
+            <div class="scale-section" style="margin-top: 15px; padding: 15px; background: linear-gradient(145deg, #f8f9fa, #e9ecef); border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <h6 style="margin: 0 0 12px 0; color: #495057; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px;">🔍 <span>Skalowanie i powiększenie</span></h6>
                 
                 <!-- Quick Scale Buttons -->
-                <div style="margin-bottom: 10px;">
-                    <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Quick Scale:</label>
-                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                <div style="margin-bottom: 18px; background: #ffffff; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                    <label style="display: block; margin-bottom: 10px; font-size: 13px; color: #495057; font-weight: 500;">Szybkie skalowanie:</label>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
                         <button onclick="window.componentScaler?.scaleComponent('${componentData.id}', 0.5)" 
-                                style="padding: 4px 8px; font-size: 11px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 3px; cursor: pointer;">
+                                style="padding: 8px 12px; font-size: 12px; font-weight: 500; border: 2px solid #dee2e6; background: linear-gradient(145deg, #ffffff, #f8f9fa); border-radius: 6px; cursor: pointer; transition: all 0.2s ease; color: #495057;">
                             50%
                         </button>
                         <button onclick="window.componentScaler?.scaleComponent('${componentData.id}', 1.0)" 
-                                style="padding: 4px 8px; font-size: 11px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 3px; cursor: pointer;">
+                                style="padding: 8px 12px; font-size: 12px; font-weight: 500; border: 2px solid #007bff; background: linear-gradient(145deg, #007bff, #0056b3); border-radius: 6px; cursor: pointer; transition: all 0.2s ease; color: white; box-shadow: 0 2px 4px rgba(0,123,255,0.3);">
                             100%
                         </button>
                         <button onclick="window.componentScaler?.scaleComponent('${componentData.id}', 1.5)" 
-                                style="padding: 4px 8px; font-size: 11px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 3px; cursor: pointer;">
+                                style="padding: 8px 12px; font-size: 12px; font-weight: 500; border: 2px solid #dee2e6; background: linear-gradient(145deg, #ffffff, #f8f9fa); border-radius: 6px; cursor: pointer; transition: all 0.2s ease; color: #495057;">
                             150%
                         </button>
                         <button onclick="window.componentScaler?.scaleComponent('${componentData.id}', 2.0)" 
-                                style="padding: 4px 8px; font-size: 11px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 3px; cursor: pointer;">
+                                style="padding: 8px 12px; font-size: 12px; font-weight: 500; border: 2px solid #dee2e6; background: linear-gradient(145deg, #ffffff, #f8f9fa); border-radius: 6px; cursor: pointer; transition: all 0.2s ease; color: #495057;">
                             200%
                         </button>
                     </div>
                 </div>
                 
                 <!-- Scale Dropdown -->
-                <div style="margin-bottom: 10px;">
-                    <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Precise Scale:</label>
+                <div style="margin-bottom: 18px; background: #ffffff; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                    <label style="display: block; margin-bottom: 10px; font-size: 13px; color: #495057; font-weight: 500;">Precyzyjne skalowanie:</label>
                     <select onchange="window.componentScaler?.scaleComponent('${componentData.id}', this.value / 100)"
-                            style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px; font-size: 12px;">
+                            style="width: 100%; padding: 8px 12px; border: 2px solid #dee2e6; border-radius: 6px; font-size: 12px; background: #ffffff; color: #495057; cursor: pointer;">
                         ${generateZoomLevelOptions(scaleInfo.percentage)}
                     </select>
                 </div>
                 
                 <!-- Current Scale Info -->
-                <div style="margin-bottom: 10px;">
-                    <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Current Scale:</label>
-                    <div style="font-size: 11px; color: #555; background: #f8f9fa; padding: 4px; border-radius: 3px;">
+                <div style="margin-bottom: 18px; background: #ffffff; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                    <label style="display: block; margin-bottom: 10px; font-size: 13px; color: #495057; font-weight: 500;">Aktualne skalowanie:</label>
+                    <div style="font-size: 12px; color: #495057; background: #f8f9fa; padding: 8px; border-radius: 4px; font-family: monospace; text-align: center; border: 1px solid #e9ecef;">
                         📏 ${scaleInfo.displayText}
                     </div>
                 </div>
                 
                 <!-- Dimensions Info -->
-                <div style="margin-bottom: 10px;">
-                    <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Dimensions:</label>
-                    <div style="font-size: 11px; color: #555; background: #f8f9fa; padding: 4px; border-radius: 3px;">
-                        📐 Original: ${bounds.width.toFixed(0)}×${bounds.height.toFixed(0)}px<br>
-                        📐 Scaled: ${scaleInfo.scaledDimensions}<br>
-                        📍 Position: (${bounds.x.toFixed(0)}, ${bounds.y.toFixed(0)})
+                <div style="margin-bottom: 18px; background: #ffffff; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                    <label style="display: block; margin-bottom: 10px; font-size: 13px; color: #495057; font-weight: 500;">Wymiary komponentu:</label>
+                    <div style="font-size: 11px; color: #6c757d; background: #f8f9fa; padding: 8px; border-radius: 4px; border: 1px solid #e9ecef; line-height: 1.4;">
+                        📐 <strong>Oryginał:</strong> ${bounds.width.toFixed(0)}×${bounds.height.toFixed(0)}px<br>
+                        📐 <strong>Przeskalowany:</strong> ${scaleInfo.scaledDimensions}<br>
+                        📍 <strong>Pozycja:</strong> (${bounds.x.toFixed(0)}, ${bounds.y.toFixed(0)})
                     </div>
                 </div>
                 
                 <!-- Reset Button -->
-                <div style="margin-top: 10px;">
+                <div style="margin-bottom: 15px;">
                     <button onclick="window.componentScaler?.resetComponentScale('${componentData.id}')"
-                            style="width: 100%; padding: 6px; background: #6c757d; color: white; border: none; border-radius: 3px; font-size: 12px; cursor: pointer;">
-                        🔄 Reset to Original Size
+                            style="width: 100%; padding: 10px; background: linear-gradient(145deg, #6c757d, #5a6268); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; box-shadow: 0 2px 4px rgba(108,117,125,0.3); transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        🔄 <span>Resetuj do oryginalnego rozmiaru</span>
                     </button>
                 </div>
                 
                 <!-- Technical Info -->
-                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e0e0e0;">
-                    <small style="color: #666; font-size: 10px;">
-                        💡 Scale Factor: ${scaleInfo.scale.toFixed(2)}x<br>
-                        SVG transform: scale(${scaleInfo.scale.toFixed(2)})
-                    </small>
+                <div style="background: #ffffff; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                    <label style="display: block; margin-bottom: 8px; font-size: 13px; color: #495057; font-weight: 500;">Informacje techniczne:</label>
+                    <div style="font-size: 11px; color: #6c757d; background: #f8f9fa; padding: 8px; border-radius: 4px; border: 1px solid #e9ecef; line-height: 1.4; font-family: monospace;">
+                        💡 <strong>Współczynnik skalowania:</strong> ${scaleInfo.scale.toFixed(2)}x<br>
+                        🔧 <strong>Transform SVG:</strong> scale(${scaleInfo.scale.toFixed(2)})
+                    </div>
                 </div>
             </div>
         `;

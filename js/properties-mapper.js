@@ -153,28 +153,56 @@ export class PropertiesMapper {
         const position = this.extractPosition(svgElement);
         // Wyciągnij zdarzenia
         const events = this.getAvailableEvents(svgElement);
-        // Wyciągnij parametry z dataset oraz atrybutów
+        // Wyciągnij parametry z metadanych i atrybutów
         const parameters = {};
-        // Dodaj wszystkie data-* jako parametry
+        
+        // NAJPIERW: Wyciągnij parametry z data-metadata (JSON)
+        const metadataAttr = svgElement.getAttribute('data-metadata');
+        if (metadataAttr) {
+            try {
+                const metadata = JSON.parse(metadataAttr);
+                if (metadata.parameters) {
+                    // Dodaj wszystkie parametry z metadanych jako główne parametry
+                    Object.entries(metadata.parameters).forEach(([key, value]) => {
+                        parameters[key] = {
+                            value: value,
+                            type: this.detectParameterType(key, value),
+                            writable: true,
+                            readable: true,
+                            source: 'metadata'
+                        };
+                    });
+                }
+            } catch (error) {
+                console.warn(`[PropertiesMapper] Failed to parse metadata for ${componentId}:`, error);
+            }
+        }
+        
+        // POTEM: Dodaj wszystkie data-* jako dodatkowe parametry (ale nie nadpisuj metadanych)
         Array.from(svgElement.attributes).forEach(attr => {
-            if (attr.name.startsWith('data-') && attr.name !== 'data-id') {
+            if (attr.name.startsWith('data-') && attr.name !== 'data-id' && attr.name !== 'data-metadata') {
                 const key = attr.name.replace(/^data-/, '');
-                parameters[key] = {
-                    value: attr.value,
-                    type: this.detectParameterType(key, attr.value),
-                    writable: true,
-                    readable: true
-                };
+                if (!parameters[key]) {
+                    parameters[key] = {
+                        value: attr.value,
+                        type: this.detectParameterType(key, attr.value),
+                        writable: true,
+                        readable: true,
+                        source: 'attribute'
+                    };
+                }
             }
         });
-        // Dodaj atrybuty SVG jako parametry (jeśli nie są data-)
+        
+        // NA KOŃCU: Dodaj atrybuty SVG jako parametry (najniższy priorytet)
         Object.entries(svgAttributes).forEach(([key, value]) => {
             if (!parameters[key]) {
                 parameters[key] = {
                     value: value,
                     type: this.detectParameterType(key, value),
                     writable: true,
-                    readable: true
+                    readable: true,
+                    source: 'svg'
                 };
             }
         });

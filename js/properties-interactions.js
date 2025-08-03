@@ -58,7 +58,7 @@ export class InteractionsManager {
             // Wartość
             html += `<label>Wartość:</label>`;
             const propertyType = this.getPropertyType(interaction.target, interaction.property);
-            html += this.generateValueInput(componentData.id, index, interaction.value || '', propertyType);
+            html += this.generateValueInput(componentData.id, index, interaction.value || '', propertyType, interaction.target, interaction.property);
             html += `<br>`;
 
             // Przycisk usuwania
@@ -174,18 +174,43 @@ export class InteractionsManager {
             return html;
         }
         
-        // Pobierz dostępne zmienne dla danego typu akcji
-        const availableVariables = this.propertiesMapper.getVariablesForActionType(actionType || 'set');
+        // Pobierz mapowane właściwości komponentu
+        const mappedProperties = this.propertiesMapper.mappedProperties;
+        const componentData = mappedProperties.get(targetComponentId);
         
-        // Filtruj zmienne dla wybranego komponentu
-        const componentVariables = availableVariables.filter(variable => 
-            variable.componentId === targetComponentId
-        );
+        if (!componentData || !componentData.parameters) {
+            console.warn(`[InteractionsManager] No parameters found for component ${targetComponentId}`);
+            return html;
+        }
         
-        componentVariables.forEach(variable => {
-            const selected = variable.parameter === selectedProperty ? 'selected' : '';
-            const typeInfo = variable.type ? ` (${variable.type})` : '';
-            html += `<option value="${variable.parameter}" ${selected}>${variable.parameter}${typeInfo}</option>`;
+        // Generuj opcje na podstawie parametrów komponentu
+        Object.entries(componentData.parameters).forEach(([paramName, paramData]) => {
+            // Filtruj parametry na podstawie typu akcji
+            let shouldInclude = false;
+            
+            switch (actionType) {
+                case 'set':
+                    shouldInclude = paramData.writable;
+                    break;
+                case 'get':
+                case 'read':
+                    shouldInclude = paramData.readable;
+                    break;
+                case 'toggle':
+                    shouldInclude = paramData.writable && (paramData.type === 'boolean' || paramData.value === true || paramData.value === false);
+                    break;
+                default:
+                    shouldInclude = paramData.writable;
+            }
+            
+            if (shouldInclude) {
+                const selected = paramName === selectedProperty ? 'selected' : '';
+                const typeInfo = paramData.type ? ` (${paramData.type})` : '';
+                const sourceInfo = paramData.source ? ` [${paramData.source}]` : '';
+                const currentValue = paramData.value !== undefined ? ` = ${paramData.value}` : '';
+                
+                html += `<option value="${paramName}" ${selected}>${paramName}${typeInfo}${currentValue}${sourceInfo}</option>`;
+            }
         });
         
         return html;
@@ -218,27 +243,124 @@ export class InteractionsManager {
     }
     
     // Generuj odpowiednie pole wprowadzania wartości na podstawie typu właściwości
-    generateValueInput(componentId, index, currentValue, propertyType) {
+    generateValueInput(componentId, index, currentValue, propertyType, targetComponentId, propertyName) {
         const onChangeHandler = `updateInteraction('${componentId}', ${index}, 'value', this.value)`;
         
         switch (propertyType) {
             case 'boolean':
-                const checked = currentValue === 'true' || currentValue === true ? 'checked' : '';
-                return `<input type="checkbox" ${checked} onchange="updateInteraction('${componentId}', ${index}, 'value', this.checked.toString())">`;
+                // Użyj listy rozwijanej dla wartości boolean
+                const booleanOptions = [
+                    { value: 'true', label: 'Prawda (true)' },
+                    { value: 'false', label: 'Fałsz (false)' }
+                ];
+                let booleanHtml = `<select onchange="${onChangeHandler}" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;">`;
+                booleanOptions.forEach(option => {
+                    const selected = (currentValue == option.value) ? 'selected' : '';
+                    booleanHtml += `<option value="${option.value}" ${selected}>${option.label}</option>`;
+                });
+                booleanHtml += `</select>`;
+                return booleanHtml;
                 
             case 'number':
-                return `<input type="number" value="${currentValue}" onchange="${onChangeHandler}" step="any">`;
+                // Lista rozwijana z predefiniowanymi wartościami liczbowymi plus pole custom
+                let numberHtml = `<div style="display: flex; gap: 5px; align-items: center;">`;
+                numberHtml += `<select onchange="if(this.value === 'custom') { this.nextElementSibling.style.display = 'block'; this.nextElementSibling.focus(); } else { ${onChangeHandler.replace('this.value', 'this.value')}; this.nextElementSibling.style.display = 'none'; }" style="flex: 1; padding: 4px; border: 1px solid #ddd; border-radius: 3px;">`;
+                const numberPresets = [0, 1, 10, 50, 100, 200, 500, 1000];
+                numberHtml += `<option value="custom">Własna wartość...</option>`;
+                numberPresets.forEach(preset => {
+                    const selected = (currentValue == preset) ? 'selected' : '';
+                    numberHtml += `<option value="${preset}" ${selected}>${preset}</option>`;
+                });
+                numberHtml += `</select>`;
+                numberHtml += `<input type="number" value="${currentValue || 0}" onchange="${onChangeHandler}" step="any" style="width: 80px; padding: 4px; border: 1px solid #ddd; border-radius: 3px; display: ${numberPresets.includes(parseInt(currentValue)) ? 'none' : 'block'};">`;
+                numberHtml += `</div>`;
+                return numberHtml;
                 
             case 'color':
+                // Lista predefiniowanych kolorów plus custom picker
+                const colorPresets = [
+                    { value: '#ff0000', label: 'Czerwony' },
+                    { value: '#00ff00', label: 'Zielony' },
+                    { value: '#0000ff', label: 'Niebieski' },
+                    { value: '#ffff00', label: 'Żółty' },
+                    { value: '#ff8000', label: 'Pomarańczowy' },
+                    { value: '#800080', label: 'Fioletowy' },
+                    { value: '#000000', label: 'Czarny' },
+                    { value: '#ffffff', label: 'Biały' }
+                ];
+                let colorHtml = `<div style="display: flex; gap: 5px; align-items: center;">`;
+                colorHtml += `<select onchange="if(this.value === 'custom') { this.nextElementSibling.style.display = 'block'; } else { ${onChangeHandler.replace('this.value', 'this.value')}; this.nextElementSibling.style.display = 'none'; }" style="flex: 1; padding: 4px; border: 1px solid #ddd; border-radius: 3px;">`;
+                colorHtml += `<option value="custom">Własny kolor...</option>`;
+                colorPresets.forEach(preset => {
+                    const selected = (currentValue === preset.value) ? 'selected' : '';
+                    colorHtml += `<option value="${preset.value}" ${selected}>${preset.label}</option>`;
+                });
+                colorHtml += `</select>`;
                 const colorValue = currentValue || '#ffffff';
-                return `<input type="color" value="${colorValue}" onchange="${onChangeHandler}">`;
+                const isCustomColor = !colorPresets.some(p => p.value === currentValue);
+                colorHtml += `<input type="color" value="${colorValue}" onchange="${onChangeHandler}" style="width: 40px; height: 30px; padding: 0; border: 1px solid #ddd; border-radius: 3px; display: ${isCustomColor ? 'block' : 'none'};">`;
+                colorHtml += `</div>`;
+                return colorHtml;
                 
             case 'range':
-                return `<input type="range" value="${currentValue || 50}" min="0" max="100" onchange="${onChangeHandler}">`;
+                // Slider z predefiniowanymi wartościami
+                let rangeHtml = `<div style="display: flex; gap: 5px; align-items: center;">`;
+                rangeHtml += `<select onchange="if(this.value === 'custom') { this.nextElementSibling.style.display = 'block'; } else { ${onChangeHandler.replace('this.value', 'this.value')}; this.nextElementSibling.style.display = 'none'; }" style="flex: 1; padding: 4px; border: 1px solid #ddd; border-radius: 3px;">`;
+                const rangePresets = [0, 25, 50, 75, 100];
+                rangeHtml += `<option value="custom">Własna wartość...</option>`;
+                rangePresets.forEach(preset => {
+                    const selected = (currentValue == preset) ? 'selected' : '';
+                    rangeHtml += `<option value="${preset}" ${selected}>${preset}%</option>`;
+                });
+                rangeHtml += `</select>`;
+                const isCustomRange = !rangePresets.includes(parseInt(currentValue));
+                rangeHtml += `<input type="range" value="${currentValue || 50}" min="0" max="100" onchange="${onChangeHandler}" style="width: 100px; display: ${isCustomRange ? 'block' : 'none'};">`;
+                rangeHtml += `</div>`;
+                return rangeHtml;
                 
             default:
-                return `<input type="text" value="${currentValue}" onchange="${onChangeHandler}">`;
+                // Dla tekstu, sprawdź czy są predefiniowane wartości na podstawie nazwy parametru
+                const textPresets = this.getTextPresetsForParameter(propertyName, targetComponentId);
+                if (textPresets.length > 0) {
+                    let textHtml = `<select onchange="if(this.value === 'custom') { this.nextElementSibling.style.display = 'block'; this.nextElementSibling.focus(); } else { ${onChangeHandler.replace('this.value', 'this.value')}; this.nextElementSibling.style.display = 'none'; }" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;">`;
+                    textHtml += `<option value="custom">Własna wartość...</option>`;
+                    textPresets.forEach(preset => {
+                        const selected = (currentValue === preset) ? 'selected' : '';
+                        textHtml += `<option value="${preset}" ${selected}>${preset}</option>`;
+                    });
+                    textHtml += `</select>`;
+                    const isCustomText = !textPresets.includes(currentValue);
+                    textHtml += `<input type="text" value="${currentValue || ''}" onchange="${onChangeHandler}" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px; margin-top: 5px; display: ${isCustomText ? 'block' : 'none'};">`;
+                    return textHtml;
+                } else {
+                    return `<input type="text" value="${currentValue || ''}" onchange="${onChangeHandler}" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;">`;
+                }
         }
+    }
+    
+    // Pobierz predefiniowane wartości tekstowe dla konkretnego parametru
+    getTextPresetsForParameter(parameterName, componentId) {
+        // Predefiniowane wartości na podstawie nazwy parametru
+        const commonPresets = {
+            'label': ['LED', 'Button', 'Motor', 'Sensor', 'Display'],
+            'state': ['on', 'off', 'active', 'inactive', 'running', 'stopped'],
+            'mode': ['auto', 'manual', 'test', 'debug'],
+            'status': ['ok', 'error', 'warning', 'info'],
+            'direction': ['up', 'down', 'left', 'right', 'clockwise', 'counterclockwise'],
+            'speed': ['slow', 'medium', 'fast', 'stop'],
+            'size': ['small', 'medium', 'large', 'xl'],
+            'position': ['top', 'bottom', 'left', 'right', 'center']
+        };
+        
+        // Sprawdź czy nazwa parametru pasuje do któregoś z predefiniowanych
+        const lowerParamName = parameterName?.toLowerCase() || '';
+        for (const [key, values] of Object.entries(commonPresets)) {
+            if (lowerParamName.includes(key)) {
+                return values;
+            }
+        }
+        
+        return [];
     }
 
     // Pobierz interakcje z metadanych komponentu

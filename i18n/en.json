@@ -1,0 +1,127 @@
+{
+  "app": {
+    "title": "Digital Twin IDE",
+    "subtitle": "Advanced Component Design Environment",
+    "description": "Interactive SVG component editor with real-time properties and interactions"
+  },
+  "ui": {
+    "menu": {
+      "file": "File",
+      "edit": "Edit",
+      "view": "View",
+      "tools": "Tools",
+      "help": "Help"
+    },
+    "buttons": {
+      "add": "Add",
+      "remove": "Remove",
+      "save": "Save",
+      "load": "Load",
+      "export": "Export",
+      "import": "Import",
+      "reset": "Reset",
+      "apply": "Apply",
+      "cancel": "Cancel",
+      "close": "Close",
+      "ok": "OK"
+    },
+    "labels": {
+      "name": "Name",
+      "type": "Type",
+      "value": "Value",
+      "property": "Property",
+      "parameter": "Parameter",
+      "interaction": "Interaction",
+      "target": "Target",
+      "event": "Event",
+      "action": "Action"
+    }
+  },
+  "components": {
+    "led": "LED",
+    "button": "Button",
+    "motor": "Motor",
+    "sensor": "Sensor",
+    "display": "Display",
+    "switch": "Switch",
+    "slider": "Slider",
+    "knob": "Knob"
+  },
+  "properties": {
+    "title": "Properties",
+    "colors": "Colors",
+    "scaling": "Scaling & Zoom",
+    "interactions": "Interactions",
+    "parameters": "Parameters",
+    "metadata": "Metadata",
+    "current_colors": "Current Colors",
+    "quick_colors": "Quick Colors",
+    "custom_color": "Custom Color",
+    "advanced": "Advanced",
+    "fill": "Fill",
+    "stroke": "Stroke",
+    "opacity": "Opacity",
+    "reset_colors": "Reset Colors",
+    "quick_scale": "Quick Scale",
+    "precise_scale": "Precise Scale",
+    "current_scale": "Current Scale",
+    "dimensions": "Dimensions",
+    "technical_info": "Technical Info",
+    "reset_size": "Reset to Original Size"
+  },
+  "interactions": {
+    "title": "Interactions",
+    "add_interaction": "Add Interaction",
+    "remove_interaction": "Remove",
+    "event": "Event",
+    "action": "Action",
+    "target_component": "Target Component",
+    "property_variable": "Property/Variable",
+    "value": "Value",
+    "select_component": "Select component",
+    "select_property": "Select property",
+    "custom_value": "Custom value...",
+    "actions": {
+      "set": "Set value",
+      "toggle": "Toggle",
+      "increment": "Increment",
+      "decrement": "Decrement"
+    },
+    "events": {
+      "click": "Click",
+      "doubleclick": "Double click",
+      "mousedown": "Mouse down",
+      "mouseup": "Mouse up",
+      "mouseover": "Mouse over",
+      "mouseout": "Mouse out",
+      "focus": "Focus",
+      "blur": "Blur",
+      "change": "Change",
+      "input": "Input",
+      "keydown": "Key down",
+      "keyup": "Key up"
+    }
+  },
+  "values": {
+    "true": "True",
+    "false": "False",
+    "colors": {
+      "red": "Red",
+      "green": "Green",
+      "blue": "Blue",
+      "yellow": "Yellow",
+      "orange": "Orange",
+      "purple": "Purple",
+      "black": "Black",
+      "white": "White"
+    }
+  },
+  "messages": {
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information"
+  }
+}
