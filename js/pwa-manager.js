@@ -31,7 +31,13 @@ class PWAManager {
         }
 
         try {
-            await this.registerServiceWorker();
+            // Only register Service Worker if enabled in config
+            if (pwaConfig.enableServiceWorker) {
+                console.log('🔧 Service Worker enabled in config');
+                await this.registerServiceWorker();
+            } else {
+                console.log('ℹ️ Service Worker disabled in config - skipping registration');
+            }
             
             // Only initialize push notifications if enabled in config
             if (pwaConfig.enablePushNotifications) {

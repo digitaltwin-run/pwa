@@ -6,6 +6,12 @@ import { InteractionsManager } from './properties-interactions.js';
 import { PropertiesMapper } from './properties-mapper.js';
 import { getComponentProperties } from './component-properties.js';
 
+// Import new modular components
+import { ColorsManager } from './properties/colors-manager.js';
+import { ScalingManager } from './properties/scaling-manager.js';
+import { PropertyUIGenerator } from './properties/property-ui-generator.js';
+import { normalizeColorValue, detectPropertyType, parseComponentMetadata, getComponentBounds } from './utils/property-utils.js';
+
 export class PropertiesManager {
     constructor(componentManager) {
         this.componentManager = componentManager;
@@ -15,6 +21,15 @@ export class PropertiesManager {
         this.metadataManager = new MetadataManager(componentManager);
         this.interactionsManager = new InteractionsManager(componentManager);
         this.propertiesMapper = new PropertiesMapper(componentManager);
+        
+        // Initialize new modular components
+        this.colorsManager = new ColorsManager();
+        this.scalingManager = new ScalingManager();
+        this.propertyUIGenerator = new PropertyUIGenerator();
+        
+        // Make managers available globally for UI interactions
+        window.colorsManager = this.colorsManager;
+        window.scalingManager = this.scalingManager;
         
         // Uruchom automatyczne odświeżanie mapowania
         this.propertiesMapper.setupAutoRefresh();
@@ -385,7 +400,8 @@ export class PropertiesManager {
 
     // Generuj sekcję właściwości komponentu
     generateComponentProperties(componentData) {
-        return this.colorManager.generateColorsSection(componentData.element);
+        // Use the new modular colorsManager instead of the old colorManager
+        return this.colorsManager.generateColorsSection(componentData.element);
     }
     
     // Generuj sekcję zoom/scale z zachowaniem proporcji

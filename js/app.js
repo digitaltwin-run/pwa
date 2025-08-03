@@ -13,7 +13,8 @@ import { ConnectionManager } from './connections.js';
 import { ExportManager } from './export.js';
 import { ActionManager } from './actions.js';
 import { PWAManager } from './pwa-manager.js';
-import { CollaborationManager } from './collaboration-manager-patched.js';
+import pwaConfig from '../config/pwa-config.js';
+import { CollaborationManager } from './collaboration-manager.js';
 import { I18nManager } from './i18n-manager.js';
 import { ComponentScaler } from './component-scaler.js';
 // Conditional imports for development tools
@@ -383,6 +384,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Register Service Worker for PWA in production
 const registerServiceWorker = async () => {
     if ('serviceWorker' in navigator) {
+        // Check if Service Worker is enabled in config
+        if (!pwaConfig.enableServiceWorker) {
+            console.log('ℹ️ Service Worker disabled in config - skipping registration');
+            return;
+        }
+        
         try {
             // Check if we're in a secure context (https or localhost)
             const isLocalhost = window.location.hostname === 'localhost' || 

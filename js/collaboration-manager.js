@@ -3,7 +3,18 @@
  * WebSocket/WebRTC implementation for multi-user editing
  */
 
-class CollaborationManager {
+// Browser-compatible configuration (no process.env)
+const collaborationConfig = {
+    NODE_ENV: 'development',
+    COLLABORATION_SERVER: 'http://localhost:3001'
+};
+
+// Make config available globally for compatibility
+if (typeof window !== 'undefined') {
+    window.collaborationConfig = collaborationConfig;
+}
+
+export class CollaborationManager {
     constructor() {
         this.isEnabled = false;
         this.websocket = null;
@@ -13,6 +24,11 @@ class CollaborationManager {
         this.cursors = new Map();
         this.roomId = null;
         this.isHost = false;
+        
+        // Ensure collaborationConfig is available
+        if (typeof window === 'undefined' || !window.collaborationConfig) {
+            window.collaborationConfig = collaborationConfig;
+        }
         
         // Configuration
         this.config = {
