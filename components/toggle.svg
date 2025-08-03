@@ -3,6 +3,17 @@
 
     <title>Toggle Button Component</title>
     <desc>Toggle button with sliding animation</desc>
+    
+    <metadata>
+        <component id="toggle-001" name="Toggle Button" type="toggle">
+            <parameters>
+                <label>Toggle</label>
+                <state>false</state>
+                <color>#2ecc71</color>
+                <isActive>true</isActive>
+            </parameters>
+        </component>
+    </metadata>
 
 
     <!-- Toggle background -->

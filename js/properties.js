@@ -55,55 +55,75 @@ export class PropertiesManager {
 
             for (const [key, param] of Object.entries(componentData.metadata.parameters)) {
                 const label = this.componentManager.formatLabel(key);
-                const value = param.value !== undefined ? param.value : param.default || '';
-                const type = param.type || 'text';
+                // Fix: param is the direct value from XML, not an object with .value property
+                const value = param !== undefined ? param : '';
+                
+                // Determine input type based on value type and key name
+                let type = 'text';
+                if (key.toLowerCase().includes('color')) {
+                    type = 'color';
+                } else if (typeof param === 'boolean') {
+                    type = 'checkbox';
+                } else if (typeof param === 'number') {
+                    type = 'number';
+                }
 
                 html += `<label>${label}:</label>`;
 
                 if (type === 'color') {
                     html += `<input type="color" value="${value}" onchange="updateParam('${id}', '${key}', this.value, '${type}')">`;
-                } else if (type === 'range') {
-                    const min = param.min || 0;
-                    const max = param.max || 100;
-                    html += `<input type="range" min="${min}" max="${max}" value="${value}" onchange="updateParam('${id}', '${key}', this.value, '${type}')">`;
-                    html += `<span>${value}</span>`;
-                } else if (type === 'select') {
-                    html += `<select onchange="updateParam('${id}', '${key}', this.value, '${type}')">`;
-                    if (param.options) {
-                        param.options.forEach(option => {
-                            const selected = option === value ? 'selected' : '';
-                            html += `<option value="${option}" ${selected}>${option}</option>`;
-                        });
-                    }
-                    html += '</select>';
+                } else if (type === 'checkbox') {
+                    const checked = value ? 'checked' : '';
+                    html += `<input type="checkbox" ${checked} onchange="updateParam('${id}', '${key}', this.checked, 'boolean')">`;
+                } else if (type === 'number') {
+                    html += `<input type="number" value="${value}" onchange="updateParam('${id}', '${key}', this.value, 'number')">`;
                 } else {
-                    html += `<input type="${type}" value="${value}" onchange="updateParam('${id}', '${key}', this.value, '${type}')">`;
+                    html += `<input type="text" value="${value}" onchange="updateParam('${id}', '${key}', this.value, 'text')">`;
                 }
             }
         }
 
         // Dodaj parametr
         html += `
-            <button onclick="addParameter('${id}')" style="background: #27ae60; margin-top: 10px;">
+            <button id="add-param-btn-${id}" class="btn btn-success" style="margin-top: 10px;">
                 ➕ Dodaj parametr
             </button>
         `;
 
         // Usuń komponent
         html += `
-            <button onclick="removeComponent('${id}')" style="background: #e74c3c; margin-top: 5px;">
+            <button id="remove-component-btn-${id}" class="btn btn-danger" style="margin-top: 5px;">
                 🗑️ Usuń komponent
             </button>
         `;
 
         // Edytuj metadane (zaawansowane)
         html += `
-            <button onclick="editMetadataRaw('${id}')" style="background: #f39c12; margin-top: 5px;">
+            <button id="edit-metadata-btn-${id}" class="btn btn-warning" style="margin-top: 5px;">
                 ⚙️ Edytuj metadane
             </button>
         `;
 
         propertiesPanel.innerHTML = html;
+        
+        // Dodaj event listenery po dodaniu HTML
+        setTimeout(() => {
+            const addParamBtn = document.getElementById(`add-param-btn-${id}`);
+            const removeBtn = document.getElementById(`remove-component-btn-${id}`);
+            const editBtn = document.getElementById(`edit-metadata-btn-${id}`);
+            
+            if (addParamBtn) {
+                addParamBtn.addEventListener('click', () => this.addParameter(id));
+            }
+            
+            if (removeBtn) {
+                removeBtn.addEventListener('click', () => this.removeComponent(id));
+            }
+            
+            if (editBtn) {
+                editBtn.addEventListener('click', () => this.editMetadataRaw(id));
+            }
+        }, 0);
     }
 
     clearProperties() {
@@ -118,23 +138,26 @@ export class PropertiesManager {
         const componentData = this.componentManager.getComponent(id);
         if (!componentData) return;
 
-        // Aktualizuj w metadanych
+        // Convert value to appropriate type
+        let convertedValue = value;
+        if (type === 'boolean') {
+            convertedValue = value === true || value === 'true';
+        } else if (type === 'number') {
+            convertedValue = parseFloat(value) || 0;
+        }
+
+        // Aktualizuj w metadanych (direct value, not .value property)
         if (!componentData.metadata.parameters) {
             componentData.metadata.parameters = {};
         }
 
-        if (!componentData.metadata.parameters[paramKey]) {
-            componentData.metadata.parameters[paramKey] = {};
-        }
+        componentData.metadata.parameters[paramKey] = convertedValue;
 
-        componentData.metadata.parameters[paramKey].value = value;
-        componentData.metadata.parameters[paramKey].type = type;
-
-        // Aktualizuj metadane w SVG
-        this.updateMetadataInSVG(componentData.element, `parameters.${paramKey}.value`, value);
+        // Aktualizuj metadane w SVG (direct path)
+        this.updateMetadataInSVG(componentData.element, `parameters.${paramKey}`, convertedValue);
 
         // Zastosuj wizualnie
-        this.applyParameterToSVG(componentData.element, paramKey, value);
+        this.applyParameterToSVG(componentData.element, paramKey, convertedValue);
 
         // Odśwież panel właściwości
         this.showProperties(componentData.element);
@@ -192,34 +215,45 @@ export class PropertiesManager {
         // Pobierz obecne metadane z atrybutu data-metadata
         let metadata;
         try {
-            // Pobierz metadane z elementu SVG
             const metadataStr = svgElement.getAttribute('data-metadata');
-            metadata = metadataStr ? JSON.parse(metadataStr) : { parameters: {} };
+            if (metadataStr) {
+                metadata = JSON.parse(metadataStr);
+            } else {
+                // Fallback do XML metadata
+                metadata = this.componentManager.parseXMLMetadata(svgElement);
+            }
         } catch (e) {
-            console.warn("Błąd parsowania metadanych w updateMetadataInSVG:", e);
+            console.warn('Error parsing metadata:', e);
             metadata = { parameters: {} };
         }
 
-        // Ustaw wartość w ścieżce
+        // Zaktualizuj wartość w metadanych
+        this.setNestedProperty(metadata, path, value);
+
+        // Zapisz zaktualizowane metadane używając helper function
+        this.componentManager.updateXMLMetadata(svgElement, metadata);
+
+        // Zaktualizuj cache komponentu w menedżerze
+        const componentId = svgElement.getAttribute('data-id');
+        const componentData = this.componentManager.getComponent(componentId);
+        if (componentData) {
+            componentData.metadata = metadata;
+        }
+    }
+
+    // Helper function to set nested property using dot notation
+    setNestedProperty(obj, path, value) {
         const keys = path.split('.');
-        let current = metadata;
+        let current = obj;
+        
         for (let i = 0; i < keys.length - 1; i++) {
             if (!current[keys[i]]) {
                 current[keys[i]] = {};
             }
             current = current[keys[i]];
         }
-        current[keys[keys.length - 1]] = value;
-
-        // Zapisz zaktualizowane metadane w atrybucie (jedyne źródło prawdy)
-        svgElement.setAttribute('data-metadata', JSON.stringify(metadata));
         
-        // Zaktualizuj też dane w componentManager
-        const componentId = svgElement.getAttribute('data-id');
-        const componentData = this.componentManager.getComponent(componentId);
-        if (componentData) {
-            componentData.metadata = metadata;
-        }
+        current[keys[keys.length - 1]] = value;
     }
 
     // Funkcja do aplikowania parametrów do elementów SVG

@@ -155,23 +155,25 @@ export class SimulationManager {
 
     // Symuluj wyświetlacz
     simulateDisplay(componentData) {
-        const { metadata, id } = componentData;
-        
-        if (!metadata.simulation) {
-            metadata.simulation = {};
-        }
+        const { element, metadata, id } = componentData;
+        if (!element || !metadata) return;
 
-        // Generuj tekst do wyświetlenia
-        const messages = [
-            'System OK',
-            'Temperature: Normal',
-            'Pressure: 1.2 bar',
-            'Flow: 45 L/min',
-            'Status: Active'
-        ];
+        // Symuluj temperaturę sensora (waha się między 20-30°C)
+        const temperature = 20 + Math.random() * 10;
         
-        const message = messages[Math.floor(Math.random() * messages.length)];
-        metadata.simulation.message = message;
+        // Zaktualizuj tekst w elemencie SVG
+        const valueElement = element.querySelector('#value, text[id="value"]');
+        if (valueElement) {
+            valueElement.textContent = `${temperature.toFixed(1)}°C`;
+        }
+        
+        // Zaktualizuj metadane z nową temperaturą
+        const updatedMetadata = { ...metadata };
+        if (!updatedMetadata.parameters) updatedMetadata.parameters = {};
+        updatedMetadata.parameters.value = temperature.toFixed(1);
+        
+        // Użyj funkcji z componentManager do aktualizacji metadanych
+        this.componentManager.updateXMLMetadata(element, updatedMetadata);
         metadata.simulation.lastUpdate = new Date().toLocaleTimeString();
 
         // Aktualizuj tekst w SVG

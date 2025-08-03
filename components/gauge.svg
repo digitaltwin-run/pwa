@@ -4,21 +4,20 @@
     <title>Gauge Component</title>
     <desc>Interactive gauge/meter component with animated needle movement for digital twin</desc>
 
-    <script type="application/json" class="metadata">{
-        {
-        "id": "gauge-001",
-        "name": "Analog Gauge",
-        "type": "gauge",
-        "parameters": {
-            "label": "Gauge",
-            "value": 50,
-            "min": 0,
-            "max": 100,
-            "color": "#e74c3c",
-            "units": "%",
-            "isActive": true
-            }
-        }</script>
+    <metadata>
+        <component id="gauge-001" name="Analog Gauge" type="gauge">
+            <parameters>
+                <label>Gauge</label>
+                <value>50</value>
+                <min>0</min>
+                <max>100</max>
+                <color>#e74c3c</color>
+                <units>%</units>
+                <isActive>true</isActive>
+            </parameters>
+        </component>
+    </metadata>
+
 
     <!-- Background -->
     <circle cx="30" cy="30" r="28" fill="#34495e" stroke="#2c3e50" stroke-width="2"/>

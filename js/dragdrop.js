@@ -108,14 +108,8 @@ export class DragDropManager {
         svgElement.setAttribute("class", "draggable-component");
         svgElement.setAttribute("style", "cursor: move;");
 
-        // Inicjalizuj puste metadane
-        let metadata = { parameters: {} };
-
-        // Usuń wszystkie elementy metadata z SVG (zachowaj czystość)
-        const metadataElements = svgElement.querySelectorAll('metadata, script[type="application/json"][class="metadata"]');
-        metadataElements.forEach(element => element.remove());
-
-        // Przechowuj metadane tylko w atrybutach data-*
+        // Parse metadata from XML format and store in data-metadata
+        const metadata = this.componentManager.parseXMLMetadata(svgElement);
         svgElement.setAttribute('data-metadata', JSON.stringify(metadata));
 
         // Ustaw pozycję
@@ -135,12 +129,8 @@ export class DragDropManager {
         // Dodaj do canvas
         this.svgCanvas.appendChild(svgElement);
 
-        // Zapisz w mapie komponentów
-        this.componentManager.addComponent(componentId, {
-            element: svgElement,
-            metadata: metadata,
-            id: componentId
-        });
+        // Zarejestruj komponent w menedżerze
+        this.componentManager.storeComponent(componentId, svgElement, svgUrl);
 
         // Dodaj funkcjonalność przeciągania
         this.makeDraggable(svgElement);

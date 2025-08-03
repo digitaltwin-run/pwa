@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="70" height="60" viewBox="0 0 70 60">
-  <script type="application/json" class="metadata">{
-{
-  "id": "pump-001",
-  "name": "Centrifugal Pump",
-  "type": "pump",
-  "parameters": {
-    "label": "P1",
-    "color": "#16a085",
-    "flowRate": 45,
-    "flowRateMin": 0,
-    "flowRateMax": 100,
-    "unit": "m³/h",
-    "isActive": true
-  }
-}
-  </script>
+    <metadata>
+        <component id="pump-001" name="Centrifugal Pump" type="pump">
+            <parameters>
+                <label>P1</label>
+                <color>#16a085</color>
+                <flowRate>45</flowRate>
+                <flowRateMin>0</flowRateMin>
+                <flowRateMax>100</flowRateMax>
+                <unit>m³/h</unit>
+                <isActive>true</isActive>
+            </parameters>
+        </component>
+    </metadata>
+
+
 
   <circle cx="35" cy="30" r="25" fill="#16a085" stroke="#138a76" stroke-width="3"/>
   <path d="M25 20 L45 40 M45 20 L25 40" stroke="white" stroke-width="3" stroke-linecap="round"/>

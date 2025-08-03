@@ -4,20 +4,20 @@
     <title>Slider Component</title>
     <desc>Interactive slider component with drag animation for digital twin</desc>
 
-    <script type="application/json" class="metadata">{
-    "id": "slider-001",
-    "name": "Interactive Slider",
-    "type": "slider",
-    "parameters": {
-        "label": "Slider",
-        "value": 50,
-        "min": 0,
-        "max": 100,
-        "color": "#16a085",
-        "size": 60,
-        "isActive": true
-    }
-}</script>
+    <metadata>
+        <component id="slider-001" name="Interactive Slider" type="slider">
+            <parameters>
+                <label>Slider</label>
+                <value>50</value>
+                <min>0</min>
+                <max>100</max>
+                <color>#16a085</color>
+                <size>60</size>
+                <isActive>true</isActive>
+            </parameters>
+        </component>
+    </metadata>
+
 
     <!-- Background -->
     <rect x="5" y="5" width="50" height="30" rx="3" ry="3" fill="#34495e" stroke="#2c3e50" stroke-width="1.5"/>

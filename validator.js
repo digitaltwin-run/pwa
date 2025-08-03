@@ -135,56 +135,78 @@ function validateMetadata(xmlDoc) {
     return null;
   }
 
-  // Check for metadata script element
-  const metadataScript = findElementByAttributes(xmlDoc, 'script', {
-    'type': 'application/json',
-    'class': 'metadata'
-  });
+  // Check for metadata element
+  const metadataElement = xmlDoc.getElementsByTagName('metadata')[0];
   
-  if (!metadataScript) {
-    issues.push('Missing <script type="application/json" class="metadata"> element for component metadata');
+  if (!metadataElement) {
+    issues.push('Missing <metadata> element for component metadata');
     return { valid: issues.length === 0, issues };
   }
 
-  // Check for valid JSON in metadata script
-  let metadataJson;
-  try {
-    metadataJson = JSON.parse(metadataScript.textContent);
-  } catch (e) {
-    issues.push(`Invalid JSON in metadata script: ${e.message}`);
+  // Check for component element inside metadata
+  const componentElement = metadataElement.getElementsByTagName('component')[0];
+  if (!componentElement) {
+    issues.push('Missing <component> element inside <metadata>');
     return { valid: issues.length === 0, issues };
   }
+
+  // Extract metadata from XML structure
+  const metadata = {
+    id: componentElement.getAttribute('id'),
+    name: componentElement.getAttribute('name'),
+    type: componentElement.getAttribute('type'),
+    parameters: {}
+  };
 
   // Check required fields
-  if (!metadataJson.id) issues.push('Missing "id" in metadata');
-  if (!metadataJson.name) issues.push('Missing "name" in metadata');
-  if (!metadataJson.type) issues.push('Missing "type" in metadata');
+  if (!metadata.id) issues.push('Missing "id" attribute in component element');
+  if (!metadata.name) issues.push('Missing "name" attribute in component element');
+  if (!metadata.type) issues.push('Missing "type" attribute in component element');
 
-  // Check parameters
-  if (!metadataJson.parameters) {
-    issues.push('Missing "parameters" object in metadata');
+  // Check for parameters element
+  const parametersElement = componentElement.getElementsByTagName('parameters')[0];
+  if (!parametersElement) {
+    issues.push('Missing <parameters> element inside <component>');
   } else {
+    // Extract parameters from child elements
+    const paramNodes = parametersElement.childNodes;
+    for (let i = 0; i < paramNodes.length; i++) {
+      const param = paramNodes[i];
+      if (param.nodeType === 1) { // Element node
+        const paramName = param.nodeName;
+        const paramValue = param.textContent;
+        
+        // Convert string values to appropriate types based on content
+        let typedValue = paramValue;
+        if (paramValue === 'true') typedValue = true;
+        else if (paramValue === 'false') typedValue = false;
+        else if (!isNaN(paramValue) && paramValue.trim() !== '') typedValue = Number(paramValue);
+        
+        metadata.parameters[paramName] = typedValue;
+      }
+    }
+
     // Common parameter checks based on component type
-    if (metadataJson.type === 'led') {
-      const params = metadataJson.parameters;
+    if (metadata.type === 'led') {
+      const params = metadata.parameters;
       if (params.color === undefined) issues.push('LED missing "color" parameter');
       if (params.isOn === undefined) issues.push('LED missing "isOn" parameter');
       if (params.isBlinking === undefined) issues.push('LED missing "isBlinking" parameter');
-    } else if (metadataJson.type === 'button') {
-      const params = metadataJson.parameters;
+    } else if (metadata.type === 'button') {
+      const params = metadata.parameters;
       if (params.pressed === undefined) issues.push('Button missing "pressed" parameter');
-    } else if (metadataJson.type === 'switch' || metadataJson.type === 'toggle') {
-      const params = metadataJson.parameters;
-      if (params.state === undefined) issues.push(`${metadataJson.type} missing "state" parameter`);
-    } else if (metadataJson.type === 'knob' || metadataJson.type === 'slider' || metadataJson.type === 'gauge') {
-      const params = metadataJson.parameters;
-      if (params.value === undefined) issues.push(`${metadataJson.type} missing "value" parameter`);
-      if (params.min === undefined) issues.push(`${metadataJson.type} missing "min" parameter`);
-      if (params.max === undefined) issues.push(`${metadataJson.type} missing "max" parameter`);
+    } else if (metadata.type === 'switch' || metadata.type === 'toggle') {
+      const params = metadata.parameters;
+      if (params.state === undefined) issues.push(`${metadata.type} missing "state" parameter`);
+    } else if (metadata.type === 'knob' || metadata.type === 'slider' || metadata.type === 'gauge') {
+      const params = metadata.parameters;
+      if (params.value === undefined) issues.push(`${metadata.type} missing "value" parameter`);
+      if (params.min === undefined) issues.push(`${metadata.type} missing "min" parameter`);
+      if (params.max === undefined) issues.push(`${metadata.type} missing "max" parameter`);
     }
   }
 
-  return { valid: issues.length === 0, issues, metadata: metadataJson };
+  return { valid: issues.length === 0, issues, metadata };
 }
 
 /**
@@ -196,36 +218,32 @@ function validateMetadata(xmlDoc) {
 function validateScript(xmlDoc, metadata) {
   const issues = [];
 
-  // Helper function to find elements by attributes
-  function findElementByAttributes(doc, tagName, attributes) {
-    const elements = doc.getElementsByTagName(tagName);
-    for (let i = 0; i < elements.length; i++) {
-      const element = elements[i];
-      let match = true;
-      for (const [attr, value] of Object.entries(attributes)) {
-        if (element.getAttribute(attr) !== value) {
-          match = false;
-          break;
-        }
-      }
-      if (match) {
-        return element;
-      }
+  // Find script elements anywhere in the document
+  const scripts = [];
+  const scriptElements = xmlDoc.getElementsByTagName('script');
+  
+  // Filter out metadata script elements
+  for (let i = 0; i < scriptElements.length; i++) {
+    const script = scriptElements[i];
+    if (script.getAttribute('type') !== 'application/json' && 
+        script.getAttribute('class') !== 'metadata') {
+      scripts.push(script);
     }
-    return null;
   }
 
-  // Check for script element (not the metadata script)
-  const scripts = Array.from(xmlDoc.getElementsByTagName('script'))
-    .filter(s => s.getAttribute('type') !== 'application/json');
-
+  // If no scripts found, check if there's a defs section that might need one
+  const defsElement = xmlDoc.getElementsByTagName('defs')[0];
+  
   if (scripts.length === 0) {
-    issues.push('Missing interactive <script> element');
+    if (!defsElement) {
+      issues.push('Missing <defs> element for component scripts');
+    } else {
+      issues.push('Missing interactive <script> element');
+    }
     return { valid: issues.length === 0, issues };
   }
 
   const script = scripts[0];  // Use the first non-metadata script
-
   const scriptContent = script.textContent;
 
   // Check for empty script
@@ -376,53 +394,65 @@ async function fixCommonIssues(filePath, validationResults) {
   let content = fs.readFileSync(filePath, 'utf8');
   let fixesApplied = false;
 
-  // Fix metadata JSON format
+  // Fix metadata XML format
   if (validationResults.metadataResults && !validationResults.metadataResults.valid) {
-    // Try to fix metadata in <script type="application/json">
-    const metadataMatch = content.match(/<script[^>]*type="application\/json"[^>]*class="metadata"[^>]*>([\s\S]*?)<\/script>/);
+    // Try to fix metadata in <metadata> element
+    const metadataMatch = content.match(/<metadata>([\s\S]*?)<\/metadata>/);
 
-    // If not found, also check for old metadata format
-    const oldMetadataMatch = !metadataMatch && content.match(/<metadata>([\s\S]*?)<\/metadata>/);
-
-    if (metadataMatch || oldMetadataMatch) {
+    if (metadataMatch) {
       try {
-        const jsonStr = (metadataMatch || oldMetadataMatch)[1].trim();
-        const parsedJson = JSON.parse(jsonStr);
+        const xmlStr = metadataMatch[1].trim();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlStr, 'text/xml');
 
         // Add missing fields
-        if (!parsedJson.id) parsedJson.id = `${parsedJson.type || 'component'}-${Date.now()}`;
-        if (!parsedJson.name) parsedJson.name = path.basename(filePath, '.svg');
-        if (!parsedJson.type) parsedJson.type = 'generic';
-        if (!parsedJson.parameters) parsedJson.parameters = {};
+        const componentElement = xmlDoc.getElementsByTagName('component')[0];
+        if (!componentElement.getAttribute('id')) componentElement.setAttribute('id', `${componentElement.getAttribute('type') || 'component'}-${Date.now()}`);
+        if (!componentElement.getAttribute('name')) componentElement.setAttribute('name', path.basename(filePath, '.svg'));
+        if (!componentElement.getAttribute('type')) componentElement.setAttribute('type', 'generic');
 
         // Add component-specific parameters
-        if (parsedJson.type === 'led') {
-          if (!parsedJson.parameters.color) parsedJson.parameters.color = '#e74c3c';
-          if (parsedJson.parameters.isOn === undefined) parsedJson.parameters.isOn = true;
-          if (parsedJson.parameters.isBlinking === undefined) parsedJson.parameters.isBlinking = false;
-          if (!parsedJson.parameters.label) parsedJson.parameters.label = 'LED';
-        }
-
-        const formattedJson = JSON.stringify(parsedJson, null, 4);
-
-        // If old metadata format was found, convert it to new format
-        if (oldMetadataMatch) {
-          content = content.replace(
-            /<metadata>[\s\S]*?<\/metadata>/,
-            `<script type="application/json" class="metadata">\n${formattedJson}\n</script>`
-          );
-          console.log(`Converted <metadata> to <script type="application/json"> in ${filePath}`);
-          fixesApplied = true;
+        const parametersElement = xmlDoc.getElementsByTagName('parameters')[0];
+        if (!parametersElement) {
+          const paramsElement = xmlDoc.createElement('parameters');
+          componentElement.appendChild(paramsElement);
         } else {
-          // Otherwise just update the existing script content
-          content = content.replace(
-            /<script[^>]*type="application\/json"[^>]*class="metadata"[^>]*>[\s\S]*?<\/script>/,
-            `<script type="application/json" class="metadata">\n${formattedJson}\n</script>`
-          );
-          fixesApplied = true;
+          paramsElement = parametersElement;
         }
+
+        if (componentElement.getAttribute('type') === 'led') {
+          if (!paramsElement.getElementsByTagName('color')[0]) {
+            const colorElement = xmlDoc.createElement('color');
+            colorElement.textContent = '#e74c3c';
+            paramsElement.appendChild(colorElement);
+          }
+          if (!paramsElement.getElementsByTagName('isOn')[0]) {
+            const isOnElement = xmlDoc.createElement('isOn');
+            isOnElement.textContent = 'true';
+            paramsElement.appendChild(isOnElement);
+          }
+          if (!paramsElement.getElementsByTagName('isBlinking')[0]) {
+            const isBlinkingElement = xmlDoc.createElement('isBlinking');
+            isBlinkingElement.textContent = 'false';
+            paramsElement.appendChild(isBlinkingElement);
+          }
+          if (!paramsElement.getElementsByTagName('label')[0]) {
+            const labelElement = xmlDoc.createElement('label');
+            labelElement.textContent = 'LED';
+            paramsElement.appendChild(labelElement);
+          }
+        }
+
+        const formattedXml = new XMLSerializer().serializeToString(xmlDoc);
+
+        // Update the existing metadata content
+        content = content.replace(
+          /<metadata>[\s\S]*?<\/metadata>/,
+          `<metadata>\n${formattedXml}\n</metadata>`
+        );
+        fixesApplied = true;
       } catch (e) {
-        console.log(`Could not fix metadata JSON: ${e.message}`);
+        console.log(`Could not fix metadata XML: ${e.message}`);
       }
     }
   }

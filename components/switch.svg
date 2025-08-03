@@ -4,6 +4,18 @@
     <title>Switch Component</title>
     <desc>Interactive switch component for digital twin</desc>
 
+    <metadata>
+        <component id="switch-001" name="Toggle Switch" type="switch">
+            <parameters>
+                <label>Switch</label>
+                <state>false</state>
+                <color>#3498db</color>
+                <size>40</size>
+                <isActive>true</isActive>
+            </parameters>
+        </component>
+    </metadata>
+
 
     <!-- Background -->
     <rect x="5" y="10" width="30" height="20" rx="3" ry="3" fill="#2c3e50" stroke="#1a252f" stroke-width="1"/>

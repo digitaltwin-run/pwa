@@ -50,7 +50,7 @@ export class ComponentManager {
                 const parser = new DOMParser();
                 const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
                 const parserError = svgDoc.querySelector("parsererror");
-                
+
                 if (parserError) {
                     console.warn(`Błąd parsowania SVG dla ${comp.svg}:`, parserError.textContent);
                     continue;
@@ -92,8 +92,88 @@ export class ComponentManager {
     }
 
     // Dodaj komponent do mapy
-    addComponent(id, componentData) {
-        this.components.set(id, componentData);
+    storeComponent(id, element, svgUrl) {
+        // Parse metadata from XML format
+        const metadata = this.parseXMLMetadata(element);
+
+        this.components.set(id, {
+            id,
+            element,
+            svgUrl,
+            metadata,
+            properties: {}
+        });
+    }
+
+    // Helper function to parse XML metadata from SVG element
+    parseXMLMetadata(svgElement) {
+        try {
+            // First try data-metadata attribute (new format)
+            const metadataAttr = svgElement.getAttribute('data-metadata');
+            if (metadataAttr) {
+                return JSON.parse(metadataAttr);
+            }
+
+            // Parse XML metadata element
+            const metadataElement = svgElement.querySelector('metadata > component');
+            if (metadataElement) {
+                return this.convertXMLToJSON(metadataElement);
+            }
+
+            return { parameters: {} };
+        } catch (e) {
+            console.warn('Error parsing metadata:', e);
+            return { parameters: {} };
+        }
+    }
+
+    // Helper function to convert XML metadata to JSON format
+    convertXMLToJSON(componentElement) {
+        const metadata = {
+            id: componentElement.getAttribute('id'),
+            name: componentElement.getAttribute('name'),
+            type: componentElement.getAttribute('type'),
+            parameters: {}
+        };
+
+        const parametersElement = componentElement.querySelector('parameters');
+        if (parametersElement) {
+            for (const child of parametersElement.children) {
+                const value = child.textContent.trim();
+                // Convert string values to appropriate types
+                if (value === 'true') {
+                    metadata.parameters[child.tagName] = true;
+                } else if (value === 'false') {
+                    metadata.parameters[child.tagName] = false;
+                } else if (!isNaN(value) && value !== '') {
+                    metadata.parameters[child.tagName] = Number(value);
+                } else {
+                    metadata.parameters[child.tagName] = value;
+                }
+            }
+        }
+
+        return metadata;
+    }
+
+    // Helper function to update XML metadata in SVG element
+    updateXMLMetadata(svgElement, metadata) {
+        // Store in data-metadata attribute for consistency
+        svgElement.setAttribute('data-metadata', JSON.stringify(metadata));
+
+        // Also update XML metadata element if it exists
+        const metadataElement = svgElement.querySelector('metadata > component');
+        if (metadataElement && metadata.parameters) {
+            const parametersElement = metadataElement.querySelector('parameters');
+            if (parametersElement) {
+                for (const [key, value] of Object.entries(metadata.parameters)) {
+                    const paramElement = parametersElement.querySelector(key);
+                    if (paramElement) {
+                        paramElement.textContent = value;
+                    }
+                }
+            }
+        }
     }
 
     // Pobierz komponent z mapy

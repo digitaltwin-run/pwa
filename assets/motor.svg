@@ -14,6 +14,23 @@
         </component>
     </metadata>
 
+  <script type="application/json" class="metadata">
+    {
+    "id": "motor-001",
+    "name": "Electric Motor",
+    "type": "motor",
+    "parameters": {
+      "label": "M1",
+      "color": "#3498db",
+      "speed": 1500,
+      "speedMin": 0,
+      "speedMax": 3000,
+      "rotation": true,
+      "isActive": true
+    }
+  }
+  </script>
+
   <circle id="housing" cx="35" cy="35" r="30" fill="#3498db" stroke="#2980b9" stroke-width="3"/>
   <circle id="core" cx="35" cy="35" r="15" fill="white"/>
   <text id="label" x="35" y="38" font-size="14" text-anchor="middle" fill="#2c3e50">M1</text>

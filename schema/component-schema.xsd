@@ -12,32 +12,43 @@
         <xs:element name="title" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="desc" type="xs:string" minOccurs="0" maxOccurs="1"/>
         
-        <!-- Metadata is stored in script type="application/json" element -->
-        <xs:element name="script" minOccurs="1" maxOccurs="1">
+        <!-- Metadata is stored in standard SVG metadata element with XML structure -->
+        <xs:element name="metadata" minOccurs="1" maxOccurs="1">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="component">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="parameters">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                  <xs:attribute name="id" type="xs:string" use="required"/>
+                  <xs:attribute name="name" type="xs:string" use="required"/>
+                  <xs:attribute name="type" type="xs:string" use="required"/>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        
+        <!-- Legacy script-based metadata (for backward compatibility) -->
+        <xs:element name="script" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:simpleContent>
               <xs:extension base="xs:string">
                 <xs:attribute name="type" type="xs:string" fixed="application/json"/>
                 <xs:attribute name="class" type="xs:string" fixed="metadata"/>
-                <xs:annotation>
-                  <xs:documentation>
-                    JSON metadata must follow this structure:
-                    {
-                      "id": string,
-                      "name": string,
-                      "type": string,
-                      "parameters": {
-                        // Component specific parameters
-                      }
-                    }
-                  </xs:documentation>
-                </xs:annotation>
               </xs:extension>
             </xs:simpleContent>
           </xs:complexType>
         </xs:element>
         
-        <!-- SVG graphic elements -->
+        <!-- SVG graphic elements and other elements in any order -->
         <xs:choice minOccurs="1" maxOccurs="unbounded">
           <xs:element name="circle" type="svg:CircleType"/>
           <xs:element name="rect" type="svg:RectType"/>
@@ -47,23 +58,10 @@
           <xs:element name="polygon" type="svg:PolygonType"/>
           <xs:element name="polyline" type="svg:PolylineType"/>
           <xs:element name="g" type="svg:GroupType"/>
+          <xs:element name="defs" type="svg:DefsType"/>
+          <!-- Allow standalone scripts for backward compatibility -->
+          <xs:element name="script" type="svg:ScriptType"/>
         </xs:choice>
-        
-        <!-- Defs section for scripts and definitions -->
-        <xs:element name="defs" minOccurs="1" maxOccurs="1">
-          <xs:complexType>
-            <xs:sequence>
-              <!-- Script element is required for interactive components -->
-              <xs:element name="script" minOccurs="1" maxOccurs="1">
-                <xs:complexType>
-                  <xs:simpleContent>
-                    <xs:extension base="xs:string"/>
-                  </xs:simpleContent>
-                </xs:complexType>
-              </xs:element>
-            </xs:sequence>
-          </xs:complexType>
-        </xs:element>
       </xs:sequence>
       
       <!-- Required attributes for SVG root -->
@@ -76,7 +74,7 @@
     </xs:complexType>
   </xs:element>
 
-  <!-- SVG element type definitions -->
+  <!-- Define types for SVG elements -->
   <xs:complexType name="CircleType">
     <xs:attribute name="cx" type="xs:decimal" use="required"/>
     <xs:attribute name="cy" type="xs:decimal" use="required"/>
@@ -84,6 +82,7 @@
     <xs:attribute name="fill" type="xs:string" use="optional"/>
     <xs:attribute name="stroke" type="xs:string" use="optional"/>
     <xs:attribute name="stroke-width" type="xs:decimal" use="optional"/>
+    <xs:attribute name="id" type="xs:string" use="optional"/>
     <xs:attribute name="class" type="xs:string" use="optional"/>
   </xs:complexType>
 
@@ -95,6 +94,16 @@
     <xs:attribute name="fill" type="xs:string" use="optional"/>
     <xs:attribute name="stroke" type="xs:string" use="optional"/>
     <xs:attribute name="stroke-width" type="xs:decimal" use="optional"/>
+    <xs:attribute name="id" type="xs:string" use="optional"/>
+    <xs:attribute name="class" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="PathType">
+    <xs:attribute name="d" type="xs:string" use="required"/>
+    <xs:attribute name="fill" type="xs:string" use="optional"/>
+    <xs:attribute name="stroke" type="xs:string" use="optional"/>
+    <xs:attribute name="stroke-width" type="xs:decimal" use="optional"/>
+    <xs:attribute name="id" type="xs:string" use="optional"/>
     <xs:attribute name="class" type="xs:string" use="optional"/>
   </xs:complexType>
 
@@ -106,17 +115,10 @@
         <xs:attribute name="font-size" type="xs:decimal" use="optional"/>
         <xs:attribute name="text-anchor" type="xs:string" use="optional"/>
         <xs:attribute name="fill" type="xs:string" use="optional"/>
+        <xs:attribute name="id" type="xs:string" use="optional"/>
         <xs:attribute name="class" type="xs:string" use="optional"/>
       </xs:extension>
     </xs:simpleContent>
-  </xs:complexType>
-
-  <xs:complexType name="PathType">
-    <xs:attribute name="d" type="xs:string" use="required"/>
-    <xs:attribute name="fill" type="xs:string" use="optional"/>
-    <xs:attribute name="stroke" type="xs:string" use="optional"/>
-    <xs:attribute name="stroke-width" type="xs:decimal" use="optional"/>
-    <xs:attribute name="class" type="xs:string" use="optional"/>
   </xs:complexType>
 
   <xs:complexType name="LineType">
@@ -124,8 +126,9 @@
     <xs:attribute name="y1" type="xs:decimal" use="required"/>
     <xs:attribute name="x2" type="xs:decimal" use="required"/>
     <xs:attribute name="y2" type="xs:decimal" use="required"/>
-    <xs:attribute name="stroke" type="xs:string" use="required"/>
+    <xs:attribute name="stroke" type="xs:string" use="optional"/>
     <xs:attribute name="stroke-width" type="xs:decimal" use="optional"/>
+    <xs:attribute name="id" type="xs:string" use="optional"/>
     <xs:attribute name="class" type="xs:string" use="optional"/>
   </xs:complexType>
 
@@ -134,6 +137,7 @@
     <xs:attribute name="fill" type="xs:string" use="optional"/>
     <xs:attribute name="stroke" type="xs:string" use="optional"/>
     <xs:attribute name="stroke-width" type="xs:decimal" use="optional"/>
+    <xs:attribute name="id" type="xs:string" use="optional"/>
     <xs:attribute name="class" type="xs:string" use="optional"/>
   </xs:complexType>
 
@@ -142,22 +146,41 @@
     <xs:attribute name="fill" type="xs:string" use="optional"/>
     <xs:attribute name="stroke" type="xs:string" use="optional"/>
     <xs:attribute name="stroke-width" type="xs:decimal" use="optional"/>
+    <xs:attribute name="id" type="xs:string" use="optional"/>
     <xs:attribute name="class" type="xs:string" use="optional"/>
   </xs:complexType>
 
   <xs:complexType name="GroupType">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element name="circle" type="svg:CircleType"/>
-      <xs:element name="rect" type="svg:RectType"/>
-      <xs:element name="path" type="svg:PathType"/>
-      <xs:element name="text" type="svg:TextType"/>
-      <xs:element name="line" type="svg:LineType"/>
-      <xs:element name="polygon" type="svg:PolygonType"/>
-      <xs:element name="polyline" type="svg:PolylineType"/>
-      <xs:element name="g" type="svg:GroupType"/>
-    </xs:choice>
+    <xs:sequence>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="circle" type="svg:CircleType"/>
+        <xs:element name="rect" type="svg:RectType"/>
+        <xs:element name="path" type="svg:PathType"/>
+        <xs:element name="text" type="svg:TextType"/>
+        <xs:element name="line" type="svg:LineType"/>
+        <xs:element name="polygon" type="svg:PolygonType"/>
+        <xs:element name="polyline" type="svg:PolylineType"/>
+        <xs:element name="g" type="svg:GroupType"/>
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:string" use="optional"/>
     <xs:attribute name="class" type="xs:string" use="optional"/>
     <xs:attribute name="transform" type="xs:string" use="optional"/>
   </xs:complexType>
+
+  <xs:complexType name="DefsType">
+    <xs:sequence>
+      <!-- Script element is required for interactive components -->
+      <xs:element name="script" type="svg:ScriptType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
   
+  <xs:complexType name="ScriptType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="type" type="xs:string" use="optional"/>
+        <xs:attribute name="class" type="xs:string" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
 </xs:schema>

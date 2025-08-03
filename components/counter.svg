@@ -4,21 +4,21 @@
     <title>Counter Component</title>
     <desc>Numeric counter component with animation between values</desc>
 
-    <script type="application/json" class="metadata">{
-    "id": "counter-001",
-    "name": "Numeric Counter",
-    "type": "counter",
-    "parameters": {
-        "label": "Counter",
-        "value": 50,
-        "min": 0,
-        "max": 999,
-        "color": "#2980b9",
-        "units": "",
-        "step": 1,
-        "isActive": true
-    }
-}</script>
+    <metadata>
+        <component id="counter-001" name="Numeric Counter" type="counter">
+            <parameters>
+                <label>Counter</label>
+                <value>50</value>
+                <min>0</min>
+                <max>999</max>
+                <color>#2980b9</color>
+                <units></units>
+                <step>1</step>
+                <isActive>true</isActive>
+            </parameters>
+        </component>
+    </metadata>
+
 
     <!-- Counter display background -->
     <rect x="5" y="5" width="50" height="20" rx="3" ry="3" fill="#34495e" stroke="#2c3e50" stroke-width="1"/>

@@ -1,22 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60">
-  <script type="application/json" class="metadata">{
-{
-  "id": "sensor-001",
-  "name": "Temperature Sensor",
-  "type": "sensor",
-  "parameters": {
-    "label": "Temp",
-    "color": "#e74c3c",
-    "size": 50,
-    "value": 25,
-    "minValue": -20,
-    "maxValue": 120,
-    "unit": "°C",
-    "isActive": true
-  }
-}
-  </script>
+    <metadata>
+        <component id="sensor-001" name="Temperature Sensor" type="sensor">
+            <parameters>
+                <label>Temp</label>
+                <color>#e74c3c</color>
+                <size>50</size>
+                <value>25</value>
+                <minValue>-20</minValue>
+                <maxValue>120</maxValue>
+                <unit>°C</unit>
+                <isActive>true</isActive>
+            </parameters>
+        </component>
+    </metadata>
+
 
   <rect id="body" x="5" y="5" width="50" height="50" rx="8" fill="#e74c3c" stroke="#c0392b" stroke-width="2"/>
   <text id="label" x="30" y="20" font-size="12" text-anchor="middle" fill="white">Temp</text>

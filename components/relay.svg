@@ -4,22 +4,20 @@
     <title>Relay Component</title>
     <desc>Interactive relay component for digital twin</desc>
 
-    <script type="application/json" class="metadata">{
-        {
-        "id": "relay-001",
-        "name": "Relay",
-        "type": "relay",
-        "parameters": {
-            "label": "Relay",
-            "state": false,
-            "color": "#e67e22",
-            "size": 40,
-            "inputVoltage": 5,
-            "maxCurrent": 10,
-            "isActive": true
-            }
-        }
-    </script>
+    <metadata>
+        <component id="relay-001" name="Relay" type="relay">
+            <parameters>
+                <label>Relay</label>
+                <state>false</state>
+                <color>#e67e22</color>
+                <size>40</size>
+                <inputVoltage>5</inputVoltage>
+                <maxCurrent>10</maxCurrent>
+                <isActive>true</isActive>
+            </parameters>
+        </component>
+    </metadata>
+
 
     <!-- Main body -->
     <rect x="5" y="5" width="30" height="25" rx="2" ry="2" fill="#34495e" stroke="#2c3e50" stroke-width="1.5"/>

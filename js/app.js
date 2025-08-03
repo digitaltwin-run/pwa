@@ -46,17 +46,57 @@ class DigitalTwinApp {
             // Załaduj bibliotekę komponentów
             await this.componentManager.loadComponentLibrary();
 
+            // Dodaj obsługę interakcji dla komponentów
+            this.setupComponentInteractions();
+        
             // Skonfiguruj event listenery
             this.setupEventListeners();
 
-            console.log('Digital Twin IDE zainicjalizowany pomyślnie');
+            console.log('Digital Twin IDE zainicjowane pomyślnie');
 
         } catch (error) {
             console.error('Błąd podczas inicjalizacji aplikacji:', error);
         }
     }
 
+    // Obsługa interakcji dla komponentów SVG
+    setupComponentInteractions() {
+        // Ta funkcja będzie obsługiwać interakcje z komponentami
+        // Event listenery dla kliknięć są już skonfigurowane w setupEventListeners()
+        console.log('Interakcje komponentów skonfigurowane');
+    }
+
     setupEventListeners() {
+        // Toolbar buttons
+        document.getElementById('export-btn').addEventListener('click', () => {
+            this.exportManager.exportProject();
+        });
+        
+        document.getElementById('import-btn').addEventListener('click', () => {
+            this.exportManager.importProject();
+        });
+        
+        document.getElementById('export-png-btn').addEventListener('click', () => {
+            this.exportManager.exportAsPNG();
+        });
+        
+        document.getElementById('export-svg-btn').addEventListener('click', () => {
+            this.exportManager.exportAsSVG();
+        });
+        
+        document.getElementById('connection-mode-btn').addEventListener('click', () => {
+            this.connectionManager.toggleConnectionMode();
+        });
+        
+        // Simulation panel buttons
+        document.getElementById('start-sim-btn').addEventListener('click', () => {
+            this.simulationManager.startSimulation();
+        });
+        
+        document.getElementById('stop-sim-btn').addEventListener('click', () => {
+            this.simulationManager.stopSimulation();
+        });
+
         // Kliknięcie w komponent na canvas
         document.getElementById('svg-canvas').addEventListener('click', (e) => {
             const component = e.target.closest('.draggable-component');
