@@ -153,6 +153,35 @@ export class DragDropManager {
         console.log(`Dodano komponent ${componentId} na pozycji (${x}, ${y})`);
     }
 
+    /**
+     * Get current scale factor from SVG transform attribute
+     * @param {SVGElement} svgElement - The SVG component
+     * @returns {number} Current scale factor (default: 1.0)
+     */
+    getComponentScale(svgElement) {
+        if (!svgElement) return 1.0;
+        
+        const transform = svgElement.getAttribute('transform') || '';
+        
+        // Parse scale from transform attribute
+        // Supports: scale(1.5), scale(1.5, 1.5), or matrix transformations
+        const scaleMatch = transform.match(/scale\(([0-9.]+)(?:,\s*[0-9.]+)?\)/);
+        if (scaleMatch) {
+            return parseFloat(scaleMatch[1]);
+        }
+        
+        // Check for matrix transform (more complex parsing)
+        const matrixMatch = transform.match(/matrix\(([0-9.-]+),\s*[0-9.-]+,\s*[0-9.-]+,\s*([0-9.-]+),\s*[0-9.-]+,\s*[0-9.-]+\)/);
+        if (matrixMatch) {
+            const scaleX = parseFloat(matrixMatch[1]);
+            const scaleY = parseFloat(matrixMatch[2]);
+            // Return average if uniform scaling, otherwise scaleX
+            return Math.abs(scaleX - scaleY) < 0.001 ? scaleX : scaleX;
+        }
+        
+        return 1.0; // Default scale
+    }
+
     // Przeciąganie komponentów po planszy
     makeDraggable(svgElement) {
         let isDragging = false;
@@ -162,27 +191,36 @@ export class DragDropManager {
         const onMouseMove = (e) => {
             if (!isDragging) return;
 
-            // Calculate movement
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
+            // Get component's current scale to maintain cursor synchronization
+            const currentScale = this.getComponentScale(svgElement);
+            
+            // Calculate raw mouse movement in screen pixels
+            const rawDx = e.clientX - startX;
+            const rawDy = e.clientY - startY;
+            
+            // For cursor-component sync, we need to account for scale
+            // Scaled components visually move more than their x,y attributes suggest
+            // So we normalize the movement to maintain 1:1 cursor tracking
+            const normalizedDx = rawDx / currentScale;
+            const normalizedDy = rawDy / currentScale;
+            
+            // Calculate target position using normalized movement
+            let targetX = startElementX + normalizedDx;
+            let targetY = startElementY + normalizedDy;
 
-            // Calculate new position
-            let newX = startElementX + dx;
-            let newY = startElementY + dy;
-
-            // Snap to grid if enabled
+            // Apply grid snapping to maintain consistent grid alignment
             if (gridManager.config.snapToGrid) {
-                newX = gridManager.snapToGrid(newX);
-                newY = gridManager.snapToGrid(newY);
+                targetX = gridManager.snapToGrid(targetX);
+                targetY = gridManager.snapToGrid(targetY);
             }
+            
+            // Apply the final position (grid-snapped)
+            svgElement.setAttribute('x', targetX);
+            svgElement.setAttribute('y', targetY);
 
-            // Apply new position
-            svgElement.setAttribute('x', newX);
-            svgElement.setAttribute('y', newY);
-
-            // Update metadata
+            // Update metadata with final grid-aligned position
             const metadata = JSON.parse(svgElement.getAttribute('data-metadata') || '{}');
-            metadata.position = { x: newX, y: newY };
+            metadata.position = { x: targetX, y: targetY };
             svgElement.setAttribute('data-metadata', JSON.stringify(metadata));
         };
 

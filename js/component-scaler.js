@@ -148,8 +148,8 @@ export class ComponentScaler {
      * @returns {number} Clamped scale factor
      */
     clampScale(scale) {
-        const minScale = 0.1;  // 10% minimum
-        const maxScale = 5.0;  // 500% maximum
+        const minScale = 0.5;  // 50% minimum
+        const maxScale = 6.0;  // 600% maximum
         return Math.max(minScale, Math.min(maxScale, scale));
     }
     

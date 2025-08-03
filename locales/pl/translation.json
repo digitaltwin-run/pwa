@@ -1,0 +1,22 @@
+{
+  "app": {
+    "title": "Digital Twin IDE",
+    "menu": {
+      "file": "Plik",
+      "simulation": "Symulacja",
+      "view": "Widok",
+      "help": "Pomoc"
+    },
+    "buttons": {
+      "export": "Eksportuj",
+      "import": "Importuj",
+      "connect": "Łącz komponenty",
+      "start": "Start",
+      "stop": "Stop"
+    },
+    "simulation": {
+      "title": "📊 Symulacja Danych",
+      "noComponents": "Brak komponentów do symulacji"
+    }
+  }
+}

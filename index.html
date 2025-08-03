@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title data-i18n="app.title">Digital Twin IDE</title>
+    <title data-i18n-title="app.title">Digital Twin IDE</title>
 
     <!-- External Stylesheets -->
     <link rel="stylesheet" href="css/app.css"/>
@@ -20,37 +20,40 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 </head>
 <body>
-    <!-- Top Menu -->
-    <nav class="top-menu">
-        <ul>
-            <li><a href="#" class="menu-item">Plik</a></li>
-            <li><a href="#" class="menu-item" id="simulation-menu">Symulacja</a></li>
-            <li><a href="#" class="menu-item">Widok</a></li>
-            <li><a href="#" class="menu-item">Pomoc</a></li>
-        </ul>
-    </nav>
+    <!-- Header with Top Menu and Toolbar -->
+    <div class="header-container">
+        <!-- Top Menu -->
+        <nav class="top-menu">
+            <ul>
+                <li><a href="#" class="menu-item" data-i18n="app.menu.file">Plik</a></li>
+                <li><a href="#" class="menu-item" id="simulation-menu" data-i18n="app.menu.simulation">Symulacja</a></li>
+                <li><a href="#" class="menu-item" data-i18n="app.menu.view">Widok</a></li>
+                <li><a href="#" class="menu-item" data-i18n="app.menu.help">Pomoc</a></li>
+            </ul>
+        </nav>
 
-    <!-- Toolbar -->
-    <div class="toolbar">
-        <button id="export-btn" class="btn btn-success">📤 Eksportuj (.dtwin)</button>
-        <button id="import-btn" class="btn btn-primary">📥 Importuj (.dtwin)</button>
-        <button id="export-png-btn" class="btn btn-warning">🖼️ PNG</button>
-        <button id="export-svg-btn" class="btn btn-primary">🟩 SVG</button>
-        <button id="connection-mode-btn" class="btn btn-purple">🔗 Łącz komponenty</button>
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <button id="export-btn" class="btn btn-success">📤 Eksportuj (.dtwin)</button>
+            <button id="import-btn" class="btn btn-primary">📥 Importuj (.dtwin)</button>
+            <button id="export-png-btn" class="btn btn-warning">🖼️ PNG</button>
+            <button id="export-svg-btn" class="btn btn-primary">🟩 SVG</button>
+            <button id="connection-mode-btn" class="btn btn-purple">🔗 Łącz komponenty</button>
+        </div>
     </div>
 
     <!-- Simulation Panel (initially hidden) -->
     <div class="simulation-panel" id="simulation-panel" style="display: none;">
         <div class="simulation-header">
-            <h3>📊 Symulacja Danych</h3>
-            <button id="close-sim-panel" class="btn btn-text">×</button>
+            <h3 data-i18n="app.simulation.title">📊 Symulacja Danych</h3>
+            <button id="close-sim-panel" class="btn btn-text" aria-label="Close">×</button>
         </div>
         <div class="simulation-controls">
-            <button id="start-sim-btn" class="btn btn-success">▶️ Start</button>
-            <button id="stop-sim-btn" class="btn btn-danger">⏸️ Stop</button>
+            <button id="start-sim-btn" class="btn btn-success" data-i18n="app.buttons.start">▶️ Start</button>
+            <button id="stop-sim-btn" class="btn btn-danger" data-i18n="app.buttons.stop">⏸️ Stop</button>
         </div>
         <div id="simulation-list" class="simulation-list">
-            <p><i>Brak komponentów do symulacji</i></p>
+            <p><i data-i18n="app.simulation.noComponents">Brak komponentów do symulacji</i></p>
         </div>
     </div>
 
@@ -95,7 +98,8 @@
         </aside>
     </div>
 
-    <!-- JavaScript Modules -->
+    <!-- i18n and JavaScript Modules -->
+    <script src="js/i18n.js"></script>
     <script type="module" src="js/app.js"></script>
     <script src="js/menu.js"></script>
 
