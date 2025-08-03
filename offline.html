@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline | Digital Twin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            margin-top: 50px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #d32f2f;
+        }
+        .offline-icon {
+            font-size: 64px;
+            margin: 20px 0;
+            color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="offline-icon">📶</div>
+        <h1>You're Offline</h1>
+        <p>It seems you're not connected to the internet. Some features may not be available.</p>
+        <p>Please check your connection and try again.</p>
+        <button onclick="window.location.reload()">Retry Connection</button>
+    </div>
+</body>
+</html>

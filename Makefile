@@ -289,6 +289,13 @@ reset:
 	make install
 	@echo "✅ Project reset complete"
 
+test2:
+    @echo "🧪 Running node tests..."
+    node server-test.js
+
+stop
+    ./stop.sh
+
 # 📈 MONITORING
 monitor:
 	@echo "📈 Starting monitoring..."
