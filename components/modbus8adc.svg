@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+    <title>Modbus RTU Analog Input 8CH - Digital Twin</title>
+    <desc>Interactive 8-channel analog input module with configurable voltage/current modes and real-time data visualization</desc>
+
+    <metadata>
+        <component id="modbus-analog-8ch-001" name="Modbus RTU Analog Input 8CH" type="modbus-analog-input">
+            <parameters>
+                <label>AI 8CH</label>
+                <deviceAddress>1</deviceAddress>
+                <baudRate>9600</baudRate>
+                <isConnected>true</isConnected>
+                <isActive>true</isActive>
+                <!-- Channel configurations and values -->
+                <channel1>
+                    <mode>2</mode> <!-- 0:0-5V, 1:1-5V, 2:0-20mA, 3:4-20mA, 4:raw -->
+                    <value>12500</value> <!-- in uA for current mode -->
+                    <isJumpered>true</isJumpered>
+                </channel1>
+                <channel2>
+                    <mode>0</mode>
+                    <value>3250</value> <!-- in mV for voltage mode -->
+                    <isJumpered>false</isJumpered>
+                </channel2>
+                <channel3>
+                    <mode>2</mode>
+                    <value>8000</value>
+                    <isJumpered>true</isJumpered>
+                </channel3>
+                <channel4>
+                    <mode>0</mode>
+                    <value>4800</value>
+                    <isJumpered>false</isJumpered>
+                </channel4>
+                <channel5>
+                    <mode>3</mode>
+                    <value>16000</value>
+                    <isJumpered>true</isJumpered>
+                </channel5>
+                <channel6>
+                    <mode>0</mode>
+                    <value>2100</value>
+                    <isJumpered>false</isJumpered>
+                </channel6>
+                <channel7>
+                    <mode>2</mode>
+                    <value>18500</value>
+                    <isJumpered>true</isJumpered>
+                </channel7>
+                <channel8>
+                    <mode>0</mode>
+                    <value>1500</value>
+                    <isJumpered>false</isJumpered>
+                </channel8>
+            </parameters>
+        </component>
+    </metadata>
+
+    <!-- Main housing -->
+    <rect class="module-housing" x="20" y="20" width="360" height="260" rx="5" ry="5"
+          fill="#34495e" stroke="#2c3e50" stroke-width="2"/>
+
+    <!-- Title bar -->
+    <rect x="20" y="20" width="360" height="35" rx="5" ry="5" fill="#2c3e50"/>
+    <text class="module-label" x="200" y="42" font-size="16" text-anchor="middle" fill="#ecf0f1">Modbus RTU Analog Input 8CH</text>
+
+    <!-- RS485 terminals -->
+    <g transform="translate(30, 240)">
+        <rect x="0" y="0" width="80" height="30" rx="3" ry="3" fill="#7f8c8d" stroke="#34495e" stroke-width="1"/>
+        <text x="40" y="20" font-size="10" text-anchor="middle" fill="#ecf0f1">RS485</text>
+        <circle cx="15" cy="15" r="3" fill="#34495e"/>
+        <circle cx="30" cy="15" r="3" fill="#34495e"/>
+        <circle cx="50" cy="15" r="3" fill="#34495e"/>
+        <circle cx="65" cy="15" r="3" fill="#34495e"/>
+    </g>
+
+    <!-- Power LED -->
+    <circle class="power-led" cx="350" cy="37" r="5" fill="#27ae60"/>
+    <text x="330" y="42" font-size="8" text-anchor="end" fill="#ecf0f1">PWR</text>
+
+    <!-- Communication parameters -->
+    <text class="comm-params" x="200" y="270" font-size="8" text-anchor="middle" fill="#95a5a6">9600 8-N-1 Addr:01</text>
+
+    <!-- Channel displays -->
+    <g class="channels">
+        <!-- Channel 1 -->
+        <g transform="translate(40, 70)">
+            <rect class="channel-bg ch1" x="0" y="0" width="70" height="60" rx="3" ry="3"
+                  fill="#2c3e50" stroke="#34495e" stroke-width="1"/>
+            <text x="35" y="15" font-size="10" text-anchor="middle" fill="#ecf0f1">AI1</text>
+            <text class="channel-value ch1-value" x="35" y="30" font-size="12" text-anchor="middle" fill="#3498db">12.50mA</text>
+            <text class="channel-mode ch1-mode" x="35" y="42" font-size="8" text-anchor="middle" fill="#95a5a6">0-20mA</text>
+            <circle class="jumper-indicator ch1-jumper" cx="35" cy="52" r="3" fill="#e74c3c"/>
+        </g>
+
+        <!-- Channel 2 -->
+        <g transform="translate(120, 70)">
+            <rect class="channel-bg ch2" x="0" y="0" width="70" height="60" rx="3" ry="3"
+                  fill="#2c3e50" stroke="#34495e" stroke-width="1"/>
+            <text x="35" y="15" font-size="10" text-anchor="middle" fill="#ecf0f1">AI2</text>
+            <text class="channel-value ch2-value" x="35" y="30" font-size="12" text-anchor="middle" fill="#3498db">3.25V</text>
+            <text class="channel-mode ch2-mode" x="35" y="42" font-size="8" text-anchor="middle" fill="#95a5a6">0-5V</text>
+            <circle class="jumper-indicator ch2-jumper" cx="35" cy="52" r="3" fill="#333"/>
+        </g>
+
+        <!-- Channel 3 -->
+        <g transform="translate(200, 70)">
+            <rect class="channel-bg ch3" x="0" y="0" width="70" height="60" rx="3" ry="3"
+                  fill="#2c3e50" stroke="#34495e" stroke-width="1"/>
+            <text x="35" y="15" font-size="10" text-anchor="middle" fill="#ecf0f1">AI3</text>
+            <text class="channel-value ch3-value" x="35" y="30" font-size="12" text-anchor="middle" fill="#3498db">8.00mA</text>
+            <text class="channel-mode ch3-mode" x="35" y="42" font-size="8" text-anchor="middle" fill="#95a5a6">0-20mA</text>
+            <circle class="jumper-indicator ch3-jumper" cx="35" cy="52" r="3" fill="#e74c3c"/>
+        </g>
+
+        <!-- Channel 4 -->
+        <g transform="translate(280, 70)">
+            <rect class="channel-bg ch4" x="0" y="0" width="70" height="60" rx="3" ry="3"
+                  fill="#2c3e50" stroke="#34495e" stroke-width="1"/>
+            <text x="35" y="15" font-size="10" text-anchor="middle" fill="#ecf0f1">AI4</text>
+            <text class="channel-value ch4-value" x="35" y="30" font-size="12" text-anchor="middle" fill="#3498db">4.80V</text>
+            <text class="channel-mode ch4-mode" x="35" y="42" font-size="8" text-anchor="middle" fill="#95a5a6">0-5V</text>
+            <circle class="jumper-indicator ch4-jumper" cx="35" cy="52" r="3" fill="#333"/>
+        </g>
+
+        <!-- Channel 5 -->
+        <g transform="translate(40, 140)">
+            <rect class="channel-bg ch5" x="0" y="0" width="70" height="60" rx="3" ry="3"
+                  fill="#2c3e50" stroke="#34495e" stroke-width="1"/>
+            <text x="35" y="15" font-size="10" text-anchor="middle" fill="#ecf0f1">AI5</text>
+            <text class="channel-value ch5-value" x="35" y="30" font-size="12" text-anchor="middle" fill="#3498db">16.00mA</text>
+            <text class="channel-mode ch5-mode" x="35" y="42" font-size="8" text-anchor="middle" fill="#95a5a6">4-20mA</text>
+            <circle class="jumper-indicator ch5-jumper" cx="35" cy="52" r="3" fill="#e74c3c"/>
+        </g>
+
+        <!-- Channel 6 -->
+        <g transform="translate(120, 140)">
+            <rect class="channel-bg ch6" x="0" y="0" width="70" height="60" rx="3" ry="3"
+                  fill="#2c3e50" stroke="#34495e" stroke-width="1"/>
+            <text x="35" y="15" font-size="10" text-anchor="middle" fill="#ecf0f1">AI6</text>
+            <text class="channel-value ch6-value" x="35" y="30" font-size="12" text-anchor="middle" fill="#3498db">2.10V</text>
+            <text class="channel-mode ch6-mode" x="35" y="42" font-size="8" text-anchor="middle" fill="#95a5a6">0-5V</text>
+            <circle class="jumper-indicator ch6-jumper" cx="35" cy="52" r="3" fill="#333"/>
+        </g>
+
+        <!-- Channel 7 -->
+        <g transform="translate(200, 140)">
+            <rect class="channel-bg ch7" x="0" y="0" width="70" height="60" rx="3" ry="3"
+                  fill="#2c3e50" stroke="#34495e" stroke-width="1"/>
+            <text x="35" y="15" font-size="10" text-anchor="middle" fill="#ecf0f1">AI7</text>
+            <text class="channel-value ch7-value" x="35" y="30" font-size="12" text-anchor="middle" fill="#3498db">18.50mA</text>
+            <text class="channel-mode ch7-mode" x="35" y="42" font-size="8" text-anchor="middle" fill="#95a5a6">0-20mA</text>
+            <circle class="jumper-indicator ch7-jumper" cx="35" cy="52" r="3" fill="#e74c3c"/>
+        </g>
+
+        <!-- Channel 8 -->
+        <g transform="translate(280, 140)">
+            <rect class="channel-bg ch8" x="0" y="0" width="70" height="60" rx="3" ry="3"
+                  fill="#2c3e50" stroke="#34495e" stroke-width="1"/>
+            <text x="35" y="15" font-size="10" text-anchor="middle" fill="#ecf0f1">AI8</text>
+            <text class="channel-value ch8-value" x="35" y="30" font-size="12" text-anchor="middle" fill="#3498db">1.50V</text>
+            <text class="channel-mode ch8-mode" x="35" y="42" font-size="8" text-anchor="middle" fill="#95a5a6">0-5V</text>
+            <circle class="jumper-indicator ch8-jumper" cx="35" cy="52" r="3" fill="#333"/>
+        </g>
+    </g>
+
+    <defs>
+        <!-- Internal SVG script -->
+        <script><![CDATA[
+        (function() {
+            // Function to read metadata
+            function getMetadata(svgElement) {
+                const metadataElement = svgElement.querySelector('metadata component');
+                if (metadataElement) {
+                    try {
+                        const parametersElement = metadataElement.querySelector('parameters');
+                        if (parametersElement) {
+                            const result = {
+                                parameters: {
+                                    label: parametersElement.querySelector('label')?.textContent || 'AI 8CH',
+                                    deviceAddress: parseInt(parametersElement.querySelector('deviceAddress')?.textContent || '1'),
+                                    baudRate: parseInt(parametersElement.querySelector('baudRate')?.textContent || '9600'),
+                                    isConnected: parametersElement.querySelector('isConnected')?.textContent === 'true',
+                                    isActive: parametersElement.querySelector('isActive')?.textContent === 'true',
+                                    channels: []
+                                }
+                            };
+
+                            // Read channel data
+                            for (let i = 1; i <= 8; i++) {
+                                const channelElement = parametersElement.querySelector(`channel${i}`);
+                                if (channelElement) {
+                                    result.parameters.channels[i-1] = {
+                                        mode: parseInt(channelElement.querySelector('mode')?.textContent || '0'),
+                                        value: parseInt(channelElement.querySelector('value')?.textContent || '0'),
+                                        isJumpered: channelElement.querySelector('isJumpered')?.textContent === 'true'
+                                    };
+                                }
+                            }
+                            return result;
+                        }
+                    } catch (e) {
+                        console.warn('Error parsing metadata:', e);
+                    }
+                }
+                return {};
+            }
+
+            // Function to format value based on mode
+            function formatValue(mode, value) {
+                switch(mode) {
+                    case 0: // 0-5V
+                    case 1: // 1-5V
+                        return (value / 1000).toFixed(2) + 'V';
+                    case 2: // 0-20mA
+                    case 3: // 4-20mA
+                        return (value / 1000).toFixed(2) + 'mA';
+                    case 4: // Raw
+                        return value.toString();
+                    default:
+                        return '---';
+                }
+            }
+
+            // Function to get mode text
+            function getModeText(mode) {
+                switch(mode) {
+                    case 0: return '0-5V';
+                    case 1: return '1-5V';
+                    case 2: return '0-20mA';
+                    case 3: return '4-20mA';
+                    case 4: return 'RAW';
+                    default: return '---';
+                }
+            }
+
+            // Function to update module appearance
+            function updateModule(svgElement) {
+                const metadata = getMetadata(svgElement);
+                const params = metadata.parameters || {};
+
+                const housing = svgElement.querySelector('.module-housing');
+                const powerLed = svgElement.querySelector('.power-led');
+                const labelEl = svgElement.querySelector('.module-label');
+                const paramsEl = svgElement.querySelector('.comm-params');
+
+                if (!housing || params.isActive === false) {
+                    if (housing) housing.setAttribute('fill', '#1a1a1a');
+                    if (powerLed) powerLed.setAttribute('fill', '#333');
+                    // Clear simulation interval
+                    if (svgElement.simulationInterval) {
+                        clearInterval(svgElement.simulationInterval);
+                        svgElement.simulationInterval = null;
+                    }
+                    return;
+                }
+
+                // Update label
+                if (labelEl && params.label) {
+                    labelEl.textContent = params.label;
+                }
+
+                // Update communication parameters
+                if (paramsEl) {
+                    paramsEl.textContent = `${params.baudRate} 8-N-1 Addr:${params.deviceAddress.toString().padStart(2, '0')}`;
+                }
+
+                // Update power LED
+                if (powerLed) {
+                    powerLed.setAttribute('fill', params.isConnected ? '#27ae60' : '#333');
+                }
+
+                // Update channels
+                for (let i = 0; i < 8; i++) {
+                    const channel = params.channels[i];
+                    if (channel) {
+                        const valueEl = svgElement.querySelector(`.ch${i+1}-value`);
+                        const modeEl = svgElement.querySelector(`.ch${i+1}-mode`);
+                        const jumperEl = svgElement.querySelector(`.ch${i+1}-jumper`);
+                        const bgEl = svgElement.querySelector(`.ch${i+1}`);
+
+                        if (valueEl) valueEl.textContent = formatValue(channel.mode, channel.value);
+                        if (modeEl) modeEl.textContent = getModeText(channel.mode);
+                        if (jumperEl) {
+                            // Jumper should be connected (red) for current mode, disconnected (gray) for voltage
+                            const shouldBeJumpered = (channel.mode === 2 || channel.mode === 3);
+                            jumperEl.setAttribute('fill', channel.isJumpered ? '#e74c3c' : '#333');
+
+                            // Show warning if jumper setting doesn't match mode
+                            if (shouldBeJumpered !== channel.isJumpered && bgEl) {
+                                bgEl.setAttribute('stroke', '#e74c3c');
+                                bgEl.setAttribute('stroke-width', '2');
+                            } else if (bgEl) {
+                                bgEl.setAttribute('stroke', '#34495e');
+                                bgEl.setAttribute('stroke-width', '1');
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Simulate value changes
+            function simulateValues(svgElement) {
+                const metadataElement = svgElement.querySelector('metadata component parameters');
+                if (!metadataElement) return;
+
+                for (let i = 1; i <= 8; i++) {
+                    const channelElement = metadataElement.querySelector(`channel${i}`);
+                    if (channelElement) {
+                        const modeElement = channelElement.querySelector('mode');
+                        const valueElement = channelElement.querySelector('value');
+
+                        if (modeElement && valueElement) {
+                            const mode = parseInt(modeElement.textContent);
+                            let currentValue = parseInt(valueElement.textContent);
+
+                            // Add some random variation
+                            const variation = Math.random() * 200 - 100; // ±100 units
+                            currentValue = Math.max(0, currentValue + variation);
+
+                            // Clamp to mode limits
+                            switch(mode) {
+                                case 0: // 0-5V
+                                    currentValue = Math.min(5000, currentValue);
+                                    break;
+                                case 1: // 1-5V
+                                    currentValue = Math.max(1000, Math.min(5000, currentValue));
+                                    break;
+                                case 2: // 0-20mA
+                                    currentValue = Math.min(20000, currentValue);
+                                    break;
+                                case 3: // 4-20mA
+                                    currentValue = Math.max(4000, Math.min(20000, currentValue));
+                                    break;
+                                case 4: // Raw
+                                    currentValue = Math.min(4095, currentValue);
+                                    break;
+                            }
+
+                            valueElement.textContent = Math.round(currentValue).toString();
+                        }
+                    }
+                }
+
+                updateModule(svgElement);
+            }
+
+            // Toggle channel mode
+            function toggleChannelMode(svgElement, channelNum) {
+                const metadataElement = svgElement.querySelector('metadata component parameters');
+                if (metadataElement) {
+                    const channelElement = metadataElement.querySelector(`channel${channelNum}`);
+                    if (channelElement) {
+                        const modeElement = channelElement.querySelector('mode');
+                        const jumperElement = channelElement.querySelector('isJumpered');
+
+                        if (modeElement) {
+                            const currentMode = parseInt(modeElement.textContent);
+                            const nextMode = (currentMode + 1) % 5;
+                            modeElement.textContent = nextMode.toString();
+
+                            // Auto-adjust jumper based on mode
+                            if (jumperElement) {
+                                jumperElement.textContent = (nextMode === 2 || nextMode === 3) ? 'true' : 'false';
+                            }
+
+                            // Reset value for new mode
+                            const valueElement = channelElement.querySelector('value');
+                            if (valueElement) {
+                                switch(nextMode) {
+                                    case 0: valueElement.textContent = '2500'; break; // 2.5V
+                                    case 1: valueElement.textContent = '3000'; break; // 3V
+                                    case 2: valueElement.textContent = '10000'; break; // 10mA
+                                    case 3: valueElement.textContent = '12000'; break; // 12mA
+                                    case 4: valueElement.textContent = '2048'; break; // Raw middle value
+                                }
+                            }
+                        }
+                    }
+                    updateModule(svgElement);
+                }
+            }
+
+            // Initialize
+            let svgElement = document.currentScript ? document.currentScript.closest('svg') : null;
+
+            if (!svgElement) {
+                const allSvgs = document.querySelectorAll('svg');
+                for (const svg of allSvgs) {
+                    if (svg.querySelector('.module-housing') && svg.querySelector('.channels')) {
+                        svgElement = svg;
+                        break;
+                    }
+                }
+            }
+
+            if (svgElement && !svgElement.hasAttribute('data-analog-module-initialized')) {
+                svgElement.setAttribute('data-analog-module-initialized', 'true');
+                svgElement.moduleInstanceId = 'analog-module-' + Math.random().toString(36).substr(2, 9);
+
+                // Add click event listeners to channels
+                for (let i = 1; i <= 8; i++) {
+                    const channelBg = svgElement.querySelector(`.ch${i}`);
+                    if (channelBg) {
+                        channelBg.addEventListener('click', function(e) {
+                            toggleChannelMode(svgElement, i);
+                            e.stopPropagation();
+                        });
+                        channelBg.style.cursor = 'pointer';
+                    }
+                }
+
+                // Initial update
+                updateModule(svgElement);
+
+                // Start simulation
+                svgElement.simulationInterval = setInterval(() => {
+                    if (!svgElement.isConnected) {
+                        clearInterval(svgElement.simulationInterval);
+                        return;
+                    }
+                    simulateValues(svgElement);
+                }, 1000);
+
+                // Cleanup
+                function cleanup() {
+                    if (svgElement.simulationInterval) clearInterval(svgElement.simulationInterval);
+                }
+
+                window.addEventListener('beforeunload', cleanup);
+            }
+        })();
+        ]]></script>
+    </defs>
+</svg>

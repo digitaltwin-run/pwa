@@ -308,7 +308,254 @@ export class InteractionsManager {
         if (index >= 0 && index < interactions.length) {
             interactions[index][property] = value;
             this.updateInteractionsInMetadata(id, interactions);
+            
+            // DYNAMIC PROPERTY SELECT POPULATION
+            // When target component is selected, dynamically populate property select
+            if (property === 'target' && value) {
+                console.log('Target component changed to: ' + value);
+                this.populatePropertySelectForTarget(id, index, value);
+            }
+            
+            // When property is selected, auto-set default value input type
+            if (property === 'property' && value) {
+                console.log('Property changed to: ' + value);
+                const targetId = interactions[index].target;
+                if (targetId) {
+                    this.setDefaultValueInputForProperty(id, index, targetId, value);
+                }
+            }
         }
+    }
+    
+    // NEW METHOD: Populate property select for target component
+    populatePropertySelectForTarget(sourceId, interactionIndex, targetId) {
+        try {
+            console.log('Populating properties for target: ' + targetId);
+            
+            // Get target component data
+            const targetComponent = this.componentManager.getComponent(targetId);
+            if (!targetComponent) {
+                console.warn('Target component ' + targetId + ' not found');
+                return;
+            }
+            
+            // Get properties from PropertiesMapper
+            const propertiesMapper = window.propertiesManager?.propertiesMapper;
+            if (!propertiesMapper) {
+                console.warn('PropertiesMapper not available');
+                return;
+            }
+            
+            const mappedProperties = propertiesMapper.mappedProperties.get(targetId);
+            if (!mappedProperties || !mappedProperties.parameters) {
+                console.warn('No mapped properties found for ' + targetId);
+                return;
+            }
+            
+            // Extract available properties/variables
+            const availableProperties = Object.keys(mappedProperties.parameters);
+            console.log('Available properties for ' + targetId + ':', availableProperties);
+            
+            // Find the property select element for this interaction
+            const propertySelect = document.querySelector(
+                `select[onchange*="updateInteraction('${sourceId}', ${interactionIndex}, 'property'"`
+            );
+            
+            if (!propertySelect) {
+                console.warn('Property select element not found');
+                return;
+            }
+            
+            // Clear existing options
+            propertySelect.innerHTML = '<option value="">Wybierz właściwość</option>';
+            
+            // Add options for each available property
+            availableProperties.forEach(propName => {
+                const propValue = mappedProperties.parameters[propName];
+                const propType = this.detectPropertyType(propValue);
+                
+                const option = document.createElement('option');
+                option.value = propName;
+                option.textContent = propName + ' (' + propType + ')';
+                propertySelect.appendChild(option);
+            });
+            
+            console.log('Populated ' + availableProperties.length + ' properties for ' + targetId);
+            
+        } catch (error) {
+            console.error('Error populating property select:', error);
+        }
+    }
+    
+    // NEW METHOD: Set default value input based on property type
+    setDefaultValueInputForProperty(sourceId, interactionIndex, targetId, propertyName) {
+        try {
+            console.log('Setting default value input for property: ' + propertyName);
+            
+            // Get target component properties
+            const propertiesMapper = window.propertiesManager?.propertiesMapper;
+            const mappedProperties = propertiesMapper?.mappedProperties.get(targetId);
+            
+            if (!mappedProperties || !mappedProperties.parameters) {
+                console.warn('No properties found for ' + targetId);
+                return;
+            }
+            
+            const propertyValue = mappedProperties.parameters[propertyName];
+            const propertyType = this.detectPropertyType(propertyValue);
+            
+            console.log('Property ' + propertyName + ': value=' + propertyValue + ', type=' + propertyType);
+            
+            // Find the value input element for this interaction
+            const valueContainer = document.querySelector(
+                `input[onchange*="updateInteraction('${sourceId}', ${interactionIndex}, 'value'"`
+            )?.parentElement;
+            
+            if (!valueContainer) {
+                console.warn('Value input container not found');
+                return;
+            }
+            
+            // Create appropriate input based on property type
+            const newInput = this.createValueInputByType(sourceId, interactionIndex, propertyType, propertyValue);
+            
+            if (newInput) {
+                // Replace existing input
+                const oldInput = valueContainer.querySelector('input, select');
+                if (oldInput) {
+                    oldInput.replaceWith(newInput);
+                    console.log('Updated value input to type: ' + propertyType);
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error setting default value input:', error);
+        }
+    }
+    
+    // NEW METHOD: Detect property type from value
+    detectPropertyType(value) {
+        if (value === null || value === undefined) return 'text';
+        
+        const stringValue = value.toString().toLowerCase();
+        
+        // Boolean detection
+        if (stringValue === 'true' || stringValue === 'false') {
+            return 'boolean';
+        }
+        
+        // Number detection
+        if (!isNaN(parseFloat(stringValue)) && isFinite(stringValue)) {
+            return 'number';
+        }
+        
+        // Color detection
+        if (stringValue.startsWith('#') || stringValue.startsWith('rgb') || 
+            ['red', 'green', 'blue', 'yellow', 'orange', 'purple', 'white', 'black'].includes(stringValue)) {
+            return 'color';
+        }
+        
+        // Enum detection (specific known values)
+        if (['on', 'off', 'active', 'inactive', 'start', 'stop', 'high', 'low', 'open', 'closed'].includes(stringValue)) {
+            return 'enum';
+        }
+        
+        // Default to text
+        return 'text';
+    }
+    
+    // NEW METHOD: Create appropriate input element based on type
+    createValueInputByType(sourceId, interactionIndex, type, currentValue) {
+        const onChangeHandler = `updateInteraction('${sourceId}', ${interactionIndex}, 'value', this.value)`;
+        
+        switch (type) {
+            case 'boolean': {
+                const select = document.createElement('select');
+                select.setAttribute('onchange', onChangeHandler);
+                
+                const optionTrue = document.createElement('option');
+                optionTrue.value = 'true';
+                optionTrue.textContent = 'True';
+                optionTrue.selected = currentValue?.toString().toLowerCase() === 'true';
+                
+                const optionFalse = document.createElement('option');
+                optionFalse.value = 'false';
+                optionFalse.textContent = 'False';
+                optionFalse.selected = currentValue?.toString().toLowerCase() === 'false';
+                
+                select.appendChild(optionTrue);
+                select.appendChild(optionFalse);
+                return select;
+            }
+            
+            case 'number': {
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.value = currentValue || '0';
+                input.setAttribute('onchange', onChangeHandler);
+                input.step = 'any';
+                return input;
+            }
+            
+            case 'color': {
+                const input = document.createElement('input');
+                input.type = 'color';
+                input.value = this.normalizeColorValue(currentValue) || '#000000';
+                input.setAttribute('onchange', onChangeHandler);
+                return input;
+            }
+            
+            case 'enum': {
+                const select = document.createElement('select');
+                select.setAttribute('onchange', onChangeHandler);
+                
+                // Common enum values
+                const enumValues = ['on', 'off', 'active', 'inactive', 'start', 'stop', 'high', 'low', 'open', 'closed'];
+                
+                enumValues.forEach(enumValue => {
+                    const option = document.createElement('option');
+                    option.value = enumValue;
+                    option.textContent = enumValue.charAt(0).toUpperCase() + enumValue.slice(1);
+                    option.selected = currentValue?.toString().toLowerCase() === enumValue;
+                    select.appendChild(option);
+                });
+                
+                return select;
+            }
+            
+            default: // 'text'
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = currentValue || '';
+                input.setAttribute('onchange', onChangeHandler);
+                return input;
+        }
+    }
+    
+    // NEW METHOD: Normalize color value for color input
+    normalizeColorValue(colorValue) {
+        if (!colorValue) return '#000000';
+        
+        const stringValue = colorValue.toString().toLowerCase();
+        
+        // If already hex, return as is
+        if (stringValue.startsWith('#')) {
+            return stringValue;
+        }
+        
+        // Color name to hex mapping
+        const colorMap = {
+            'red': '#ff0000',
+            'green': '#00ff00',
+            'blue': '#0000ff',
+            'yellow': '#ffff00',
+            'orange': '#ffa500',
+            'purple': '#800080',
+            'white': '#ffffff',
+            'black': '#000000'
+        };
+        
+        return colorMap[stringValue] || '#000000';
     }
 
     // Usuń interakcję z komponentu

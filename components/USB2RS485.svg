@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+    <title>USB TO RS485 Converter - Digital Twin</title>
+    <desc>Interactive USB to RS485 converter with TX/RX indicators and configurable communication parameters</desc>
+
+    <metadata>
+        <component id="usb-rs485-001" name="USB TO RS485 Converter" type="usb-rs485">
+            <parameters>
+                <label>USB-RS485</label>
+                <baudRate>9600</baudRate>
+                <dataBits>8</dataBits>
+                <stopBits>1</stopBits>
+                <parity>none</parity>
+                <isTxActive>false</isTxActive>
+                <isRxActive>false</isRxActive>
+                <isConnected>true</isConnected>
+                <isActive>true</isActive>
+            </parameters>
+        </component>
+    </metadata>
+
+    <!-- Main housing -->
+    <rect class="converter-housing" x="10" y="15" width="100" height="50" rx="5" ry="5"
+          fill="#2c3e50" stroke="#1a252f" stroke-width="2"/>
+
+    <!-- USB port -->
+    <rect class="usb-port" x="2" y="32" width="15" height="16" rx="2" ry="2"
+          fill="#95a5a6" stroke="#7f8c8d" stroke-width="1"/>
+    <rect x="5" y="36" width="9" height="8" fill="#34495e"/>
+
+    <!-- RS485 terminal block -->
+    <rect class="rs485-terminal" x="103" y="25" width="15" height="30" rx="2" ry="2"
+          fill="#95a5a6" stroke="#7f8c8d" stroke-width="1"/>
+    <!-- Terminal screws -->
+    <circle cx="110.5" cy="31" r="2" fill="#34495e"/>
+    <circle cx="110.5" cy="40" r="2" fill="#34495e"/>
+    <circle cx="110.5" cy="49" r="2" fill="#34495e"/>
+
+    <!-- TX LED -->
+    <circle class="tx-led" cx="35" cy="25" r="3" fill="#333"/>
+    <text x="35" y="35" font-size="8" text-anchor="middle" fill="#ecf0f1">TX</text>
+
+    <!-- RX LED -->
+    <circle class="rx-led" cx="50" cy="25" r="3" fill="#333"/>
+    <text x="50" y="35" font-size="8" text-anchor="middle" fill="#ecf0f1">RX</text>
+
+    <!-- Power LED -->
+    <circle class="power-led" cx="65" cy="25" r="3" fill="#27ae60"/>
+    <text x="65" y="35" font-size="8" text-anchor="middle" fill="#ecf0f1">PWR</text>
+
+    <!-- Label -->
+    <text class="converter-label" x="60" y="55" font-size="10" text-anchor="middle" fill="#ecf0f1">USB-RS485</text>
+
+    <!-- Communication parameters display -->
+    <text class="comm-params" x="60" y="75" font-size="7" text-anchor="middle" fill="#95a5a6">9600 8-N-1</text>
+
+    <defs>
+        <!-- Internal SVG script -->
+        <script><![CDATA[
+        (function() {
+            // Function to read metadata
+            function getMetadata(svgElement) {
+                const metadataElement = svgElement.querySelector('metadata component');
+                if (metadataElement) {
+                    try {
+                        const parametersElement = metadataElement.querySelector('parameters');
+                        if (parametersElement) {
+                            const result = {
+                                parameters: {
+                                    label: parametersElement.querySelector('label')?.textContent || 'USB-RS485',
+                                    baudRate: parseInt(parametersElement.querySelector('baudRate')?.textContent || '9600'),
+                                    dataBits: parseInt(parametersElement.querySelector('dataBits')?.textContent || '8'),
+                                    stopBits: parseFloat(parametersElement.querySelector('stopBits')?.textContent || '1'),
+                                    parity: parametersElement.querySelector('parity')?.textContent || 'none',
+                                    isTxActive: parametersElement.querySelector('isTxActive')?.textContent === 'true',
+                                    isRxActive: parametersElement.querySelector('isRxActive')?.textContent === 'true',
+                                    isConnected: parametersElement.querySelector('isConnected')?.textContent === 'true',
+                                    isActive: parametersElement.querySelector('isActive')?.textContent === 'true'
+                                }
+                            };
+                            return result;
+                        }
+                    } catch (e) {
+                        console.warn('Error parsing metadata:', e);
+                    }
+                }
+                return {};
+            }
+
+            // Function to update converter appearance
+            function updateConverter(svgElement) {
+                const metadata = getMetadata(svgElement);
+                const params = metadata.parameters || {};
+
+                const housing = svgElement.querySelector('.converter-housing');
+                const txLed = svgElement.querySelector('.tx-led');
+                const rxLed = svgElement.querySelector('.rx-led');
+                const powerLed = svgElement.querySelector('.power-led');
+                const labelEl = svgElement.querySelector('.converter-label');
+                const paramsEl = svgElement.querySelector('.comm-params');
+
+                if (!housing || params.isActive === false) {
+                    if (housing) housing.setAttribute('fill', '#1a1a1a');
+                    if (powerLed) powerLed.setAttribute('fill', '#333');
+                    if (txLed) txLed.setAttribute('fill', '#333');
+                    if (rxLed) rxLed.setAttribute('fill', '#333');
+                    // Clear all intervals
+                    if (svgElement.txBlinkInterval) {
+                        clearInterval(svgElement.txBlinkInterval);
+                        svgElement.txBlinkInterval = null;
+                    }
+                    if (svgElement.rxBlinkInterval) {
+                        clearInterval(svgElement.rxBlinkInterval);
+                        svgElement.rxBlinkInterval = null;
+                    }
+                    return;
+                }
+
+                // Update label
+                if (labelEl && params.label) {
+                    labelEl.textContent = params.label;
+                }
+
+                // Update communication parameters display
+                if (paramsEl) {
+                    const parityChar = params.parity === 'none' ? 'N' :
+                                     params.parity === 'even' ? 'E' :
+                                     params.parity === 'odd' ? 'O' : 'N';
+                    paramsEl.textContent = `${params.baudRate} ${params.dataBits}-${parityChar}-${params.stopBits}`;
+                }
+
+                // Update power LED
+                if (powerLed) {
+                    powerLed.setAttribute('fill', params.isConnected ? '#27ae60' : '#333');
+                }
+
+                // Handle TX LED
+                if (txLed) {
+                    if (params.isTxActive) {
+                        // Simulate data transmission with rapid blinking
+                        if (!svgElement.txBlinkInterval) {
+                            let on = true;
+                            svgElement.txBlinkInterval = setInterval(() => {
+                                if (txLed.isConnected) {
+                                    txLed.setAttribute('fill', on ? '#e74c3c' : '#333');
+                                    on = !on;
+                                } else {
+                                    clearInterval(svgElement.txBlinkInterval);
+                                    svgElement.txBlinkInterval = null;
+                                }
+                            }, 100); // Fast blinking for data transmission
+                        }
+                    } else {
+                        if (svgElement.txBlinkInterval) {
+                            clearInterval(svgElement.txBlinkInterval);
+                            svgElement.txBlinkInterval = null;
+                        }
+                        txLed.setAttribute('fill', '#333');
+                    }
+                }
+
+                // Handle RX LED
+                if (rxLed) {
+                    if (params.isRxActive) {
+                        // Simulate data reception with rapid blinking
+                        if (!svgElement.rxBlinkInterval) {
+                            let on = true;
+                            svgElement.rxBlinkInterval = setInterval(() => {
+                                if (rxLed.isConnected) {
+                                    rxLed.setAttribute('fill', on ? '#3498db' : '#333');
+                                    on = !on;
+                                } else {
+                                    clearInterval(svgElement.rxBlinkInterval);
+                                    svgElement.rxBlinkInterval = null;
+                                }
+                            }, 100); // Fast blinking for data reception
+                        }
+                    } else {
+                        if (svgElement.rxBlinkInterval) {
+                            clearInterval(svgElement.rxBlinkInterval);
+                            svgElement.rxBlinkInterval = null;
+                        }
+                        rxLed.setAttribute('fill', '#333');
+                    }
+                }
+            }
+
+            // Toggle communication simulation
+            function toggleCommunication(svgElement) {
+                const metadataElement = svgElement.querySelector('metadata component');
+                if (metadataElement) {
+                    const txElement = metadataElement.querySelector('parameters isTxActive');
+                    const rxElement = metadataElement.querySelector('parameters isRxActive');
+
+                    if (txElement && rxElement) {
+                        // Simple simulation: toggle between TX, RX, and idle states
+                        const currentTx = txElement.textContent === 'true';
+                        const currentRx = rxElement.textContent === 'true';
+
+                        if (!currentTx && !currentRx) {
+                            // Idle -> TX active
+                            txElement.textContent = 'true';
+                            rxElement.textContent = 'false';
+                        } else if (currentTx && !currentRx) {
+                            // TX -> RX active
+                            txElement.textContent = 'false';
+                            rxElement.textContent = 'true';
+                        } else if (!currentTx && currentRx) {
+                            // RX -> Both active (full duplex)
+                            txElement.textContent = 'true';
+                            rxElement.textContent = 'true';
+                        } else {
+                            // Both -> Idle
+                            txElement.textContent = 'false';
+                            rxElement.textContent = 'false';
+                        }
+
+                        updateConverter(svgElement);
+                    }
+                }
+            }
+
+            // Cycle through baud rates
+            function cycleBaudRate(svgElement) {
+                const metadataElement = svgElement.querySelector('metadata component');
+                if (metadataElement) {
+                    const baudRateElement = metadataElement.querySelector('parameters baudRate');
+
+                    if (baudRateElement) {
+                        const baudRates = [1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200];
+                        const currentRate = parseInt(baudRateElement.textContent);
+                        const currentIndex = baudRates.indexOf(currentRate);
+                        const nextIndex = (currentIndex + 1) % baudRates.length;
+
+                        baudRateElement.textContent = baudRates[nextIndex].toString();
+                        updateConverter(svgElement);
+                    }
+                }
+            }
+
+            // Initialize
+            let svgElement = document.currentScript ? document.currentScript.closest('svg') : null;
+
+            if (!svgElement) {
+                const allSvgs = document.querySelectorAll('svg');
+                for (const svg of allSvgs) {
+                    if (svg.querySelector('.converter-housing') && svg.querySelector('.tx-led')) {
+                        svgElement = svg;
+                        break;
+                    }
+                }
+            }
+
+            if (svgElement && !svgElement.hasAttribute('data-converter-initialized')) {
+                svgElement.setAttribute('data-converter-initialized', 'true');
+                svgElement.converterInstanceId = 'converter-' + Math.random().toString(36).substr(2, 9);
+
+                // Add click event listeners
+                const housing = svgElement.querySelector('.converter-housing');
+                if (housing) {
+                    housing.addEventListener('click', function(e) {
+                        toggleCommunication(svgElement);
+                        e.stopPropagation();
+                    });
+                }
+
+                // Right-click to change baud rate
+                const paramsEl = svgElement.querySelector('.comm-params');
+                if (paramsEl) {
+                    paramsEl.addEventListener('click', function(e) {
+                        cycleBaudRate(svgElement);
+                        e.stopPropagation();
+                        e.preventDefault();
+                    });
+                }
+
+                // Initial update
+                updateConverter(svgElement);
+
+                // Poll for metadata changes
+                svgElement.pollingInterval = setInterval(() => {
+                    if (!svgElement.isConnected) {
+                        if (svgElement.txBlinkInterval) clearInterval(svgElement.txBlinkInterval);
+                        if (svgElement.rxBlinkInterval) clearInterval(svgElement.rxBlinkInterval);
+                        if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
+                        return;
+                    }
+
+                    const metadata = getMetadata(svgElement);
+                    const params = metadata.parameters || {};
+
+                    if (!svgElement.currentParams) {
+                        svgElement.currentParams = {};
+                    }
+
+                    const hasChanged =
+                        params.baudRate !== svgElement.currentParams.baudRate ||
+                        params.dataBits !== svgElement.currentParams.dataBits ||
+                        params.stopBits !== svgElement.currentParams.stopBits ||
+                        params.parity !== svgElement.currentParams.parity ||
+                        params.isTxActive !== svgElement.currentParams.isTxActive ||
+                        params.isRxActive !== svgElement.currentParams.isRxActive ||
+                        params.isConnected !== svgElement.currentParams.isConnected ||
+                        params.isActive !== svgElement.currentParams.isActive ||
+                        params.label !== svgElement.currentParams.label;
+
+                    if (hasChanged) {
+                        svgElement.currentParams = { ...params };
+                        updateConverter(svgElement);
+                    }
+                }, 500);
+
+                // Cleanup
+                function cleanupConverter() {
+                    if (svgElement.txBlinkInterval) clearInterval(svgElement.txBlinkInterval);
+                    if (svgElement.rxBlinkInterval) clearInterval(svgElement.rxBlinkInterval);
+                    if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
+                }
+
+                window.addEventListener('beforeunload', cleanupConverter);
+
+                if (typeof MutationObserver === 'function') {
+                    try {
+                        const observer = new MutationObserver((mutations) => {
+                            mutations.forEach((mutation) => {
+                                if (Array.from(mutation.removedNodes).some(node =>
+                                    node === svgElement || (node.contains && node.contains(svgElement)))) {
+                                    cleanupConverter();
+                                    observer.disconnect();
+                                }
+                            });
+                        });
+
+                        if (svgElement.parentNode) {
+                            observer.observe(svgElement.parentNode, { childList: true });
+                        }
+                    } catch (e) {
+                        console.warn("Could not set up observer:", e);
+                    }
+                }
+            }
+        })();
+        ]]></script>
+    </defs>
+</svg>

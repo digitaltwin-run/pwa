@@ -1,0 +1,531 @@
+/**
+ * 🎨 Advanced Features CSS
+ * Styling for PWA, Collaboration, and I18n features
+ */
+
+/* ================================
+   PWA FEATURES STYLING
+   ================================ */
+
+/* PWA Install Banner */
+.pwa-install-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    padding: 12px 20px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+}
+
+.pwa-install-banner.show {
+    transform: translateY(0);
+}
+
+.pwa-install-banner .install-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.pwa-install-banner .install-btn:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-1px);
+}
+
+/* PWA Update Notification */
+.pwa-update-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #27ae60;
+    color: white;
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    z-index: 1001;
+    animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Offline Indicator */
+.offline-indicator {
+    position: fixed;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #e74c3c;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    z-index: 999;
+    animation: pulse 2s infinite;
+}
+
+.offline-indicator.online {
+    background: #27ae60;
+    animation: none;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* ================================
+   COLLABORATION FEATURES STYLING
+   ================================ */
+
+/* Collaboration Panel */
+#collaboration-panel {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    width: 300px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    border: 1px solid #e1e8ed;
+    z-index: 500;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.collaboration-header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 16px 20px;
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.collaboration-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.connection-status {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.connection-status.status-connected {
+    background: #27ae60;
+    color: white;
+}
+
+.connection-status.status-error {
+    background: #e74c3c;
+    color: white;
+}
+
+.connection-status.status-disconnected {
+    background: #95a5a6;
+    color: white;
+}
+
+/* Room Controls */
+.room-controls {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.room-controls input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.room-controls button {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.room-controls button:hover {
+    background: #2980b9;
+    transform: translateY(-1px);
+}
+
+.room-controls button:active {
+    transform: translateY(0);
+}
+
+/* Users List */
+.users-list {
+    padding: 16px 20px;
+}
+
+.users-list h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #333;
+    font-weight: 600;
+}
+
+.user-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f8f8f8;
+}
+
+.user-item:last-child {
+    border-bottom: none;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    font-size: 16px;
+    color: white;
+    font-weight: bold;
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+.user-status {
+    font-size: 11px;
+    color: #666;
+}
+
+.local-user .user-name {
+    color: #3498db;
+}
+
+/* Remote Cursors */
+.remote-cursor {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1000;
+    transition: all 0.1s ease;
+}
+
+.remote-cursor::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 0;
+    border-left: 8px solid;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+}
+
+.remote-cursor .cursor-label {
+    background: inherit;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    margin-left: 12px;
+    margin-top: -2px;
+    white-space: nowrap;
+}
+
+/* Remote Selection Indicators */
+.remote-selection {
+    outline: 2px solid;
+    outline-offset: 2px;
+    animation: selectionPulse 1s ease-in-out;
+}
+
+@keyframes selectionPulse {
+    0%, 100% { outline-width: 2px; }
+    50% { outline-width: 4px; }
+}
+
+/* ================================
+   INTERNATIONALIZATION STYLING
+   ================================ */
+
+/* Language Switcher */
+#language-switcher {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 500;
+}
+
+#language-select {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+#language-select:hover {
+    border-color: #3498db;
+    box-shadow: 0 4px 12px rgba(52,152,219,0.2);
+}
+
+#language-select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
+}
+
+/* RTL Support */
+[dir="rtl"] {
+    text-align: right;
+}
+
+[dir="rtl"] .collaboration-panel {
+    left: 20px;
+    right: auto;
+}
+
+[dir="rtl"] #language-switcher {
+    left: 20px;
+    right: auto;
+}
+
+/* Language-specific Font Adjustments */
+html[lang="zh"], html[lang="ja"] {
+    font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans CJK", sans-serif;
+}
+
+html[lang="ar"], html[lang="he"] {
+    font-family: "Tahoma", "Arial Unicode MS", sans-serif;
+    direction: rtl;
+}
+
+html[lang="ru"] {
+    font-family: "Segoe UI", "Roboto", "Ubuntu", sans-serif;
+}
+
+/* ================================
+   ENHANCED UI ANIMATIONS
+   ================================ */
+
+/* Feature Panel Animations */
+.feature-panel {
+    animation: slideInFromRight 0.3s ease;
+}
+
+@keyframes slideInFromRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Loading Animations */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Success/Error Messages */
+.message-banner {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    border-radius: 6px;
+    color: white;
+    font-weight: 500;
+    z-index: 1000;
+    animation: messageSlide 0.3s ease;
+}
+
+.message-banner.success {
+    background: #27ae60;
+}
+
+.message-banner.error {
+    background: #e74c3c;
+}
+
+.message-banner.info {
+    background: #3498db;
+}
+
+@keyframes messageSlide {
+    from {
+        transform: translateX(-50%) translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ================================
+   RESPONSIVE DESIGN
+   ================================ */
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+    #collaboration-panel {
+        width: calc(100vw - 40px);
+        right: 20px;
+        left: 20px;
+        top: 60px;
+    }
+    
+    #language-switcher {
+        top: 10px;
+        right: 10px;
+    }
+    
+    .pwa-install-banner {
+        font-size: 14px;
+        padding: 10px 15px;
+    }
+    
+    .remote-cursor {
+        display: none; /* Hide cursors on mobile */
+    }
+}
+
+/* Tablet Adjustments */
+@media (max-width: 1024px) {
+    #collaboration-panel {
+        width: 280px;
+    }
+}
+
+/* High DPI Displays */
+@media (-webkit-min-device-pixel-ratio: 2) {
+    .user-avatar {
+        box-shadow: 0 0 0 0.5px rgba(0,0,0,0.1);
+    }
+}
+
+/* ================================
+   ACCESSIBILITY ENHANCEMENTS
+   ================================ */
+
+/* Focus Indicators */
+.room-controls button:focus,
+#language-select:focus {
+    outline: 2px solid #3498db;
+    outline-offset: 2px;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .collaboration-header {
+        background: #000;
+        color: #fff;
+        border: 2px solid #fff;
+    }
+    
+    .room-controls button {
+        border: 2px solid #000;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    #collaboration-panel {
+        background: #2c3e50;
+        border-color: #34495e;
+        color: #ecf0f1;
+    }
+    
+    .room-controls {
+        border-color: #34495e;
+    }
+    
+    .room-controls input {
+        background: #34495e;
+        border-color: #4a5f7a;
+        color: #ecf0f1;
+    }
+    
+    .user-item {
+        border-color: #34495e;
+    }
+    
+    #language-select {
+        background: #2c3e50;
+        border-color: #34495e;
+        color: #ecf0f1;
+    }
+}
+
+/* Print Styles */
+@media print {
+    #collaboration-panel,
+    #language-switcher,
+    .pwa-install-banner,
+    .offline-indicator {
+        display: none !important;
+    }
+}

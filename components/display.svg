@@ -15,6 +15,10 @@
                 <minWidth>40</minWidth>
                 <minHeight>30</minHeight>
                 <preserveAspectRatio>true</preserveAspectRatio>
+                <originalWidth>80</originalWidth>
+                <originalHeight>60</originalHeight>
+                <padding>5</padding>
+                <statusBarHeight>12</statusBarHeight>
             </parameters>
         </component>
     </metadata>
@@ -23,42 +27,59 @@
         <script type="text/ecmascript">
         <![CDATA[
             var displayParams = {
+                // These will be populated from metadata
+                refreshTimer: null,
+                
+                // Default values (will be overridden by metadata)
                 url: 'about:blank',
                 refreshInterval: 0,
                 isActive: true,
                 aspectRatio: '16:9',
                 allowFullScreen: true,
-                refreshTimer: null,
                 scaleX: 1.0,
                 scaleY: 1.0,
                 minWidth: 40,
                 minHeight: 30,
                 preserveAspectRatio: true,
-                originalViewBox: '0 0 80 60',
                 originalWidth: 80,
-                originalHeight: 60
+                originalHeight: 60,
+                padding: 5,
+                statusBarHeight: 12
             };
+            
+            // Helper function to get parameter value with default
+            function getParam(params, name, defaultValue) {
+                const value = params[name];
+                if (value === undefined || value === '') return defaultValue;
+                
+                // Convert string values to appropriate types
+                if (typeof defaultValue === 'number') return parseFloat(value) || defaultValue;
+                if (typeof defaultValue === 'boolean') return value !== 'false' && value !== false;
+                return value;
+            }
 
             function initDisplay(evt) {
                 var svg = evt.target.ownerDocument;
                 var svgRoot = svg.documentElement;
                 var params = getParameters(svg);
                 
-                // Initialize parameters with default values
-                displayParams.url = params.url || 'about:blank';
-                displayParams.refreshInterval = parseInt(params.refreshInterval) || 0;
-                displayParams.isActive = params.isActive !== 'false';
-                displayParams.aspectRatio = params.aspectRatio || '16:9';
-                displayParams.allowFullScreen = params.allowFullScreen !== 'false';
-                displayParams.scaleX = parseFloat(params.scaleX) || 1.0;
-                displayParams.scaleY = parseFloat(params.scaleY) || 1.0;
-                displayParams.minWidth = parseInt(params.minWidth) || 40;
-                displayParams.minHeight = parseInt(params.minHeight) || 30;
-                displayParams.preserveAspectRatio = params.preserveAspectRatio !== 'false';
+                // Load all parameters from metadata with defaults
+                displayParams.url = getParam(params, 'url', 'about:blank');
+                displayParams.refreshInterval = getParam(params, 'refreshInterval', 0);
+                displayParams.isActive = getParam(params, 'isActive', true);
+                displayParams.aspectRatio = getParam(params, 'aspectRatio', '16:9');
+                displayParams.allowFullScreen = getParam(params, 'allowFullScreen', true);
+                displayParams.scaleX = getParam(params, 'scaleX', 1.0);
+                displayParams.scaleY = getParam(params, 'scaleY', 1.0);
+                displayParams.minWidth = getParam(params, 'minWidth', 40);
+                displayParams.minHeight = getParam(params, 'minHeight', 30);
+                displayParams.preserveAspectRatio = getParam(params, 'preserveAspectRatio', true);
+                displayParams.originalWidth = getParam(params, 'originalWidth', 80);
+                displayParams.originalHeight = getParam(params, 'originalHeight', 60);
+                displayParams.padding = getParam(params, 'padding', 5);
+                displayParams.statusBarHeight = getParam(params, 'statusBarHeight', 12);
                 
-                // Store original dimensions
-                displayParams.originalWidth = 80; // Default width from viewBox
-                displayParams.originalHeight = 60; // Default height from viewBox
+                // Calculate derived values
                 displayParams.originalViewBox = '0 0 ' + displayParams.originalWidth + ' ' + displayParams.originalHeight;
                 
                 // Apply initial scaling
@@ -219,12 +240,12 @@
                 var displayContent = svgRoot.getElementById('displayContent');
                 if (!displayContent) return;
                 
-                // Calculate content area (with padding)
-                var padding = 5; // 5% padding
-                var contentX = (displayParams.originalWidth * padding / 100) * displayParams.scaleX;
-                var contentY = (displayParams.originalHeight * padding / 100) * displayParams.scaleY;
-                var contentWidth = displayParams.originalWidth * displayParams.scaleX - (2 * contentX);
-                var contentHeight = displayParams.originalHeight * displayParams.scaleY - (2 * contentY);
+                // Calculate content area (with padding from metadata)
+                var padding = displayParams.padding;
+                var contentX = padding * displayParams.scaleX;
+                var contentY = (displayParams.statusBarHeight + padding) * displayParams.scaleY;
+                var contentWidth = displayParams.originalWidth * displayParams.scaleX - (2 * padding * displayParams.scaleX);
+                var contentHeight = (displayParams.originalHeight - displayParams.statusBarHeight - padding) * displayParams.scaleY;
                 
                 // Update content container
                 displayContent.setAttribute('x', contentX);
@@ -252,11 +273,26 @@
             function makeResizable(svg, svgRoot) {
                 var resizeHandle = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
                 resizeHandle.setAttribute('class', 'resize-handle');
-                resizeHandle.setAttribute('x', '90%');
-                resizeHandle.setAttribute('y', '90%');
-                resizeHandle.setAttribute('width', '10%');
-                resizeHandle.setAttribute('height', '10%');
-                resizeHandle.setAttribute('fill', '#3498db');
+                
+                // Calculate handle size based on component size (10% of the smaller dimension, with min/max limits)
+                var handleSize = Math.max(
+                    8, // min size
+                    Math.min(
+                        Math.min(displayParams.originalWidth, displayParams.originalHeight) * 0.1, 
+                        15 // max size
+                    )
+                );
+                
+                // Position handle in bottom-right corner with small margin
+                var handleMargin = 2;
+                var handleX = displayParams.originalWidth - handleSize - handleMargin;
+                var handleY = displayParams.originalHeight - handleSize - handleMargin;
+                
+                resizeHandle.setAttribute('x', handleX);
+                resizeHandle.setAttribute('y', handleY);
+                resizeHandle.setAttribute('width', handleSize);
+                resizeHandle.setAttribute('height', handleSize);
+                resizeHandle.setAttribute('fill', displayParams.color || '#3498db');
                 resizeHandle.setAttribute('rx', '3');
                 resizeHandle.setAttribute('style', 'cursor: nwse-resize;');
                 
@@ -333,10 +369,22 @@
     <rect x="5" y="5" width="70" height="50" rx="2" fill="#fff" stroke="#95a5a6" stroke-width="1" />
     
     <!-- Status bar -->
-    <rect x="5" y="5" width="70" height="12" fill="#3498db" rx="2" rx2="0" />
+    <rect id="statusBar" x="5" y="5" width="70" height="12" fill="#3498db" rx="2" />
     <text id="label" x="10" y="15" font-size="8" fill="white">Display</text>
     
     <!-- Content will be inserted here by JavaScript -->
+    
+    <!-- Hidden style for resize handle -->
+    <style>
+        .resize-handle {
+            fill: #3498db;
+            cursor: nwse-resize;
+            opacity: 0.7;
+        }
+        .resize-handle:hover {
+            opacity: 1;
+        }
+    </style>
     <metadata>
         <component id="display-001" name="HMI Display" type="display">
             <parameters>
