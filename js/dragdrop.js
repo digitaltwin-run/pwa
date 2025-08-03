@@ -114,10 +114,15 @@ export class DragDropManager {
         const metadata = this.componentManager.parseXMLMetadata(svgElement);
         svgElement.setAttribute('data-metadata', JSON.stringify(metadata));
 
-        // Ustaw pozycję z uwzględnieniem siatki
-        const width = parseFloat(svgElement.getAttribute("width")) || 100;
-        const height = parseFloat(svgElement.getAttribute("height")) || 100;
-
+        // Ustaw rozmiar komponentu na rozmiar siatki (100x100px)
+        const gridSize = gridManager.config.size;
+        const width = gridSize;
+        const height = gridSize;
+        
+        // Ustaw atrybuty width i height SVG
+        svgElement.setAttribute("width", width);
+        svgElement.setAttribute("height", height);
+        
         // Oblicz pozycję z wyśrodkowaniem
         let finalX = x - width / 2;
         let finalY = y - height / 2;

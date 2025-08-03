@@ -19,13 +19,13 @@
 
 
     <!-- Background -->
-    <circle cx="30" cy="30" r="28" fill="#34495e" stroke="#2c3e50" stroke-width="2"/>
+    <circle class="gauge-background" cx="30" cy="30" r="28" fill="#34495e" stroke="#2c3e50" stroke-width="2"/>
 
     <!-- Gauge face -->
-    <circle cx="30" cy="30" r="24" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+    <circle class="gauge-face" cx="30" cy="30" r="24" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
 
     <!-- Scale markings -->
-    <path d="M 18 42 A 18 18 0 0 1 42 42" stroke="#7f8c8d" stroke-width="1" fill="none"/>
+    <path class="gauge-scale" d="M 18 42 A 18 18 0 0 1 42 42" stroke="#7f8c8d" stroke-width="1" fill="none"/>
 
     <!-- Scale marks -->
     <line x1="30" y1="30" x2="30" y2="14" stroke="#7f8c8d" stroke-width="0.5" transform="rotate(0 30 30)"/>

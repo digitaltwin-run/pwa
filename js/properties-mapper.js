@@ -10,8 +10,18 @@ export class PropertiesMapper {
 
     // Skanuj wszystkie elementy na canvie i wyciągnij ich właściwości
     scanCanvasProperties() {
-        const canvas = document.getElementById('canvas');
-        if (!canvas) return;
+        // Spróbuj różnych ID canvas
+        const canvas = document.getElementById('svg-canvas') || 
+                      document.getElementById('canvas') ||
+                      document.querySelector('svg#canvas') ||
+                      document.querySelector('#workspace svg');
+        
+        if (!canvas) {
+            console.warn('Canvas not found for property mapping');
+            return;
+        }
+        
+        console.log('Canvas found for scanning:', canvas.id || canvas.tagName);
 
         this.mappedProperties.clear();
         this.availableVariables.clear();
@@ -31,8 +41,42 @@ export class PropertiesMapper {
 
     // NOWA METODA: Wyciągnij właściwości tylko z SVG
     extractElementPropertiesFromSvg(svgElement) {
-        // Wyciągnij typ komponentu na podstawie klas lub heurystyki SVG
-        const type = this.detectComponentType(svgElement, {});
+        // Wyciągnij metadane z SVG (z data-metadata lub z embedded metadata)
+        let componentData = {};
+        
+        // Spróbuj wyciągnąć z data-metadata
+        const dataMetadata = svgElement.getAttribute('data-metadata');
+        if (dataMetadata) {
+            try {
+                const parsed = JSON.parse(dataMetadata);
+                componentData = { metadata: parsed };
+            } catch (e) {
+                console.warn('Failed to parse data-metadata:', e);
+            }
+        }
+        
+        // Albo spróbuj wyciągnąć z wewnętrznych metadanych SVG
+        if (!componentData.metadata) {
+            const metadataElement = svgElement.querySelector('metadata component');
+            if (metadataElement) {
+                const typeAttr = metadataElement.getAttribute('type');
+                const nameAttr = metadataElement.getAttribute('name');
+                const idAttr = metadataElement.getAttribute('id');
+                
+                if (typeAttr || nameAttr || idAttr) {
+                    componentData.metadata = {
+                        type: typeAttr,
+                        name: nameAttr,
+                        id: idAttr
+                    };
+                }
+            }
+        }
+        
+        console.log(`[PropertiesMapper] Extracted metadata for ${svgElement.getAttribute('data-id')}:`, componentData);
+        
+        // Wyciągnij typ komponentu na podstawie metadanych i SVG
+        const type = this.detectComponentType(svgElement, componentData);
         // Wyciągnij wszystkie atrybuty SVG
         const svgAttributes = this.extractSvgAttributes(svgElement);
         // Wyciągnij kolory
@@ -181,7 +225,19 @@ export class PropertiesMapper {
 
     // Pobierz dostępne zdarzenia dla komponentu
     getAvailableEvents(svgElement) {
-        const componentType = this.detectComponentType(svgElement, {});
+        // Wyciągnij metadane z SVG (tak samo jak w extractElementPropertiesFromSvg)
+        let componentData = {};
+        const dataMetadata = svgElement.getAttribute('data-metadata');
+        if (dataMetadata) {
+            try {
+                const parsed = JSON.parse(dataMetadata);
+                componentData = { metadata: parsed };
+            } catch (e) {
+                // Fallback do pustego obiektu
+            }
+        }
+        
+        const componentType = this.detectComponentType(svgElement, componentData);
         
         const eventMap = {
             'button': ['click', 'press', 'release', 'hover'],
