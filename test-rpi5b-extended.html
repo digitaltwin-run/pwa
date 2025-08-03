@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raspberry Pi 5 - Extended Tests</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .test-panel {
+            flex: 1;
+            min-width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background: #f9f9f9;
+        }
+        .svg-container {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        button {
+            padding: 8px 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            background: #f0f0f0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            min-height: 60px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+        .test-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .test-result {
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-top: 5px;
+            display: inline-block;
+        }
+        .pass {
+            background: #d4edda;
+            color: #155724;
+        }
+        .fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .test-item {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Raspberry Pi 5 - Extended Test Suite</h1>
+    
+    <div class="test-container">
+        <div class="test-panel">
+            <h2>SVG Component</h2>
+            <div class="svg-container">
+                <object id="rpi5-svg" data="components/rpi5b.svg" type="image/svg+xml" width="550" height="400">
+                    Your browser does not support SVG
+                </object>
+            </div>
+            
+            <div class="controls">
+                <button onclick="testPowerCycle()">Power Cycle</button>
+                <button onclick="testFanControl()">Toggle Fan</button>
+                <button onclick="testNetworkToggle()">Toggle Network</button>
+                <button onclick="testAll()">Run All Tests</button>
+            </div>
+            
+            <div class="status" id="status">Status: Ready</div>
+        </div>
+        
+        <div class="test-panel">
+            <h2>Test Results</h2>
+            
+            <div class="test-section">
+                <div class="test-title">1. Component Initialization</div>
+                <div id="test-init" class="test-result">Not run</div>
+                <div id="test-metadata" class="test-result">Not run</div>
+            </div>
+            
+            <div class="test-section">
+                <div class="test-title">2. Power Management</div>
+                <div id="test-power-on" class="test-result">Not run</div>
+                <div id="test-power-off" class="test-result">Not run</div>
+            </div>
+            
+            <div class="test-section">
+                <div class="test-title">3. Peripheral Testing</div>
+                <div class="test-grid">
+                    <div class="test-item">
+                        <div>Ethernet</div>
+                        <div id="test-ethernet" class="test-result">-</div>
+                    </div>
+                    <div class="test-item">
+                        <div>WiFi</div>
+                        <div id="test-wifi" class="test-result">-</div>
+                    </div>
+                    <div class="test-item">
+                        <div>Bluetooth</div>
+                        <div id="test-bluetooth" class="test-result">-</div>
+                    </div>
+                    <div class="test-item">
+                        <div>HDMI 1</div>
+                        <div id="test-hdmi1" class="test-result">-</div>
+                    </div>
+                    <div class="test-item">
+                        <div>HDMI 2</div>
+                        <div id="test-hdmi2" class="test-result">-</div>
+                    </div>
+                    <div class="test-item">
+                        <div>USB 3.0</div>
+                        <div id="test-usb3" class="test-result">-</div>
+                    </div>
+                    <div class="test-item">
+                        <div>Fan Control</div>
+                        <div id="test-fan" class="test-result">-</div>
+                    </div>
+                    <div class="test-item">
+                        <div>RTC Battery</div>
+                        <div id="test-rtc" class="test-result">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="test-section">
+                <div class="test-title">4. Performance</div>
+                <div id="test-cpu" class="test-result">-</div>
+                <div id="test-ram" class="test-result">-</div>
+                <div id="test-temp" class="test-result">-</div>
+            </div>
+            
+            <div class="test-section">
+                <div class="test-title">5. Interactive Tests</div>
+                <div class="controls">
+                    <button onclick="testClickPowerButton()">Test Power Button</button>
+                    <button onclick="testClickFan()">Test Fan Click</button>
+                </div>
+                <div id="test-interactive" class="test-result">-</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let svgDoc = null;
+        let testInProgress = false;
+        
+        // Initialize when the SVG is loaded
+        document.getElementById('rpi5-svg').addEventListener('load', function() {
+            svgDoc = this.contentDocument || this.getSVGDocument();
+            if (svgDoc) {
+                updateStatus('SVG loaded successfully');
+                runInitializationTests();
+            } else {
+                updateStatus('Error: Could not access SVG document', 'error');
+            }
+        });
+        
+        // Status update function
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        // Test result function
+        function updateTestResult(elementId, passed, message) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            element.textContent = message;
+            element.className = 'test-result ' + (passed ? 'pass' : 'fail');
+            return passed;
+        }
+        
+        // Get metadata from SVG
+        function getSvgMetadata() {
+            if (!svgDoc) return null;
+            
+            try {
+                const metadataElement = svgDoc.querySelector('metadata component');
+                if (!metadataElement) return null;
+                
+                const params = metadataElement.querySelector('parameters');
+                if (!params) return null;
+                
+                // Extract all parameters
+                const result = {};
+                for (const child of params.children) {
+                    result[child.tagName.toLowerCase()] = child.textContent;
+                }
+                return result;
+            } catch (e) {
+                console.error('Error getting metadata:', e);
+                return null;
+            }
+        }
+        
+        // Set a parameter in the SVG metadata
+        function setSvgParameter(param, value) {
+            if (!svgDoc) return false;
+            
+            try {
+                const element = svgDoc.querySelector(`metadata component parameters ${param}`);
+                if (element) {
+                    element.textContent = value.toString();
+                    // Trigger update
+                    const event = new Event('change');
+                    element.dispatchEvent(event);
+                    return true;
+                }
+                return false;
+            } catch (e) {
+                console.error(`Error setting parameter ${param}:`, e);
+                return false;
+            }
+        }
+        
+        // Get a parameter from the SVG metadata
+        function getSvgParameter(param) {
+            const metadata = getSvgMetadata();
+            return metadata ? metadata[param.toLowerCase()] : null;
+        }
+        
+        // ===== Test Functions =====
+        
+        // 1. Initialization Tests
+        function runInitializationTests() {
+            // Test 1.1: Check if SVG document is accessible
+            const svgAccess = !!svgDoc;
+            updateTestResult('test-init', 
+                svgAccess, 
+                svgAccess ? 'SVG document accessible' : 'Failed to access SVG document'
+            );
+            
+            // Test 1.2: Check if metadata exists
+            const metadata = getSvgMetadata();
+            const hasMetadata = !!metadata;
+            updateTestResult('test-metadata',
+                hasMetadata,
+                hasMetadata ? 'Metadata found' : 'No metadata found in SVG'
+            );
+            
+            return svgAccess && hasMetadata;
+        }
+        
+        // 2. Power Management Tests
+        async function testPowerOn() {
+            setSvgParameter('isPowered', 'true');
+            await new Promise(resolve => setTimeout(resolve, 500));
+            const isPowered = getSvgParameter('isPowered') === 'true';
+            return updateTestResult('test-power-on',
+                isPowered,
+                isPowered ? 'Power on successful' : 'Failed to power on'
+            );
+        }
+        
+        async function testPowerOff() {
+            setSvgParameter('isPowered', 'false');
+            await new Promise(resolve => setTimeout(resolve, 500));
+            const isPowered = getSvgParameter('isPowered') === 'true';
+            return updateTestResult('test-power-off',
+                !isPowered,
+                !isPowered ? 'Power off successful' : 'Failed to power off'
+            );
+        }
+        
+        // 3. Peripheral Tests
+        async function testPeripheral(peripheralName) {
+            // Toggle the peripheral
+            const currentState = getSvgParameter(peripheralName) === 'true';
+            setSvgParameter(peripheralName, (!currentState).toString());
+            
+            // Wait for update
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            // Check if the state changed
+            const newState = getSvgParameter(peripheralName) === 'true';
+            return newState !== currentState;
+        }
+        
+        async function runPeripheralTests() {
+            // Test Ethernet
+            const ethResult = await testPeripheral('isEthernetConnected');
+            updateTestResult('test-ethernet', 
+                ethResult, 
+                ethResult ? 'Ethernet: Working' : 'Ethernet: Failed'
+            );
+            
+            // Test WiFi
+            const wifiResult = await testPeripheral('isWifiConnected');
+            updateTestResult('test-wifi',
+                wifiResult,
+                wifiResult ? 'WiFi: Working' : 'WiFi: Failed'
+            );
+            
+            // Test Bluetooth
+            const btResult = await testPeripheral('isBluetoothEnabled');
+            updateTestResult('test-bluetooth',
+                btResult,
+                btResult ? 'Bluetooth: Working' : 'Bluetooth: Failed'
+            );
+            
+            // Test HDMI 1
+            const hdmi1Result = await testPeripheral('hdmi1Connected');
+            updateTestResult('test-hdmi1',
+                hdmi1Result,
+                hdmi1Result ? 'HDMI 1: Working' : 'HDMI 1: Failed'
+            );
+            
+            // Test HDMI 2
+            const hdmi2Result = await testPeripheral('hdmi2Connected');
+            updateTestResult('test-hdmi2',
+                hdmi2Result,
+                hdmi2Result ? 'HDMI 2: Working' : 'HDMI 2: Failed'
+            );
+            
+            // Test USB 3.0
+            const usb3Result = await testPeripheral('usb3Devices');
+            updateTestResult('test-usb3',
+                usb3Result,
+                usb3Result ? 'USB 3.0: Working' : 'USB 3.0: Failed'
+            );
+            
+            // Test Fan
+            const fanResult = await testPeripheral('fanConnected');
+            updateTestResult('test-fan',
+                fanResult,
+                fanResult ? 'Fan: Working' : 'Fan: Failed'
+            );
+            
+            // Test RTC
+            const rtcResult = await testPeripheral('rtcBatteryConnected');
+            updateTestResult('test-rtc',
+                rtcResult,
+                rtcResult ? 'RTC: Working' : 'RTC: Failed'
+            );
+            
+            return ethResult && wifiResult && btResult && hdmi1Result && hdmi2Result && usb3Result && fanResult && rtcResult;
+        }
+        
+        // 4. Performance Tests
+        async function runPerformanceTests() {
+            // Test CPU temperature
+            const initialTemp = parseFloat(getSvgParameter('cpuTemp') || '0');
+            setSvgParameter('cpuLoad', '90'); // Simulate high load
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const newTemp = parseFloat(getSvgParameter('cpuTemp') || '0');
+            const tempIncreased = newTemp > initialTemp;
+            updateTestResult('test-temp',
+                tempIncreased,
+                `CPU Temp: ${newTemp.toFixed(1)}°C (${tempIncreased ? 'OK' : 'No change'})`
+            );
+            
+            // Test RAM usage
+            const initialRam = parseFloat(getSvgParameter('ramUsage') || '0');
+            const ramChanged = initialRam > 0;
+            updateTestResult('test-ram',
+                ramChanged,
+                `RAM Usage: ${initialRam}% (${ramChanged ? 'OK' : 'No data'})`
+            );
+            
+            // Test CPU load
+            const cpuLoad = parseFloat(getSvgParameter('cpuLoad') || '0');
+            updateTestResult('test-cpu',
+                cpuLoad >= 0 && cpuLoad <= 100,
+                `CPU Load: ${cpuLoad}% (${cpuLoad >= 0 && cpuLoad <= 100 ? 'OK' : 'Invalid'})`
+            );
+            
+            return tempIncreased && ramChanged && (cpuLoad >= 0 && cpuLoad <= 100);
+        }
+        
+        // 5. Interactive Tests
+        async function testClickPowerButton() {
+            if (!svgDoc) return false;
+            
+            const powerButton = svgDoc.querySelector('.power-button');
+            if (!powerButton) {
+                updateTestResult('test-interactive', false, 'Power button not found');
+                return false;
+            }
+            
+            // Simulate click
+            const initialPowerState = getSvgParameter('isPowered') === 'true';
+            powerButton.dispatchEvent(new MouseEvent('click'));
+            
+            // Wait for state change
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            const newPowerState = getSvgParameter('isPowered') === 'true';
+            const powerChanged = initialPowerState !== newPowerState;
+            
+            updateTestResult('test-interactive',
+                powerChanged,
+                powerChanged ? 'Power button click successful' : 'Power button click failed'
+            );
+            
+            return powerChanged;
+        }
+        
+        async function testClickFan() {
+            if (!svgDoc) return false;
+            
+            const fanIndicator = svgDoc.querySelector('.fan-indicator');
+            if (!fanIndicator) {
+                updateTestResult('test-interactive', false, 'Fan indicator not found');
+                return false;
+            }
+            
+            // Simulate click
+            const initialFanState = getSvgParameter('fanConnected') === 'true';
+            fanIndicator.dispatchEvent(new MouseEvent('click'));
+            
+            // Wait for state change
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            const newFanState = getSvgParameter('fanConnected') === 'true';
+            const fanChanged = initialFanState !== newFanState;
+            
+            updateTestResult('test-interactive',
+                fanChanged,
+                fanChanged ? 'Fan click successful' : 'Fan click failed'
+            );
+            
+            return fanChanged;
+        }
+        
+        // ===== UI Event Handlers =====
+        
+        async function testPowerCycle() {
+            if (testInProgress) return;
+            testInProgress = true;
+            
+            updateStatus('Testing power cycle...');
+            
+            // Turn off
+            await testPowerOff();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Turn on
+            await testPowerOn();
+            
+            updateStatus('Power cycle test completed');
+            testInProgress = false;
+        }
+        
+        async function testFanControl() {
+            if (testInProgress) return;
+            testInProgress = true;
+            
+            updateStatus('Testing fan control...');
+            
+            // Toggle fan
+            const currentState = getSvgParameter('fanConnected') === 'true';
+            setSvgParameter('fanConnected', (!currentState).toString());
+            
+            updateStatus(`Fan ${!currentState ? 'enabled' : 'disabled'}`);
+            testInProgress = false;
+        }
+        
+        async function testNetworkToggle() {
+            if (testInProgress) return;
+            testInProgress = true;
+            
+            updateStatus('Toggling network interfaces...');
+            
+            // Toggle network interfaces
+            await testPeripheral('isEthernetConnected');
+            await new Promise(resolve => setTimeout(resolve, 300));
+            await testPeripheral('isWifiConnected');
+            
+            updateStatus('Network interfaces toggled');
+            testInProgress = false;
+        }
+        
+        async function testAll() {
+            if (testInProgress) return;
+            testInProgress = true;
+            
+            updateStatus('Starting comprehensive tests...');
+            
+            try {
+                // 1. Initialization tests
+                updateStatus('Running initialization tests...');
+                const initPassed = runInitializationTests();
+                if (!initPassed) {
+                    updateStatus('Initialization tests failed', 'error');
+                    return;
+                }
+                
+                // 2. Power tests
+                updateStatus('Running power tests...');
+                await testPowerOn();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                await testPowerOff();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                await testPowerOn();
+                
+                // 3. Peripheral tests
+                updateStatus('Running peripheral tests...');
+                await runPeripheralTests();
+                
+                // 4. Performance tests
+                updateStatus('Running performance tests...');
+                await runPerformanceTests();
+                
+                // 5. Interactive tests
+                updateStatus('Running interactive tests...');
+                await testClickPowerButton();
+                await testClickFan();
+                
+                updateStatus('All tests completed successfully!', 'success');
+            } catch (error) {
+                console.error('Test error:', error);
+                updateStatus(`Test error: ${error.message}`, 'error');
+            } finally {
+                testInProgress = false;
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStatus('Test environment ready');
+        });
+    </script>
+</body>
+</html>

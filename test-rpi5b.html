@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raspberry Pi 5 SVG Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .svg-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        button {
+            padding: 8px 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            background: #f8f8f8;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Raspberry Pi 5 SVG Test</h1>
+        
+        <div class="svg-container">
+            <!-- Include the SVG directly -->
+            <object id="rpi5-svg" data="components/rpi5b.svg" type="image/svg+xml" width="550" height="400">
+                Your browser does not support SVG
+            </object>
+        </div>
+        
+        <div class="controls">
+            <button onclick="testPowerButton()">Toggle Power</button>
+            <button onclick="testFan()">Toggle Fan</button>
+            <button onclick="testEthernet()">Toggle Ethernet</button>
+            <button onclick="testHDMI()">Toggle HDMI</button>
+            <button onclick="testUSB()">Toggle USB</button>
+        </div>
+        
+        <div class="status" id="status">Status: Ready</div>
+    </div>
+
+    <script>
+        function getSVGDocument(svgObject) {
+            return svgObject.contentDocument || svgObject.getSVGDocument();
+        }
+
+        function updateStatus(message) {
+            const status = document.getElementById('status');
+            status.textContent = 'Status: ' + message;
+            console.log(message);
+        }
+
+        function testPowerButton() {
+            const svgObject = document.getElementById('rpi5-svg');
+            svgObject.addEventListener('load', function() {
+                const svgDoc = getSVGDocument(svgObject);
+                const powerButton = svgDoc.querySelector('.power-button');
+                if (powerButton) {
+                    powerButton.dispatchEvent(new MouseEvent('click'));
+                    updateStatus('Power button clicked');
+                } else {
+                    updateStatus('Error: Power button not found');
+                }
+            });
+        }
+
+        function testFan() {
+            const svgObject = document.getElementById('rpi5-svg');
+            svgObject.addEventListener('load', function() {
+                const svgDoc = getSVGDocument(svgObject);
+                const fanConnectedElement = svgDoc.querySelector('metadata component parameters fanConnected');
+                if (fanConnectedElement) {
+                    const currentState = fanConnectedElement.textContent === 'true';
+                    fanConnectedElement.textContent = (!currentState).toString();
+                    updateStatus('Fan ' + (currentState ? 'disconnected' : 'connected'));
+                } else {
+                    updateStatus('Error: Fan element not found');
+                }
+            });
+        }
+
+        function testEthernet() {
+            const svgObject = document.getElementById('rpi5-svg');
+            svgObject.addEventListener('load', function() {
+                const svgDoc = getSVGDocument(svgObject);
+                const ethElement = svgDoc.querySelector('metadata component parameters isEthernetConnected');
+                if (ethElement) {
+                    const currentState = ethElement.textContent === 'true';
+                    ethElement.textContent = (!currentState).toString();
+                    updateStatus('Ethernet ' + (currentState ? 'disconnected' : 'connected'));
+                } else {
+                    updateStatus('Error: Ethernet element not found');
+                }
+            });
+        }
+
+        function testHDMI() {
+            const svgObject = document.getElementById('rpi5-svg');
+            svgObject.addEventListener('load', function() {
+                const svgDoc = getSVGDocument(svgObject);
+                const hdmi1Element = svgDoc.querySelector('metadata component parameters hdmi1Connected');
+                if (hdmi1Element) {
+                    const currentState = hdmi1Element.textContent === 'true';
+                    hdmi1Element.textContent = (!currentState).toString();
+                    updateStatus('HDMI 1 ' + (currentState ? 'disconnected' : 'connected'));
+                } else {
+                    updateStatus('Error: HDMI element not found');
+                }
+            });
+        }
+
+        function testUSB() {
+            const svgObject = document.getElementById('rpi5-svg');
+            svgObject.addEventListener('load', function() {
+                const svgDoc = getSVGDocument(svgObject);
+                const usb3Element = svgDoc.querySelector('metadata component parameters usb3Devices');
+                if (usb3Element) {
+                    const currentCount = parseInt(usb3Element.textContent) || 0;
+                    const newCount = currentCount === 2 ? 0 : currentCount + 1;
+                    usb3Element.textContent = newCount.toString();
+                    updateStatus('USB 3.0 devices: ' + newCount);
+                } else {
+                    updateStatus('Error: USB element not found');
+                }
+            });
+        }
+
+        // Initial status
+        updateStatus('Click buttons to test interactions');
+    </script>
+</body>
+</html>

@@ -3,6 +3,9 @@
  * Handles PWA features: notifications, offline storage, background sync
  */
 
+// Import configuration
+import pwaConfig from '../config/pwa-config.js';
+
 class PWAManager {
     constructor() {
         this.isSupported = 'serviceWorker' in navigator;
@@ -91,24 +94,48 @@ class PWAManager {
 
     // Subscribe to push notifications
     async subscribeToPush() {
-        try {
-            // Generate VAPID keys in production
-            const vapidPublicKey = 'BEl62iUYgUivxIkv69yViEuiBIa40HI2BN4EMYayz2hKdw4XHwjq5xZOObFf1FhsVUiOFgL3R_9gPT8E_Y6n';
-            
-            const applicationServerKey = this.urlBase64ToUint8Array(vapidPublicKey);
-            
-            this.pushSubscription = await this.registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: applicationServerKey
-            });
+        if (!pwaConfig.enablePushNotifications) {
+            console.log('ℹ️ Push notifications are disabled in configuration');
+            return;
+        }
 
-            console.log('✅ Push subscription created:', this.pushSubscription.endpoint);
+        try {
+            if (!pwaConfig.vapidPublicKey) {
+                throw new Error('VAPID public key is not configured');
+            }
             
-            // Send subscription to server (in real app)
-            await this.sendSubscriptionToServer(this.pushSubscription);
+            console.log('🔑 Using VAPID public key:', pwaConfig.vapidPublicKey.substring(0, 20) + '...');
+            
+            const applicationServerKey = this.urlBase64ToUint8Array(pwaConfig.vapidPublicKey);
+            
+            // Check for existing subscription first
+            this.pushSubscription = await this.registration.pushManager.getSubscription();
+            
+            if (!this.pushSubscription) {
+                console.log('🔄 Creating new push subscription...');
+                this.pushSubscription = await this.registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: applicationServerKey
+                });
+                console.log('✅ Push subscription created:', this.pushSubscription.endpoint);
+                
+                // Send subscription to server
+                await this.sendSubscriptionToServer(this.pushSubscription);
+            } else {
+                console.log('ℹ️ Using existing push subscription:', this.pushSubscription.endpoint);
+            }
             
         } catch (error) {
             console.error('❌ Push subscription failed:', error);
+            
+            // If the error is due to an invalid key, provide helpful message
+            if (error.name === 'InvalidAccessError' && error.message.includes('applicationServerKey')) {
+                console.error('⚠️ Invalid VAPID public key. Please generate a new key pair.');
+                console.log('💡 Run: node scripts/generate-vapid-keys.js');
+            }
+            
+            // Disable push notifications to prevent repeated errors
+            pwaConfig.enablePushNotifications = false;
         }
     }
 
