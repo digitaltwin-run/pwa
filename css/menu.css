@@ -13,6 +13,33 @@
     box-sizing: border-box;
 }
 
+/* Language Selector */
+.language-switcher {
+    margin-right: auto;
+    flex-shrink: 0;
+}
+
+.language-switcher select {
+    background-color: #34495e;
+    color: #ecf0f1;
+    border: 1px solid #2c3e50;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.language-switcher select:hover {
+    background-color: #3d566e;
+}
+
+.language-switcher select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+}
+
 /* Top Menu Styles */
 .top-menu {
     flex-shrink: 0;

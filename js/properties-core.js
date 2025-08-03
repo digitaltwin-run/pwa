@@ -2,7 +2,7 @@
 
 import { ColorManager } from './properties-colors.js';
 import { MetadataManager } from './properties-metadata.js';
-import { InteractionsManager } from './properties-interactions.js';
+import { PropertiesInteractionsManager } from './properties-interactions.js';
 import { PropertiesMapper } from './properties-mapper.js';
 import { getComponentProperties } from './component-properties.js';
 
@@ -19,7 +19,7 @@ export class PropertiesManager {
         // Initialize sub-managers
         this.colorManager = new ColorManager(componentManager);
         this.metadataManager = new MetadataManager(componentManager);
-        this.interactionsManager = new InteractionsManager(componentManager);
+        this.interactionsManager = new PropertiesInteractionsManager(componentManager);
         this.propertiesMapper = new PropertiesMapper(componentManager);
         
         // Initialize new modular components

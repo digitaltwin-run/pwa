@@ -2,7 +2,7 @@
 
 import { PropertiesMapper } from './properties-mapper.js';
 
-export class InteractionsManager {
+export class PropertiesInteractionsManager {
     constructor(componentManager) {
         this.componentManager = componentManager;
         this.propertiesMapper = new PropertiesMapper(componentManager);
