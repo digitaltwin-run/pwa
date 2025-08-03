@@ -1,8 +1,17 @@
-/* Top Menu Styles */
-.top-menu {
+/* Top Menu and Toolbar Container */
+.header-container {
+    display: flex;
+    align-items: center;
     background-color: #2c3e50;
     padding: 0.5rem 1rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
+    gap: 1.5rem;
+}
+
+/* Top Menu Styles */
+.top-menu {
+    flex-shrink: 0;
 }
 
 .top-menu ul {
@@ -11,6 +20,18 @@
     padding: 0;
     display: flex;
     gap: 1.5rem;
+    align-items: center;
+    min-width: fit-content;
+}
+
+/* Toolbar Styles */
+.toolbar {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    align-items: center;
+    padding: 0;
+    background: transparent;
 }
 
 .top-menu .menu-item {
@@ -19,6 +40,8 @@
     padding: 0.5rem 1rem;
     border-radius: 4px;
     transition: background-color 0.2s;
+    white-space: nowrap; /* Prevent text wrapping within menu items */
+    flex-shrink: 0; /* Prevent menu items from shrinking */
 }
 
 .top-menu .menu-item:hover {

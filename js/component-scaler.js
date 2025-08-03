@@ -3,6 +3,8 @@
  * Allows scaling SVG components using transform="scale()" attribute
  */
 
+import { gridManager } from './grid.js';
+
 export class ComponentScaler {
     constructor(componentManager) {
         this.componentManager = componentManager;
@@ -76,11 +78,18 @@ export class ComponentScaler {
         const adjustX = -(bounds.width * scaleDiff) / 2;
         const adjustY = -(bounds.height * scaleDiff) / 2;
         
-        // Update position to compensate for scaling offset
-        const newX = currentX + adjustX;
-        const newY = currentY + adjustY;
+        // Calculate new position with adjustment
+        let newX = currentX + adjustX;
+        let newY = currentY + adjustY;
         
-        // Apply position compensation
+        // Snap new position to grid to maintain grid alignment
+        if (gridManager.config.snapToGrid) {
+            const snappedPosition = gridManager.snapPositionToGrid({ x: newX, y: newY });
+            newX = snappedPosition.x;
+            newY = snappedPosition.y;
+        }
+        
+        // Apply grid-aligned position compensation
         svgElement.setAttribute('x', newX.toString());
         svgElement.setAttribute('y', newY.toString());
         
