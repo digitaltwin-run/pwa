@@ -317,8 +317,24 @@ export class ExportManager {
                         scriptElements.forEach(script => {
                             if (script.textContent) {
                                 try {
-                                    // Create a more robust function execution context
-                                    const scriptContent = script.textContent;
+                                    // Clean and sanitize script content to prevent syntax errors
+                                    let scriptContent = script.textContent;
+                                    
+                                    // Remove CDATA markers that can cause syntax errors
+                                    scriptContent = scriptContent.replace(/<!\[CDATA\[/g, '');
+                                    scriptContent = scriptContent.replace(/\]\]>/g, '');
+                                    
+                                    // Remove any XML artifacts
+                                    scriptContent = scriptContent.replace(/<\?xml[^>]*>/g, '');
+                                    
+                                    // Trim whitespace
+                                    scriptContent = scriptContent.trim();
+                                    
+                                    // Skip empty scripts
+                                    if (!scriptContent) {
+                                        console.warn('⚠️ Skipping empty script content');
+                                        return;
+                                    }
                                     
                                     // Execute the script in component context
                                     const scriptFn = new Function('component', 

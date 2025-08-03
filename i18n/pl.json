@@ -35,6 +35,10 @@
       "target": "Cel",
       "event": "Zdarzenie",
       "action": "Akcja"
+    },
+    "simulation": {
+      "title": "📊 Symulacja Danych",
+      "noComponents": "Brak komponentów do symulacji"
     }
   },
   "components": {

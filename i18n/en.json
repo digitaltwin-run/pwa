@@ -35,6 +35,10 @@
       "target": "Target",
       "event": "Event",
       "action": "Action"
+    },
+    "simulation": {
+      "title": "📊 Data Simulation",
+      "noComponents": "No components available for simulation"
     }
   },
   "components": {
