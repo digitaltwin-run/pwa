@@ -17,7 +17,7 @@
 
 
     <!-- Background -->
-    <rect x="5" y="10" width="30" height="20" rx="3" ry="3" fill="#2c3e50" stroke="#1a252f" stroke-width="1"/>
+    <rect class="switch-base" x="5" y="10" width="30" height="20" rx="3" ry="3" fill="#2c3e50" stroke="#1a252f" stroke-width="1"/>
 
     <!-- Switch track -->
     <rect class="switch-track" x="8" y="15" width="24" height="10" rx="5" ry="5" fill="#7f8c8d"/>

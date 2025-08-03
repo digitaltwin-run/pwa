@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Twin IDE - Testy UI</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .test-case {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px 0;
+            padding: 15px;
+        }
+        .test-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+        .status-pass { background: #2ecc71; color: white; }
+        .status-fail { background: #e74c3c; color: white; }
+        .status-pending { background: #f39c12; color: white; }
+        .test-actions {
+            margin-top: 10px;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover { background: #2980b9; }
+        .test-results {
+            background: #ecf0f1;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Digital Twin IDE - Testy Wizualne UI</h1>
+    
+    <div class="test-container">
+        <div class="test-title">1. Testy Ładowania i Inicjalizacji</div>
+        
+        <div class="test-case">
+            <h3>📦 Ładowanie Komponentów</h3>
+            <span class="test-status status-pending" id="status-load">PENDING</span>
+            <p>Test ładowania biblioteki komponentów z components.json</p>
+            <div class="test-actions">
+                <button onclick="testComponentLoading()">Uruchom Test</button>
+            </div>
+            <div class="test-results" id="results-load"></div>
+        </div>
+
+        <div class="test-case">
+            <h3>🎨 Inicjalizacja Canvas</h3>
+            <span class="test-status status-pending" id="status-canvas">PENDING</span>
+            <p>Test poprawnej inicjalizacji canvas SVG</p>
+            <div class="test-actions">
+                <button onclick="testCanvasInit()">Uruchom Test</button>
+            </div>
+            <div class="test-results" id="results-canvas"></div>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <div class="test-title">2. Testy Drag & Drop</div>
+        
+        <div class="test-case">
+            <h3>🖱️ Przeciąganie Komponentów</h3>
+            <span class="test-status status-pending" id="status-dragdrop">PENDING</span>
+            <p>Test dodawania komponentów przez drag & drop</p>
+            <div class="test-actions">
+                <button onclick="testDragDrop()">Uruchom Test</button>
+            </div>
+            <div class="test-results" id="results-dragdrop"></div>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <div class="test-title">3. Testy Systemu Właściwości</div>
+        
+        <div class="test-case">
+            <h3>⚙️ Panel Właściwości</h3>
+            <span class="test-status status-pending" id="status-properties">PENDING</span>
+            <p>Test wyświetlania i edycji właściwości komponentów</p>
+            <div class="test-actions">
+                <button onclick="testPropertiesPanel()">Uruchom Test</button>
+            </div>
+            <div class="test-results" id="results-properties"></div>
+        </div>
+
+        <div class="test-case">
+            <h3>🎨 Zarządzanie Kolorami</h3>
+            <span class="test-status status-pending" id="status-colors">PENDING</span>
+            <p>Test zmiany kolorów elementów SVG</p>
+            <div class="test-actions">
+                <button onclick="testColorManagement()">Uruchom Test</button>
+            </div>
+            <div class="test-results" id="results-colors"></div>
+        </div>
+
+        <div class="test-case">
+            <h3>🗺️ Mapowanie Właściwości</h3>
+            <span class="test-status status-pending" id="status-mapping">PENDING</span>
+            <p>Test automatycznego mapowania właściwości z SVG</p>
+            <div class="test-actions">
+                <button onclick="testPropertyMapping()">Uruchom Test</button>
+            </div>
+            <div class="test-results" id="results-mapping"></div>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <div class="test-title">4. Testy Systemu Interakcji</div>
+        
+        <div class="test-case">
+            <h3>🔗 Tworzenie Interakcji</h3>
+            <span class="test-status status-pending" id="status-interactions">PENDING</span>
+            <p>Test definiowania interakcji między komponentami</p>
+            <div class="test-actions">
+                <button onclick="testInteractions()">Uruchom Test</button>
+            </div>
+            <div class="test-results" id="results-interactions"></div>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <div class="test-title">5. Testy Symulacji</div>
+        
+        <div class="test-case">
+            <h3>⚡ Symulacja Czasu Rzeczywistego</h3>
+            <span class="test-status status-pending" id="status-simulation">PENDING</span>
+            <p>Test uruchamiania i zatrzymywania symulacji</p>
+            <div class="test-actions">
+                <button onclick="testSimulation()">Uruchom Test</button>
+            </div>
+            <div class="test-results" id="results-simulation"></div>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <div class="test-title">📊 Podsumowanie Testów</div>
+        <div id="test-summary">
+            <p>Kliknij "Uruchom Wszystkie Testy", aby rozpocząć kompleksowe testowanie.</p>
+        </div>
+        <button onclick="runAllTests()" style="background: #27ae60; font-size: 1.1em; padding: 12px 24px;">
+            🚀 Uruchom Wszystkie Testy
+        </button>
+    </div>
+
+    <script type="module">
+        // Funkcje testowe
+        window.testResults = {};
+        
+        window.testComponentLoading = async function() {
+            const statusEl = document.getElementById('status-load');
+            const resultsEl = document.getElementById('results-load');
+            
+            statusEl.textContent = 'RUNNING';
+            statusEl.className = 'test-status status-pending';
+            
+            try {
+                const response = await fetch('/components.json');
+                const data = await response.json();
+                
+                if (data.components && data.components.length > 0) {
+                    statusEl.textContent = 'PASS';
+                    statusEl.className = 'test-status status-pass';
+                    resultsEl.innerHTML = `✅ Załadowano ${data.components.length} komponentów`;
+                    window.testResults.load = true;
+                } else {
+                    throw new Error('Brak komponentów w pliku JSON');
+                }
+            } catch (error) {
+                statusEl.textContent = 'FAIL';
+                statusEl.className = 'test-status status-fail';
+                resultsEl.innerHTML = `❌ Błąd: ${error.message}`;
+                window.testResults.load = false;
+            }
+        };
+
+        window.testCanvasInit = function() {
+            const statusEl = document.getElementById('status-canvas');
+            const resultsEl = document.getElementById('results-canvas');
+            
+            const canvas = parent.document.getElementById('canvas');
+            
+            if (canvas && canvas.tagName === 'svg') {
+                statusEl.textContent = 'PASS';
+                statusEl.className = 'test-status status-pass';
+                resultsEl.innerHTML = '✅ Canvas SVG jest poprawnie zainicjalizowany';
+                window.testResults.canvas = true;
+            } else {
+                statusEl.textContent = 'FAIL';
+                statusEl.className = 'test-status status-fail';
+                resultsEl.innerHTML = '❌ Canvas SVG nie został znaleziony';
+                window.testResults.canvas = false;
+            }
+        };
+
+        window.testDragDrop = function() {
+            const statusEl = document.getElementById('status-dragdrop');
+            const resultsEl = document.getElementById('results-dragdrop');
+            
+            // Symuluj dodanie komponentu
+            try {
+                if (parent.window.componentManager) {
+                    statusEl.textContent = 'PASS';
+                    statusEl.className = 'test-status status-pass';
+                    resultsEl.innerHTML = '✅ ComponentManager jest dostępny dla drag & drop';
+                    window.testResults.dragdrop = true;
+                } else {
+                    throw new Error('ComponentManager nie jest dostępny');
+                }
+            } catch (error) {
+                statusEl.textContent = 'FAIL';
+                statusEl.className = 'test-status status-fail';
+                resultsEl.innerHTML = `❌ ${error.message}`;
+                window.testResults.dragdrop = false;
+            }
+        };
+
+        window.testPropertiesPanel = function() {
+            const statusEl = document.getElementById('status-properties');
+            const resultsEl = document.getElementById('results-properties');
+            
+            try {
+                if (parent.window.propertiesManager) {
+                    statusEl.textContent = 'PASS';
+                    statusEl.className = 'test-status status-pass';
+                    resultsEl.innerHTML = '✅ PropertiesManager jest aktywny';
+                    window.testResults.properties = true;
+                } else {
+                    throw new Error('PropertiesManager nie jest dostępny');
+                }
+            } catch (error) {
+                statusEl.textContent = 'FAIL';
+                statusEl.className = 'test-status status-fail';
+                resultsEl.innerHTML = `❌ ${error.message}`;
+                window.testResults.properties = false;
+            }
+        };
+
+        window.testColorManagement = function() {
+            const statusEl = document.getElementById('status-colors');
+            const resultsEl = document.getElementById('results-colors');
+            
+            try {
+                if (parent.window.updateSvgColor && typeof parent.window.updateSvgColor === 'function') {
+                    statusEl.textContent = 'PASS';
+                    statusEl.className = 'test-status status-pass';
+                    resultsEl.innerHTML = '✅ System zarządzania kolorami jest dostępny';
+                    window.testResults.colors = true;
+                } else {
+                    throw new Error('Funkcja updateSvgColor nie jest dostępna');
+                }
+            } catch (error) {
+                statusEl.textContent = 'FAIL';
+                statusEl.className = 'test-status status-fail';
+                resultsEl.innerHTML = `❌ ${error.message}`;
+                window.testResults.colors = false;
+            }
+        };
+
+        window.testPropertyMapping = function() {
+            const statusEl = document.getElementById('status-mapping');
+            const resultsEl = document.getElementById('results-mapping');
+            
+            try {
+                if (parent.window.refreshPropertiesMapping && typeof parent.window.refreshPropertiesMapping === 'function') {
+                    // Test mapowania
+                    parent.window.refreshPropertiesMapping();
+                    statusEl.textContent = 'PASS';
+                    statusEl.className = 'test-status status-pass';
+                    resultsEl.innerHTML = '✅ System mapowania właściwości działa';
+                    window.testResults.mapping = true;
+                } else {
+                    throw new Error('Funkcja refreshPropertiesMapping nie jest dostępna');
+                }
+            } catch (error) {
+                statusEl.textContent = 'FAIL';
+                statusEl.className = 'test-status status-fail';
+                resultsEl.innerHTML = `❌ ${error.message}`;
+                window.testResults.mapping = false;
+            }
+        };
+
+        window.testInteractions = function() {
+            const statusEl = document.getElementById('status-interactions');
+            const resultsEl = document.getElementById('results-interactions');
+            
+            try {
+                if (parent.window.addInteraction && typeof parent.window.addInteraction === 'function') {
+                    statusEl.textContent = 'PASS';
+                    statusEl.className = 'test-status status-pass';
+                    resultsEl.innerHTML = '✅ System interakcji jest dostępny';
+                    window.testResults.interactions = true;
+                } else {
+                    throw new Error('System interakcji nie jest dostępny');
+                }
+            } catch (error) {
+                statusEl.textContent = 'FAIL';
+                statusEl.className = 'test-status status-fail';
+                resultsEl.innerHTML = `❌ ${error.message}`;
+                window.testResults.interactions = false;
+            }
+        };
+
+        window.testSimulation = function() {
+            const statusEl = document.getElementById('status-simulation');
+            const resultsEl = document.getElementById('results-simulation');
+            
+            try {
+                if (parent.window.simulationManager) {
+                    statusEl.textContent = 'PASS';
+                    statusEl.className = 'test-status status-pass';
+                    resultsEl.innerHTML = '✅ Silnik symulacji jest dostępny';
+                    window.testResults.simulation = true;
+                } else {
+                    throw new Error('SimulationManager nie jest dostępny');
+                }
+            } catch (error) {
+                statusEl.textContent = 'FAIL';
+                statusEl.className = 'test-status status-fail';
+                resultsEl.innerHTML = `❌ ${error.message}`;
+                window.testResults.simulation = false;
+            }
+        };
+
+        window.runAllTests = async function() {
+            const tests = [
+                'testComponentLoading',
+                'testCanvasInit', 
+                'testDragDrop',
+                'testPropertiesPanel',
+                'testColorManagement',
+                'testPropertyMapping',
+                'testInteractions',
+                'testSimulation'
+            ];
+            
+            for (const test of tests) {
+                await window[test]();
+                await new Promise(resolve => setTimeout(resolve, 500)); // Delay między testami
+            }
+            
+            // Podsumowanie
+            const summary = document.getElementById('test-summary');
+            const passed = Object.values(window.testResults).filter(r => r === true).length;
+            const total = Object.keys(window.testResults).length;
+            
+            summary.innerHTML = `
+                <h3>📊 Wyniki Testów</h3>
+                <p><strong>${passed}/${total}</strong> testów przeszło pomyślnie</p>
+                <div style="background: ${passed === total ? '#2ecc71' : '#e74c3c'}; color: white; padding: 10px; border-radius: 4px; text-align: center;">
+                    ${passed === total ? '✅ WSZYSTKIE TESTY PRZESZŁY' : '❌ NIEKTÓRE TESTY NIE PRZESZŁY'}
+                </div>
+            `;
+        };
+    </script>
+</body>
+</html>

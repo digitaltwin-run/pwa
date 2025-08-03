@@ -17,13 +17,13 @@
     </metadata>
 
     <!-- Base -->
-    <circle cx="20" cy="20" r="18" fill="#34495e" stroke="#2c3e50" stroke-width="1.5"/>
+    <circle class="knob-base" cx="20" cy="20" r="18" fill="#34495e" stroke="#2c3e50" stroke-width="1.5"/>
     <!-- Knob body -->
     <circle class="knob-body" cx="20" cy="20" r="14" fill="#7f8c8d" stroke="#2c3e50" stroke-width="1"/>
     <!-- Indicator line -->
     <line class="knob-indicator" x1="20" y1="20" x2="20" y2="9" stroke="#ecf0f1" stroke-width="2" stroke-linecap="round"/>
     <!-- Central dot -->
-    <circle cx="20" cy="20" r="3" fill="#2c3e50"/>
+    <circle class="knob-center" cx="20" cy="20" r="3" fill="#2c3e50"/>
     <!-- Label -->
     <text class="knob-label" x="20" y="36" font-size="8" text-anchor="middle" fill="#bdc3c7">Knob</text>
     <!-- Value display -->

@@ -8,10 +8,25 @@
 import { ComponentManager } from './components.js';
 import { DragDropManager } from './dragdrop.js';
 import { PropertiesManager } from './properties.js';
-import { ExportManager } from './export.js';
 import { SimulationManager } from './simulation.js';
 import { ConnectionManager } from './connections.js';
+import { ExportManager } from './export.js';
 import { ActionManager } from './actions.js';
+
+// Import testing system in development mode
+let FunctionalTester = null;
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    import('../tests/functional-tests.js').then(module => {
+        FunctionalTester = module.FunctionalTester;
+        console.log('🧪 Development Mode: Testing system loaded');
+        console.log('📋 Available commands:');
+        console.log('  - runFunctionalTests() : Run all functional tests');
+        console.log('  - exportTestReport() : Export test results to JSON');
+        console.log('  - Open /tests/ui-tests.html for visual UI tests');
+    }).catch(err => {
+        console.log('ℹ️ Testing system not available (production mode)');
+    });
+}
 import { gridManager } from './grid.js';
 import { InteractionsManager, extendComponentWithEvents } from './interactions.js';
 
@@ -99,8 +114,17 @@ class DigitalTwinApp {
             // Set up event listeners
             this.setupEventListeners();
 
-            console.log('Digital Twin IDE initialized successfully');
-
+            console.log('🚀 Digital Twin IDE initialized successfully!');
+            console.log('📚 Documentation available at: /docs/');
+            console.log('🎨 Canvas ready for component design!');
+            
+            // Development mode information
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                console.log('\n🔧 DEVELOPMENT MODE ACTIVE');
+                console.log('🧪 Testing: /tests/ui-tests.html');
+                console.log('📊 Console: runFunctionalTests()');
+                console.log('📝 Docs: /docs/TESTING_GUIDE.md');
+            }
         } catch (error) {
             console.error('Error initializing application:', error);
         }
