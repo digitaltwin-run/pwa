@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80" data-component-params="label,baudrate,databits,stopbits,parity,istxactive,isrxactive,isconnected,isactive,color,ison,isblinking,blinkrate">
     <title>USB TO RS485 Converter - Digital Twin</title>
     <desc>Interactive USB to RS485 converter with TX/RX indicators and configurable communication parameters</desc>
 
@@ -15,22 +15,19 @@
                 <isRxActive>false</isRxActive>
                 <isConnected>true</isConnected>
                 <isActive>true</isActive>
-            </parameters>
+            <color>#e74c3c</color><ison>false</ison><isblinking>false</isblinking><blinkrate>500</blinkrate></parameters>
         </component>
     </metadata>
 
     <!-- Main housing -->
-    <rect class="converter-housing" x="10" y="15" width="100" height="50" rx="5" ry="5"
-          fill="#2c3e50" stroke="#1a252f" stroke-width="2"/>
+    <rect class="converter-housing" x="10" y="15" width="100" height="50" rx="5" ry="5" fill="#2c3e50" stroke="#1a252f" stroke-width="2"/>
 
     <!-- USB port -->
-    <rect class="usb-port" x="2" y="32" width="15" height="16" rx="2" ry="2"
-          fill="#95a5a6" stroke="#7f8c8d" stroke-width="1"/>
+    <rect class="usb-port" x="2" y="32" width="15" height="16" rx="2" ry="2" fill="#95a5a6" stroke="#7f8c8d" stroke-width="1"/>
     <rect x="5" y="36" width="9" height="8" fill="#34495e"/>
 
     <!-- RS485 terminal block -->
-    <rect class="rs485-terminal" x="103" y="25" width="15" height="30" rx="2" ry="2"
-          fill="#95a5a6" stroke="#7f8c8d" stroke-width="1"/>
+    <rect class="rs485-terminal" x="103" y="25" width="15" height="30" rx="2" ry="2" fill="#95a5a6" stroke="#7f8c8d" stroke-width="1"/>
     <!-- Terminal screws -->
     <circle cx="110.5" cy="31" r="2" fill="#34495e"/>
     <circle cx="110.5" cy="40" r="2" fill="#34495e"/>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="80" height="60" viewBox="0 0 80 60" onload="initDisplay(evt)" preserveAspectRatio="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="60" viewBox="0 0 80 60" onload="initDisplay(evt)" preserveAspectRatio="none" data-component-params="label,color,url,refreshinterval,isactive,aspectratio,allowfullscreen,scalex,scaley,minwidth,minheight,preserveaspectratio,originalwidth,originalheight,padding,statusbarheight,ison,isblinking,blinkrate">
     <metadata>
         <component id="display-001" name="HTML Display" type="display">
             <parameters>
@@ -19,7 +19,7 @@
                 <originalHeight>60</originalHeight>
                 <padding>5</padding>
                 <statusBarHeight>12</statusBarHeight>
-            </parameters>
+            <ison>false</ison><isblinking>false</isblinking><blinkrate>500</blinkrate></parameters>
         </component>
     </metadata>
 
@@ -365,11 +365,11 @@
     </defs>
 
     <!-- Display frame -->
-    <rect x="2" y="2" width="76" height="56" rx="4" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1" />
-    <rect x="5" y="5" width="70" height="50" rx="2" fill="#fff" stroke="#95a5a6" stroke-width="1" />
+    <rect x="2" y="2" width="76" height="56" rx="4" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+    <rect x="5" y="5" width="70" height="50" rx="2" fill="#fff" stroke="#95a5a6" stroke-width="1"/>
     
     <!-- Status bar -->
-    <rect id="statusBar" x="5" y="5" width="70" height="12" fill="#3498db" rx="2" />
+    <rect id="statusBar" x="5" y="5" width="70" height="12" fill="#3498db" rx="2"/>
     <text id="label" x="10" y="15" font-size="8" fill="white">Display</text>
     
     <!-- Content will be inserted here by JavaScript -->

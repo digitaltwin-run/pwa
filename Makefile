@@ -290,11 +290,11 @@ reset:
 	@echo "✅ Project reset complete"
 
 test2:
-    @echo "🧪 Running node tests..."
-    node server-test.js
+	@echo "🧪 Running node tests..."
+	node server-test.js
 
-stop
-    ./stop.sh
+stop:
+	./stop.sh
 
 # 📈 MONITORING
 monitor:

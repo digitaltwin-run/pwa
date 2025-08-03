@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 70 70">
+<svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 70 70" data-component-params="label,speed,speedmin,speedmax,rotation,isactive,color,ison,isblinking,blinkrate">
     <metadata>
         <component id="motor-001" name="Electric Motor" type="motor">
             <parameters>
@@ -9,7 +9,7 @@
                 <speedMax>3000</speedMax>
                 <rotation>true</rotation>
                 <isActive>true</isActive>
-            </parameters>
+            <color>#e74c3c</color><ison>false</ison><isblinking>false</isblinking><blinkrate>500</blinkrate></parameters>
         </component>
     </metadata>
 

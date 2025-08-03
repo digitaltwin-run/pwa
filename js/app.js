@@ -15,6 +15,7 @@ import { ActionManager } from './actions.js';
 import { PWAManager } from './pwa-manager.js';
 import { CollaborationManager } from './collaboration-manager-patched.js';
 import { I18nManager } from './i18n-manager.js';
+import { ComponentScaler } from './component-scaler.js';
 // Conditional imports for development tools
 let TestingSystem, FunctionalTests, ErrorDetector;
 try {
@@ -60,6 +61,7 @@ class DigitalTwinApp {
         this.connectionManager = null;
         this.actionManager = null;
         this.interactionsManager = null;
+        this.componentScaler = null;
         this.config = {
             canvas: {
                 grid: {
@@ -110,6 +112,7 @@ class DigitalTwinApp {
             this.simulationManager = new SimulationManager(this.componentManager);
             this.connectionManager = new ConnectionManager(this.componentManager, svgCanvas);
             this.interactionsManager = new InteractionsManager(this.componentManager, svgCanvas);
+            this.componentScaler = new ComponentScaler(this.componentManager);
 
             // Expose managers globally for HTML calls
             window.componentManager = this.componentManager;
@@ -118,6 +121,7 @@ class DigitalTwinApp {
             window.simulationManager = this.simulationManager;
             window.connectionManager = this.connectionManager;
             window.interactionsManager = this.interactionsManager;
+            window.componentScaler = this.componentScaler;
 
             // Load component library
             await this.componentManager.loadComponentLibrary();

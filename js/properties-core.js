@@ -200,6 +200,9 @@ export class PropertiesManager {
             </div>
         `;
         
+        // Add component scale/zoom section
+        html += this.generateComponentScaleSection(componentData);
+        
         // Odśwież mapowanie właściwości przed pokazaniem panelu
         this.propertiesMapper.scanCanvasProperties();
         
@@ -380,9 +383,178 @@ export class PropertiesManager {
         }
     }
 
-    // Deleguj metody do odpowiednich menedżerów
-    generateColorsSection(svgElement) {
-        return this.colorManager.generateColorsSection(svgElement);
+    // Generuj sekcję właściwości komponentu
+    generateComponentProperties(componentData) {
+        return this.colorsManager.generateColorsSection(componentData.element);
+    }
+    
+    // Generuj sekcję zoom/scale z zachowaniem proporcji
+    generateComponentScaleSection(componentData) {
+        if (!componentData || !componentData.element) return '';
+        
+        const scaleInfo = this.getComponentScaleInfo(componentData.element);
+        const zoomLevels = this.getZoomLevels();
+        
+        return `
+            <div class="property-section">
+                <h6><i class="bi bi-zoom-in"></i> Component Scale/Zoom</h6>
+                
+                <!-- Current Scale Display -->
+                <div class="mb-3 p-2 bg-light rounded">
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Current Scale:</small><br>
+                            <strong>${scaleInfo.displayText}</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            <small class="text-muted">Dimensions:</small><br>
+                            <small>${scaleInfo.scaledDimensions}</small>
+                            ${scaleInfo.scale !== 1.0 ? `<br><small class="text-muted">Original: ${scaleInfo.originalDimensions}</small>` : ''}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Scale Controls -->
+                <div class="row g-2 mb-2">
+                    <div class="col-12">
+                        <label class="form-label small">Scale (% of original size)</label>
+                        <div class="input-group input-group-sm">
+                            <button class="btn btn-outline-secondary" type="button" 
+                                    onclick="zoomComponent('${componentData.id}', 'out')">
+                                <i class="bi bi-zoom-out"></i>
+                            </button>
+                            <input type="range" class="form-range" 
+                                   min="10" max="500" step="25" 
+                                   value="${scaleInfo.percentage}" 
+                                   id="scale-slider-${componentData.id}"
+                                   style="flex: 1; margin: 0 10px; align-self: center;"
+                                   oninput="setComponentScalePercentage('${componentData.id}', this.value); document.getElementById('scale-input-${componentData.id}').value = this.value + '%'">
+                            <button class="btn btn-outline-secondary" type="button" 
+                                    onclick="zoomComponent('${componentData.id}', 'in')">
+                                <i class="bi bi-zoom-in"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Precise Scale Input -->
+                <div class="row g-2 mb-2">
+                    <div class="col-8">
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" 
+                                   id="scale-input-${componentData.id}"
+                                   value="${scaleInfo.percentage}%" 
+                                   placeholder="150%"
+                                   onchange="setComponentScalePercentage('${componentData.id}', parseInt(this.value))">
+                            <button class="btn btn-outline-primary" type="button" 
+                                    onclick="resetComponentScale('${componentData.id}')">
+                                Reset 100%
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <select class="form-select form-select-sm" 
+                                onchange="setComponentScalePercentage('${componentData.id}', this.value)">
+                            ${this.generateZoomLevelOptions(scaleInfo.percentage)}
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Quick Zoom Buttons -->
+                <div class="row g-1 mb-2">
+                    <div class="col-3">
+                        <button class="btn btn-outline-info btn-sm w-100" 
+                                onclick="setComponentScalePercentage('${componentData.id}', 50)">
+                            50%
+                        </button>
+                    </div>
+                    <div class="col-3">
+                        <button class="btn btn-outline-success btn-sm w-100 ${scaleInfo.isOriginalSize ? 'active' : ''}" 
+                                onclick="setComponentScalePercentage('${componentData.id}', 100)">
+                            100%
+                        </button>
+                    </div>
+                    <div class="col-3">
+                        <button class="btn btn-outline-warning btn-sm w-100" 
+                                onclick="setComponentScalePercentage('${componentData.id}', 150)">
+                            150%
+                        </button>
+                    </div>
+                    <div class="col-3">
+                        <button class="btn btn-outline-danger btn-sm w-100" 
+                                onclick="setComponentScalePercentage('${componentData.id}', 200)">
+                            200%
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-2">
+                    <small class="text-muted">
+                        <i class="bi bi-aspect-ratio"></i> Aspect ratio preserved | 
+                        SVG transform: scale(${scaleInfo.scale.toFixed(2)})
+                    </small>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Generuj opcje zoom levels dla dropdown
+    generateZoomLevelOptions(currentPercentage) {
+        const zoomLevels = this.getZoomLevels();
+        let options = '';
+        
+        zoomLevels.forEach(level => {
+            const selected = Math.abs(level.percentage - currentPercentage) < 5 ? 'selected' : '';
+            options += `<option value="${level.percentage}" ${selected}>${level.label}</option>`;
+        });
+        
+        return options;
+    }
+    
+    // Pobierz dostępne poziomy zoom
+    getZoomLevels() {
+        return [
+            { value: 0.25, label: '25%', percentage: 25 },
+            { value: 0.5, label: '50%', percentage: 50 },
+            { value: 0.75, label: '75%', percentage: 75 },
+            { value: 1.0, label: '100% (Original)', percentage: 100 },
+            { value: 1.25, label: '125%', percentage: 125 },
+            { value: 1.5, label: '150%', percentage: 150 },
+            { value: 2.0, label: '200%', percentage: 200 },
+            { value: 2.5, label: '250%', percentage: 250 },
+            { value: 3.0, label: '300%', percentage: 300 },
+            { value: 4.0, label: '400%', percentage: 400 },
+            { value: 5.0, label: '500% (Max)', percentage: 500 }
+        ];
+    }
+    
+    // Pobierz informacje o skali komponentu
+    getComponentScaleInfo(svgElement) {
+        if (!window.componentScaler) {
+            return {
+                scale: 1.0,
+                percentage: 100,
+                displayText: '100% (1.00x)',
+                isOriginalSize: true,
+                scaledDimensions: '50×50px',
+                originalDimensions: '50×50px'
+            };
+        }
+        return window.componentScaler.getScaleInfo(svgElement);
+    }
+    
+    // Pobierz wymiary komponentu
+    getComponentBounds(svgElement) {
+        try {
+            const bbox = svgElement.getBBox();
+            const x = parseFloat(svgElement.getAttribute('x')) || bbox.x;
+            const y = parseFloat(svgElement.getAttribute('y')) || bbox.y;
+            const width = parseFloat(svgElement.getAttribute('width')) || bbox.width;
+            const height = parseFloat(svgElement.getAttribute('height')) || bbox.height;
+            return { x, y, width, height };
+        } catch (error) {
+            return { x: 0, y: 0, width: 50, height: 50 };
+        }
     }
 
     updateSvgColor(selector, type, color) {

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xhtml="http://www.w3.org/1999/xhtml" width="60" height="40" viewBox="0 0 60 40">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xhtml="http://www.w3.org/1999/xhtml" width="60" height="40" viewBox="0 0 60 40" data-component-params="label,value,min,max,color,units,step,isactive,ison,isblinking,blinkrate">
 
     <title>Counter Component</title>
     <desc>Numeric counter component with animation between values</desc>
@@ -12,10 +12,10 @@
                 <min>0</min>
                 <max>999</max>
                 <color>#2980b9</color>
-                <units></units>
+                <units/>
                 <step>1</step>
                 <isActive>true</isActive>
-            </parameters>
+            <ison>false</ison><isblinking>false</isblinking><blinkrate>500</blinkrate></parameters>
         </component>
     </metadata>
 

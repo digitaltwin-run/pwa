@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xhtml="http://www.w3.org/1999/xhtml" width="40" height="40" viewBox="0 0 40 40">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xhtml="http://www.w3.org/1999/xhtml" width="40" height="40" viewBox="0 0 40 40" data-component-params="label,state,color,size,inputvoltage,maxcurrent,isactive,ison,isblinking,blinkrate">
 
     <title>Relay Component</title>
     <desc>Interactive relay component for digital twin</desc>
@@ -14,7 +14,7 @@
                 <inputVoltage>5</inputVoltage>
                 <maxCurrent>10</maxCurrent>
                 <isActive>true</isActive>
-            </parameters>
+            <ison>false</ison><isblinking>false</isblinking><blinkrate>500</blinkrate></parameters>
         </component>
     </metadata>
 
@@ -81,7 +81,7 @@
           updateRelay(svgElement);
 
           // Poll for changes
-          svgElement.pollingInterval = setInterval(() =&gt; {
+          svgElement.pollingInterval = setInterval(() => {
             const metadata = getMetadata(svgElement);
             const params = metadata.parameters || {};
             const currentState = svgElement.currentParams?.state;
@@ -96,7 +96,7 @@
           }, 500);
 
           // Cleanup on removal
-          window.addEventListener('beforeunload', () =&gt; {
+          window.addEventListener('beforeunload', () => {
             if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
           });
         }

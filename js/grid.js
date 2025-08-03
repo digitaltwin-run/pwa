@@ -121,6 +121,64 @@ class GridManager {
     }
     
     /**
+     * Snap size to grid multiples
+     * @param {number} size - The size to snap
+     * @param {number} [minSize] - Minimum size (default: 1 grid unit)
+     * @returns {number} The snapped size
+     */
+    snapSizeToGrid(size, minSize = null) {
+        if (!this.config.snapToGrid) return size;
+        const gridSize = this.config.size;
+        const minSizeGrid = minSize || gridSize;
+        const snappedSize = Math.max(Math.round(size / gridSize) * gridSize, minSizeGrid);
+        return snappedSize;
+    }
+    
+    /**
+     * Snap dimensions to grid multiples
+     * @param {Object} dimensions - Object with width and height
+     * @param {Object} [minDimensions] - Minimum dimensions
+     * @returns {Object} The snapped dimensions
+     */
+    snapDimensionsToGrid(dimensions, minDimensions = {}) {
+        if (!this.config.snapToGrid) return dimensions;
+        const minWidth = minDimensions.width || this.config.size;
+        const minHeight = minDimensions.height || this.config.size;
+        
+        return {
+            width: this.snapSizeToGrid(dimensions.width, minWidth),
+            height: this.snapSizeToGrid(dimensions.height, minHeight)
+        };
+    }
+    
+    /**
+     * Get grid-based size options for component resizing
+     * @param {number} [maxMultiplier] - Maximum grid multiplier (default: 20)
+     * @returns {Array} Array of size options as multiples of grid
+     */
+    getGridSizeOptions(maxMultiplier = 20) {
+        const options = [];
+        for (let i = 1; i <= maxMultiplier; i++) {
+            const size = i * this.config.size;
+            options.push({
+                value: size,
+                label: `${i}x Grid (${size}px)`,
+                multiplier: i
+            });
+        }
+        return options;
+    }
+    
+    /**
+     * Calculate optimal grid multiplier for given size
+     * @param {number} size - Current size
+     * @returns {number} Best fitting grid multiplier
+     */
+    getGridMultiplierForSize(size) {
+        return Math.max(1, Math.round(size / this.config.size));
+    }
+
+    /**
      * Update grid configuration
      * @param {Object} newConfig - New configuration options
      */

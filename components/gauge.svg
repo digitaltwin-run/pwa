@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xhtml="http://www.w3.org/1999/xhtml" width="60" height="60" viewBox="0 0 60 60">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xhtml="http://www.w3.org/1999/xhtml" width="60" height="60" viewBox="0 0 60 60" data-component-params="label,value,min,max,units,isactive,color,ison,isblinking,blinkrate">
 
     <title>Gauge Component</title>
     <desc>Interactive gauge/meter component with animated needle movement for digital twin</desc>
@@ -13,7 +13,7 @@
                 <max>100</max>
                 <units>%</units>
                 <isActive>true</isActive>
-            </parameters>
+            <color>#e74c3c</color><ison>false</ison><isblinking>false</isblinking><blinkrate>500</blinkrate></parameters>
         </component>
     </metadata>
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="500" height="350" viewBox="0 0 500 350">
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="350" viewBox="0 0 500 350" data-component-params="label,ispowered,cputemp,cpuload,ramusage,iswificonnected,isethernetconnected,isbluetoothenabled,hdmiconnected,usbdevices,audioconnected,cameraconnected,displayconnected,gpioactive,color,ison,isblinking,blinkrate,isactive">
     <title>Raspberry Pi 3B - Digital Twin</title>
     <desc>Interactive Raspberry Pi 3B with status indicators and port visualization</desc>
 
@@ -20,13 +20,12 @@
                 <cameraConnected>false</cameraConnected>
                 <displayConnected>false</displayConnected>
                 <gpioActive>true</gpioActive>
-            </parameters>
+            <color>#e74c3c</color><ison>false</ison><isblinking>false</isblinking><blinkrate>500</blinkrate><isactive>true</isactive></parameters>
         </component>
     </metadata>
 
     <!-- PCB Board -->
-    <rect class="pcb-board" x="50" y="50" width="400" height="250" rx="5" ry="5"
-          fill="#0d6b0d" stroke="#095009" stroke-width="2"/>
+    <rect class="pcb-board" x="50" y="50" width="400" height="250" rx="5" ry="5" fill="#0d6b0d" stroke="#095009" stroke-width="2"/>
 
     <!-- Board label -->
     <text class="board-label" x="250" y="35" font-size="16" text-anchor="middle" fill="#2c3e50">Raspberry Pi 3 Model B</text>

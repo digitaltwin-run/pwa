@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60" onload="initSensor(evt)">
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60" onload="initSensor(evt)" data-component-params="label,color,size,value,minvalue,maxvalue,unit,isactive,updateinterval,variance,ison,isblinking,blinkrate">
     <metadata>
         <component id="sensor-001" name="Temperature Sensor" type="sensor">
             <parameters>
@@ -13,7 +13,7 @@
                 <isActive>true</isActive>
                 <updateInterval>1000</updateInterval>
                 <variance>2</variance>
-            </parameters>
+            <ison>false</ison><isblinking>false</isblinking><blinkrate>500</blinkrate></parameters>
         </component>
     </metadata>
 

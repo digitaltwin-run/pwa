@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="350" viewBox="0 0 400 350">
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="350" viewBox="0 0 400 350" data-component-params="label,deviceaddress,baudrate,isconnected,isactive,channel1,inputstate,outputstate,outputmode,channel2,inputstate,outputstate,outputmode,channel3,inputstate,outputstate,outputmode,channel4,inputstate,outputstate,outputmode,channel5,inputstate,outputstate,outputmode,channel6,inputstate,outputstate,outputmode,channel7,inputstate,outputstate,outputmode,channel8,inputstate,outputstate,outputmode,color,ison,isblinking,blinkrate">
     <title>Modbus RTU IO 8CH - Digital Twin</title>
     <desc>Interactive 8-channel digital input/output module with configurable modes and real-time status display</desc>
 
@@ -52,13 +52,12 @@
                     <outputState>true</outputState>
                     <outputMode>1</outputMode>
                 </channel8>
-            </parameters>
+            <color>#e74c3c</color><ison>false</ison><isblinking>false</isblinking><blinkrate>500</blinkrate></parameters>
         </component>
     </metadata>
 
     <!-- Main housing -->
-    <rect class="module-housing" x="20" y="20" width="360" height="310" rx="5" ry="5"
-          fill="#2c3e50" stroke="#1a252f" stroke-width="2"/>
+    <rect class="module-housing" x="20" y="20" width="360" height="310" rx="5" ry="5" fill="#2c3e50" stroke="#1a252f" stroke-width="2"/>
 
     <!-- Title bar -->
     <rect x="20" y="20" width="360" height="35" rx="5" ry="5" fill="#1a252f"/>

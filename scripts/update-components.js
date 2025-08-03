@@ -100,8 +100,8 @@ async function getSvgMetadata(filePath) {
 
         const metadata = {};
         
-        // Extract metadata from SVG
-        if (result.svg.metadata && result.svg.metadata[0].component) {
+        // Extract metadata from SVG with proper null checks
+        if (result && result.svg && result.svg.metadata && result.svg.metadata[0] && result.svg.metadata[0].component) {
           const component = result.svg.metadata[0].component[0].$;
           const parameters = result.svg.metadata[0].component[0].parameters?.[0] || {};
           

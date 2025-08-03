@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xhtml="http://www.w3.org/1999/xhtml" width="40" height="40" viewBox="0 0 40 40">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xhtml="http://www.w3.org/1999/xhtml" width="40" height="40" viewBox="0 0 40 40" data-component-params="label,pressed,size,momentary,isactive,color,ison,isblinking,blinkrate">
 
     <title>Button Component</title>
     <desc>Interactive button component for digital twin</desc>
@@ -12,10 +12,10 @@
                 <size>40</size>
                 <momentary>true</momentary>
                 <isActive>true</isActive>
-            </parameters>
+            <color>#e74c3c</color><ison>false</ison><isblinking>false</isblinking><blinkrate>500</blinkrate></parameters>
             <interactions>
-                <binding targetId="motor-001" event="press" action="start" />
-                <binding targetId="motor-001" event="release" action="stop" />
+                <binding targetId="motor-001" event="press" action="start"/>
+                <binding targetId="motor-001" event="release" action="stop"/>
             </interactions>
         </component>
     </metadata>

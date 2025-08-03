@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="60" height="80" viewBox="0 0 60 80" xmlns="http://www.w3.org/2000/svg">
+<svg width="60" height="80" viewBox="0 0 60 80" xmlns="http://www.w3.org/2000/svg" data-component-params="label,value,min,max,step,size,isactive,color,ison,isblinking,blinkrate">
     <title>Slider Component</title>
     <desc>Interactive slider component for digital twin</desc>
 
@@ -13,16 +13,16 @@
                 <step>1</step>
                 <size>60</size>
                 <isActive>true</isActive>
-            </parameters>
+            <color>#e74c3c</color><ison>false</ison><isblinking>false</isblinking><blinkrate>500</blinkrate></parameters>
         </component>
     </metadata>
 
     <!-- Track -->
-    <rect x="10" y="35" width="40" height="10" rx="5" class="slider-track" fill="#2c3e50" />
-    <rect x="10" y="35" width="20" height="10" rx="5" class="slider-progress" fill="#16a085" />
+    <rect x="10" y="35" width="40" height="10" rx="5" class="slider-track" fill="#2c3e50"/>
+    <rect x="10" y="35" width="20" height="10" rx="5" class="slider-progress" fill="#16a085"/>
 
     <!-- Handle -->
-    <circle cx="30" cy="40" r="6" class="slider-handle" fill="#ecf0f1" stroke="#2c3e50" stroke-width="1.5" />
+    <circle cx="30" cy="40" r="6" class="slider-handle" fill="#ecf0f1" stroke="#2c3e50" stroke-width="1.5"/>
 
     <!-- Labels -->
     <text x="30" y="25" font-size="8" text-anchor="middle" class="slider-label" fill="#bdc3c7">Slider</text>

@@ -10,12 +10,103 @@ A progressive web application for creating and simulating digital twins using in
 - **Real-time Visual Feedback** - Instant component updates and interactions
 - **Responsive Canvas** - Scalable design workspace
 - **Color Management System** - CSS-class based theming with automatic property extraction
+- **Component Scaling/Zoom** - Individual SVG component scaling with aspect ratio preservation
 
 ### ⚙️ Smart Property Management
 - **Automatic Property Mapping** - Heuristic SVG metadata extraction
 - **Dynamic Type Detection** - Intelligent component type recognition
-- **Interactive Property Panels** - Real-time component configuration
+- **Interactive Property Panels** - Real-time component configuration with type-appropriate controls
 - **Variable System** - Automatic extraction for interaction bindings
+- **Parameter System** - Define and manage component parameters through metadata
+- **Real-time Updates** - Changes reflect immediately in the visual editor
+
+### 🔧 Component Parameters
+
+#### Metadata Structure
+Each SVG component can define parameters in its metadata section:
+
+```xml
+<svg>
+  <metadata>
+    <component>
+      <parameters>
+        <label>Component Label</label>
+        <color>#e74c3c</color>
+        <isOn>false</isOn>
+        <isBlinking>false</isBlinking>
+        <blinkRate>500</blinkRate>
+        <isActive>true</isActive>
+      </parameters>
+    </component>
+  </metadata>
+  <!-- SVG content -->
+</svg>
+```
+
+#### Supported Parameter Types
+- **Text** - Simple text input
+- **Number** - Numeric input with validation
+- **Boolean** - Checkbox for true/false values
+- **Color** - Color picker with hex/rgb/hsl support
+- **Select** - Dropdown for predefined options (coming soon)
+
+#### Property Panel Features
+- **Automatic Discovery** - Parameters are automatically detected from metadata
+- **Type Inference** - Input types are determined based on parameter name and value
+- **Real-time Updates** - Changes are immediately reflected in the component
+- **Persistent Storage** - Parameter values are saved with the component
+
+#### Working with Parameters
+1. **Add a Parameter**
+   - Edit the component's metadata to add a new parameter
+   - The parameter will automatically appear in the property panel
+
+2. **Modify a Parameter**
+   - Change the value in the property panel
+   - The component will update in real-time
+
+3. **Best Practices**
+   - Use descriptive parameter names (e.g., `buttonColor` instead of `color1`)
+   - Include default values for all parameters
+   - Group related parameters together in the metadata
+   - Use boolean parameters for on/off states (prefix with `is` or `has`)
+
+### 🔍 Component Scaling & Zoom
+
+#### Individual Component Scaling
+Each SVG component can be individually scaled while preserving aspect ratio using SVG transform attributes.
+
+#### Scaling Features
+- **Aspect Ratio Preservation** - Components maintain their proportions during scaling
+- **SVG Transform Integration** - Uses native SVG `transform="scale(X)"` attributes
+- **Range Control** - Scale from 10% to 500% of original size
+- **Multiple Input Methods** - Slider, precise input, dropdown, and quick buttons
+- **Real-time Preview** - Live dimension feedback and visual updates
+
+#### Scaling Controls
+1. **Range Slider** - Interactive 10%-500% scaling with live preview
+2. **Precise Input** - Type exact percentages (e.g., "150%") for precision control
+3. **Preset Dropdown** - Quick selection from predefined zoom levels
+4. **Quick Buttons** - One-click access to common scales (50%, 100%, 150%, 200%)
+5. **Zoom In/Out** - Step-based scaling with ±25% increments
+6. **Reset Button** - Instant return to 100% original size
+
+#### Usage Instructions
+1. **Select Component** - Click any SVG component on the canvas
+2. **Open Properties Panel** - View component properties in the right panel
+3. **Find Scale Section** - Look for "🔍 Component Scale/Zoom" section
+4. **Choose Method**:
+   - Drag the slider for interactive scaling
+   - Type percentage in input field (e.g., "150%")
+   - Use quick buttons for common sizes
+   - Click zoom +/- for step increments
+5. **Live Feedback** - See current scale and dimensions in real-time
+
+#### Technical Implementation
+- **Transform Attribute** - Directly modifies SVG `transform="scale(X)"` attribute
+- **Metadata Storage** - Scale values saved in component metadata
+- **Clamp Limits** - Automatic constraining to 10%-500% range
+- **Performance Optimized** - Efficient rendering without quality loss
 
 ### 🔗 Advanced Interaction System
 - **Component Interactions** - Define complex relationships between components
@@ -30,11 +121,65 @@ A progressive web application for creating and simulating digital twins using in
 - **Visual Regression Testing** - Screenshot comparison and validation
 - **Docker Testing Environment** - Isolated, reproducible test execution
 
-### 📱 PWA Features (In Development)
+### 📱 PWA Features
 - **Offline Mode** - Service Worker with intelligent caching strategies
+  - Automatic caching of static assets
+  - Offline fallback page for better user experience
+  - Network-first strategy for dynamic content
+  - Cache-first strategy for static assets
+
 - **Push Notifications** - Real-time updates and collaboration alerts
+  - Web Push API integration
+  - Customizable notification settings
+  - VAPID key authentication
+  - Service Worker-based notification handling
+
 - **App Installation** - Native app-like experience
+  - Web App Manifest with proper metadata
+  - Install prompts and beforeinstallprompt handling
+  - Home screen icons and splash screens
+  - Full-screen mode support
+
 - **Background Sync** - Offline data synchronization
+  - Queue requests when offline
+  - Automatic sync when connection is restored
+  - Conflict resolution strategies
+  - Progress indicators for sync operations
+
+- **Asset Generation**
+  - Automated icon and screenshot generation
+  - Responsive design for all device sizes
+  - Adaptive icons for different platforms
+  - PWA asset optimization
+
+### 🛠️ SVG Property Panel (Technical Details)
+- **Enhanced Parameter Discovery** - Improved metadata parsing for better parameter detection
+- **Type-Specific Controls** - Automatically selects appropriate input controls based on parameter type
+- **Real-time Updates** - Changes to parameters are immediately reflected in the component
+- **Improved UI/UX** - More intuitive property panel layout and organization
+
+#### How It Works
+1. **Parameter Detection**
+   - Scans component metadata for parameters
+   - Automatically infers parameter types
+   - Groups related parameters together
+
+2. **Type Handling**
+   - **Booleans**: Toggle switches for on/off states
+   - **Colors**: Color picker with visual preview
+   - **Numbers**: Input with increment/decrement controls
+   - **Text**: Standard text input with validation
+
+3. **Performance**
+   - Lazy loading of property panels
+   - Efficient change detection
+   - Minimal re-renders for better performance
+
+4. **Accessibility**
+   - Keyboard navigation support
+   - ARIA labels and roles
+   - High contrast mode support
+   - Screen reader compatibility
 
 ### 🌐 Collaboration Features (Planned)
 - **Real-time Collaboration** - WebSocket-based multi-user editing
@@ -305,9 +450,10 @@ make ci-build           # Build and validate
 - [x] **Automated Testing Suite** - Comprehensive test coverage
 - [x] **Docker Development Environment** - Containerized workflow
 - [x] **Advanced Property Mapping** - Heuristic SVG analysis
-- [ ] **PWA Implementation** - Offline mode and push notifications
-- [ ] **Real-time Collaboration** - WebSocket-based multi-user editing
-- [ ] **Internationalization** - Multi-language support
+- [x] **Component Scaling/Zoom** - Individual SVG component scaling with aspect ratio preservation
+- [x] **PWA Implementation** - Offline mode and push notifications
+- [x] **Real-time Collaboration** - WebSocket-based multi-user editing
+- [x] **Internationalization** - Multi-language support
 
 ### 🚀 Advanced Features (Planned)
 - [ ] **Physics Simulation** - Realistic component behavior

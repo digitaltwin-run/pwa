@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60" onload="initValve(evt)">
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60" onload="initValve(evt)" data-component-params="label,color,position,positionmin,positionmax,flow,unit,isactive,animationspeed,ison,isblinking,blinkrate">
     <metadata>
         <component id="valve-001" name="Control Valve" type="valve">
             <parameters>
@@ -12,7 +12,7 @@
                 <unit>%</unit>
                 <isActive>true</isActive>
                 <animationSpeed>1</animationSpeed>
-            </parameters>
+            <ison>false</ison><isblinking>false</isblinking><blinkrate>500</blinkrate></parameters>
         </component>
     </metadata>
 
