@@ -485,32 +485,12 @@ export class PropertiesManager {
                     </div>
                 </div>
                 
-                <!-- Quick Zoom Buttons -->
-                <div class="row g-1 mb-2">
-                    <div class="col-3">
-                        <button class="btn btn-outline-info btn-sm w-100" 
-                                onclick="setComponentScalePercentage('${componentData.id}', 50)">
-                            50%
-                        </button>
-                    </div>
-                    <div class="col-3">
-                        <button class="btn btn-outline-success btn-sm w-100 ${scaleInfo.isOriginalSize ? 'active' : ''}" 
-                                onclick="setComponentScalePercentage('${componentData.id}', 100)">
-                            100%
-                        </button>
-                    </div>
-                    <div class="col-3">
-                        <button class="btn btn-outline-warning btn-sm w-100" 
-                                onclick="setComponentScalePercentage('${componentData.id}', 150)">
-                            150%
-                        </button>
-                    </div>
-                    <div class="col-3">
-                        <button class="btn btn-outline-danger btn-sm w-100" 
-                                onclick="setComponentScalePercentage('${componentData.id}', 200)">
-                            200%
-                        </button>
-                    </div>
+                <!-- Quick Zoom Buttons - Compact -->
+                <div class="scale-buttons-grid">
+                    <button class="scale-btn" onclick="setComponentScalePercentage('${componentData.id}', 50)">50%</button>
+                    <button class="scale-btn ${scaleInfo.isOriginalSize ? 'active' : ''}" onclick="setComponentScalePercentage('${componentData.id}', 100)">100%</button>
+                    <button class="scale-btn" onclick="setComponentScalePercentage('${componentData.id}', 150)">150%</button>
+                    <button class="scale-btn" onclick="setComponentScalePercentage('${componentData.id}', 200)">200%</button>
                 </div>
                 
                 <div class="text-center mt-2">

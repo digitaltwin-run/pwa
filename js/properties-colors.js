@@ -60,30 +60,27 @@ export class ColorManager {
             });
         });
 
-        // Generuj HTML dla każdej grupy kolorów
-        let html = '<div class="colors-section">';
-        html += '<h5>Kolory SVG:</h5>';
-
+        // Generuj HTML dla każdej grupy kolorów - kompaktowo
+        let html = '<div class="colors-section-compact">';
+        
         Object.values(colorGroups).forEach(group => {
             if (Object.keys(group.colors).length === 0) return;
 
-            html += `<div class="color-group" style="margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 4px;">`;
-            html += `<h6 style="margin: 0 0 10px 0;">${group.name}</h6>`;
+            html += `<div class="color-group-compact">`;
+            html += `<div class="color-group-title">${group.name}</div>`;
 
-            // Dodaj kontrolki dla każdego koloru w grupie
+            // Dodaj kontrolki dla każdego koloru w grupie - kompaktowo
             Object.entries(group.colors).forEach(([type, color]) => {
                 const inputId = `color-${group.name}-${type}`;
                 html += `
-                    <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                        <label for="${inputId}" style="min-width: 80px; margin-right: 10px;">
-                            ${type}:
-                        </label>
+                    <div class="color-control">
+                        <label for="${inputId}" class="color-label">${type}</label>
                         <input type="color" 
                                id="${inputId}" 
                                value="${color}" 
-                               style="width: 40px; height: 30px; padding: 0; border: 1px solid #ccc;"
+                               class="color-input-compact"
                                onchange="window.updateSvgColor('${group.name}', '${type}', this.value)">
-                        <span style="margin-left: 5px; font-family: monospace; font-size: 12px;">${color}</span>
+                        <span class="color-value">${color}</span>
                     </div>
                 `;
             });

@@ -159,43 +159,278 @@ body {
     background: white;
 }
 
-/* Properties Panel */
-#property-editor {
-    padding: 10px;
-    color: #333;
+/* Properties Panel - Enhanced Styling */
+#properties-panel {
+    padding: 15px;
+    background: #2c3e50;
+    color: #ecf0f1;
     font-size: 14px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+#property-editor {
+    padding: 0;
+    color: #ecf0f1;
+    font-size: 14px;
+}
+
+/* Property Categories - Compact */
+.property-category {
+    background: rgba(52, 73, 94, 0.5);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    border: 1px solid rgba(149, 165, 166, 0.15);
+}
+
+.property-category h5 {
+    color: #3498db;
+    font-size: 11px;
+    font-weight: 600;
+    margin: 0 0 6px 0;
+    padding-bottom: 3px;
+    border-bottom: 1px solid rgba(52, 152, 219, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* Form Groups - Compact */
+.form-group {
+    margin-bottom: 8px;
 }
 
 #property-editor label {
     display: block;
-    margin-top: 12px;
-    font-weight: 600;
+    margin-bottom: 2px;
+    font-weight: 500;
     color: #ecf0f1;
-    font-size: 13px;
+    font-size: 11px;
+    text-transform: capitalize;
+    line-height: 1.2;
 }
 
-#property-editor input {
+/* Input Styling - Compact */
+#property-editor input,
+#property-editor select,
+#property-editor textarea {
     width: 100%;
-    padding: 6px;
-    margin-top: 4px;
+    padding: 6px 8px;
+    margin: 0;
     border: 1px solid #34495e;
-    border-radius: 4px;
-    font-size: 13px;
+    border-radius: 3px;
+    font-size: 11px;
+    background: #34495e;
+    color: #ecf0f1;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    line-height: 1.2;
+}
+
+#property-editor input:focus,
+#property-editor select:focus,
+#property-editor textarea:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
 }
 
 #property-editor input[type="color"] {
-    height: 30px;
+    height: 24px;
+    padding: 1px;
+    cursor: pointer;
 }
 
+#property-editor input[type="range"] {
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+#property-editor input[type="range"]::-webkit-slider-track {
+    background: #34495e;
+    height: 4px;
+    border-radius: 2px;
+}
+
+#property-editor input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    background: #3498db;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+/* Button Styling - Compact */
 #property-editor button {
-    margin-top: 15px;
-    padding: 8px;
+    margin-top: 6px;
+    padding: 6px 10px;
     background: #e74c3c;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 3px;
     cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+    transition: background 0.2s, transform 0.1s;
+    line-height: 1.2;
+}
+
+#property-editor button:hover {
+    background: #c0392b;
+    transform: translateY(-1px);
+}
+
+#property-editor .btn-primary {
+    background: #3498db;
+}
+
+#property-editor .btn-primary:hover {
+    background: #2980b9;
+}
+
+#property-editor .btn-success {
+    background: #27ae60;
+}
+
+#property-editor .btn-success:hover {
+    background: #229954;
+}
+
+/* Scale Buttons - Compact Grid */
+.scale-buttons-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    margin: 6px 0;
+}
+
+.scale-btn {
+    padding: 4px 6px;
+    background: transparent;
+    color: #ecf0f1;
+    border: 1px solid #34495e;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.2s ease;
+    line-height: 1.2;
+}
+
+.scale-btn:hover {
+    background: rgba(52, 152, 219, 0.2);
+    border-color: #3498db;
+    transform: translateY(-1px);
+}
+
+.scale-btn.active {
+    background: #3498db;
+    border-color: #3498db;
+    color: white;
+}
+
+.scale-btn.active:hover {
+    background: #2980b9;
+    border-color: #2980b9;
+}
+
+/* Compact Color Section */
+.colors-section-compact {
+    margin: 6px 0;
+}
+
+.color-group-compact {
+    margin-bottom: 8px;
+    padding: 6px 8px;
+    background: rgba(52, 73, 94, 0.3);
+    border-radius: 4px;
+    border: 1px solid rgba(149, 165, 166, 0.1);
+}
+
+.color-group-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: #3498db;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.color-control {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+    gap: 6px;
+}
+
+.color-control:last-child {
+    margin-bottom: 0;
+}
+
+.color-label {
+    font-size: 10px;
+    color: #ecf0f1;
+    min-width: 32px;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.color-input-compact {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid #34495e;
+    border-radius: 3px;
+    cursor: pointer;
+    background: transparent;
+}
+
+.color-input-compact:hover {
+    border-color: #3498db;
+}
+
+.color-value {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    color: #95a5a6;
+    flex: 1;
+    text-align: right;
+}
+
+/* Schema and Color Sections - Compact */
+.color-palette {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 3px;
+    margin: 4px 0 6px 0;
+}
+
+.color-swatch {
     width: 100%;
+    height: 18px;
+    border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.color-swatch:hover {
+    transform: scale(1.05);
+}
+
+/* Value Display - Compact */
+.value-display {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #95a5a6;
+    margin-top: 2px;
+    line-height: 1.2;
 }
 
 /* Simulation Panel */
@@ -219,55 +454,101 @@ body {
     color: #ccc;
 }
 
-/* Component Button Styles */
+/* Component Button Styles - Compact Design */
 .component-button {
     display: flex;
     align-items: center;
     width: 100%;
-    padding: 8px 10px;
-    margin: 6px 0;
-    background: #3498db;
-    color: white;
+    padding: 6px 8px;
+    margin: 3px 0;
+    background: transparent;
+    color: #ecf0f1;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: grab;
     user-select: none;
-    font-size: 14px;
+    font-size: 13px;
     transition: background 0.2s, transform 0.1s;
-    gap: 12px;
+    gap: 8px;
     text-align: left;
 }
 
 .component-button:hover {
-    background: #2980b9;
+    background: rgba(52, 152, 219, 0.2);
     transform: translateY(-1px);
 }
 
 .component-button:active {
     transform: translateY(0);
+    background: rgba(52, 152, 219, 0.3);
 }
 
+/* Compact icon without borders */
 .component-button svg {
     flex-shrink: 0;
-    width: 36px;
-    height: 36px;
-    border: 1px solid #fff;
-    border-radius: 6px;
-    background: white;
-    padding: 2px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    padding: 0;
+    opacity: 0.9;
+}
+
+.component-button:hover svg {
+    opacity: 1;
 }
 
 .component-button span {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     flex: 1;
-    margin-left: 4px;
+    margin-left: 2px;
 }
 
 /* Drag & Drop Visual Feedback */
 .drag-over {
     background: rgba(52, 152, 219, 0.1);
+}
+
+/* SVG Text Editor */
+.svg-text-editor {
+    font-family: inherit;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #3498db;
+    border-radius: 4px;
+    padding: 2px 6px;
+    color: #2c3e50;
+    outline: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.svg-text-editor:focus {
+    border-color: #e74c3c;
+    box-shadow: 0 2px 12px rgba(231, 76, 60, 0.3);
+}
+
+/* Editable text elements hover effect */
+text[id*="label"]:hover,
+text[id*="value"]:hover,
+text[id*="title"]:hover,
+text[id*="name"]:hover,
+text[id*="text"]:hover,
+text[id*="display"]:hover {
+    cursor: text;
+    opacity: 0.8;
+    filter: drop-shadow(0 0 2px rgba(52, 152, 219, 0.6));
+}
+
+/* Visual indicator for editable text */
+[data-id] text[id*="label"],
+[data-id] text[id*="value"],
+[data-id] text[id*="title"],
+[data-id] text[id*="name"],
+[data-id] text[id*="text"],
+[data-id] text[id*="display"] {
+    transition: opacity 0.2s, filter 0.2s;
 }
 
 /* Utility Classes */

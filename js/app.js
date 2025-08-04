@@ -17,6 +17,8 @@ import pwaConfig from '../config/pwa-config.js';
 import { CollaborationManager } from './collaboration-manager.js';
 import { I18nManager } from './i18n-manager.js';
 import { ComponentScaler } from './component-scaler.js';
+import './svg-text-editor.js'; // Enable in-place SVG text editing
+import './global-component-initializer.js'; // Enable global SVG component initialization
 // Conditional imports for development tools
 let TestingSystem, FunctionalTests, ErrorDetector;
 try {
@@ -128,8 +130,7 @@ class DigitalTwinApp {
             // Load component library
             await this.componentManager.loadComponentLibrary();
 
-            // Set up component interactions
-            this.setupComponentInteractions();
+            // Component interactions now handled by interactions project
         
             // Set up event listeners
             this.setupEventListeners();

@@ -500,10 +500,23 @@ class ErrorDetector {
 // 🚀 Initialize global error detector
 window.errorDetector = new ErrorDetector();
 
-// Auto-start in development mode
+// Auto-start in development mode - defer until DOM and managers are ready
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    console.log('🔍 Auto-starting error detection in development mode...');
-    window.errorDetector.startMonitoring();
+    // Wait for DOM and app initialization
+    const startErrorDetection = () => {
+        console.log('🔍 Auto-starting error detection in development mode...');
+        window.errorDetector.startMonitoring();
+    };
+    
+    // If DOM is already loaded, wait a bit more for app initialization
+    if (document.readyState === 'complete') {
+        setTimeout(startErrorDetection, 1000);
+    } else {
+        // Wait for window load (after all resources)
+        window.addEventListener('load', () => {
+            setTimeout(startErrorDetection, 1000);
+        });
+    }
 }
 
 // Export for use in tests

@@ -217,7 +217,7 @@ export class ExportManager {
         }
     }
 
-    // Eksportuj jako SVG z zachowaniem skryptów i interakcji
+    // Eksportuj jako SVG (bez skryptów i interakcji)
     exportAsSVG() {
         try {
             // Stwórz kopię canvas do eksportu z głębokim klonowaniem
@@ -229,363 +229,119 @@ export class ExportManager {
             // Usuń zaznaczenia i resize handles z eksportowanego SVG
             this.removeSelectionArtifacts(exportCanvas);
 
-            // Dodaj niezbędne skrypty do obsługi interakcji
-            const scriptElement = document.createElementNS("http://www.w3.org/2000/svg", "script");
-            scriptElement.setAttribute("type", "text/javascript");
+            // Interaction scripts removed (moved to /interactions project)
 
-            // Kod JavaScript do obsługi interakcji w samodzielnym SVG - with safety checks and proper escaping
-            const scriptContent = '// Inicjalizacja obsługi interakcji po załadowaniu SVG\n' +
-                'document.addEventListener(\'DOMContentLoaded\', function() {\n' +
-                '// Funkcja do obsługi interakcji między komponentami\n' +
-                'function setupInteractions() {\n' +
-                '    // Znajdź wszystkie komponenty z interakcjami\n' +
-                '    const components = document.querySelectorAll(\'[data-id]\');\n' +
-                '    components.forEach(component => {\n' +
-                '        const metadataElement = component.querySelector(\'metadata component\');\n' +
-                '        if (!metadataElement) return;\n' +
-                '        \n' +
-                '        // Parse interactions if present\n' +
-                '        const interactionsElement = metadataElement.querySelector(\'interactions\');\n' +
-                '        if (!interactionsElement) return;\n' +
-            '        \n' +
-            '        const bindingElements = interactionsElement.querySelectorAll(\'binding\');\n' +
-            '        if (!bindingElements || bindingElements.length === 0) return;\n' +
-            '        \n' +
-            '        // Dodaj obsługę zdarzeń dla każdej interakcji\n' +
-            '        Array.from(bindingElements).forEach(binding => {\n' +
-            '            const targetId = binding.getAttribute(\'targetId\');\n' +
-            '            const event = binding.getAttribute(\'event\');\n' +
-            '            const action = binding.getAttribute(\'action\');\n' +
-            '            const parameter = binding.getAttribute(\'parameter\');\n' +
-            '            \n' +
-            '            if (!targetId || !event || !action) return;\n' +
-            '            \n' +
-            '            // Dodaj listener zdarzeń\n' +
-            '            component.addEventListener(\'click\', function(e) {\n' +
-            '                const targetElement = document.querySelector(\'[data-id="\' + targetId + \'"]\');\n' +
-            '                if (!targetElement) return;\n' +
-            '                \n' +
-            '                // Wywołaj akcję na elemencie docelowym\n' +
-            '                if (action === \'start\') {\n' +
-            '                    // Symulacja startu (np. dla silnika)\n' +
-            '                    const speedParam = targetElement.querySelector(\'metadata component parameters speed\');\n' +
-            '                    if (speedParam) {\n' +
-            '                        speedParam.textContent = parameter || \'100\';\n' +
-            '                    }\n' +
-            '                    const isOnParam = targetElement.querySelector(\'metadata component parameters isOn\');\n' +
-            '                    if (isOnParam) {\n' +
-            '                        isOnParam.textContent = \'true\';\n' +
-            '                    }\n' +
-            '                } else if (action === \'stop\') {\n' +
-            '                    // Symulacja zatrzymania\n' +
-            '                    const isOnParam = targetElement.querySelector(\'metadata component parameters isOn\');\n' +
-            '                    if (isOnParam) {\n' +
-            '                        isOnParam.textContent = \'false\';\n' +
-            '                    }\n' +
-            '                } else if (action === \'toggle\') {\n' +
-            '                    // Przełączanie stanu\n' +
-            '                    const isOnParam = targetElement.querySelector(\'metadata component parameters isOn\');\n' +
-            '                    if (isOnParam) {\n' +
-            '                        const currentState = isOnParam.textContent === \'true\';\n' +
-            '                        isOnParam.textContent = (!currentState).toString();\n' +
-            '                    }\n' +
-            '                }\n' +
-            '                \n' +
-            '                // Wywołaj skrypt animacji komponentu docelowego, jeśli istnieje\n' +
-            '                const scriptElements = targetElement.querySelectorAll(\'script\');\n' +
-            '                scriptElements.forEach(script => {\n' +
-            '                    if (script.textContent && script.textContent.includes(\'function update\')) {\n' +
-            '                        // Próba wywołania funkcji update - with safety measures\n' +
-            '                        try {\n' +
-            '                            // Safely extract and execute the script content\n' +
-            '                            const safeScriptContent = script.textContent\n' +
-            '                                .replace(/\\/\\/g, \'\\\\\\\\/\') // Escape forward slashes\n' +
-            '                                .replace(/\\$/g, \'\\\\$\'); // Escape dollar signs\n' +
-            '                            \n' +
-            '                            // Create a safe wrapper around the execution\n' +
-            '                            const updateFn = new Function(\'element\', \n' +
-            '                                \'try { \' + safeScriptContent + \'; } catch(e) { console.warn("Script error:", e); }\' +\n' +
-            '                                \'try { if(typeof update === "function") { update(element); } } catch(e) { console.warn("Update error:", e); }\'\n' +
-            '                            );\n' +
-            '                            \n' +
-            '                            updateFn(targetElement);\n' +
-            '                        } catch (e) {\n' +
-            '                            console.error(\'Błąd wywołania skryptu animacji:\', e);\n' +
-            '                        }\n' +
-            '                    }\n' +
-            '                });\n' +
-            '            });\n' +
-            '        });\n' +
-            '    }\n' +
-            '    \n' +
-            '    // Uruchom obsługę interakcji\n' +
-            '    setupInteractions();\n' +
-            '    \n' +
-            '    // Uruchom skrypty animacji dla wszystkich komponentów\n' +
-            '    const components = document.querySelectorAll(\'[data-id]\');\n' +
-            '    components.forEach(component => {\n' +
-            '        const scriptElements = component.querySelectorAll(\'script\');\n' +
-            '        scriptElements.forEach(script => {\n' +
-            '            if (script.textContent) {\n' +
-            '                try {\n' +
-            '                    // Clean and sanitize script content to prevent syntax errors\n' +
-            '                    let scriptContent = script.textContent;\n' +
-            '                    \n' +
-            '                    // Remove CDATA markers that can cause syntax errors\n' +
-            '                    scriptContent = scriptContent.replace(/<!\\[CDATA\\[/g, \'\');\n' +
-            '                    scriptContent = scriptContent.replace(/\\]\\]>/g, \'\');\n' +
-            '                    \n' +
-            '                    // Remove any XML artifacts\n' +
-            '                    scriptContent = scriptContent.replace(/<\\?xml[^>]*>/g, \'\');\n' +
-            '                    \n' +
-            '                    // Trim whitespace\n' +
-            '                    scriptContent = scriptContent.trim();\n' +
-            '                    \n' +
-            '                    // Skip empty scripts\n' +
-            '                    if (!scriptContent) {\n' +
-            '                        console.warn(\'Warning: Skipping empty script content\');\n' +
-            '                        return;\n' +
-            '                    }\n' +
-            '                    \n' +
-            '                    // Execute the script in component context\n' +
-            '                    // Ensure no regex or syntax errors by properly escaping content\n' +
-            '                    const safeScriptContent = scriptContent\n' +
-            '                        .replace(/\\/g, \'\\\\/\') // Escape forward slashes for regex\n' +
-            '                        .replace(/$/g, \'\\\\$\') // Escape dollar signs\n' +
-            '                        .replace(/`/g, \'\\\\`\');  // Escape backticks\n' +
-            '                    \n' +
-            '                    // Create a safe wrapper around script execution\n' +
-            '                    const scriptFn = new Function(\'component\', \n' +
-            '                        \'// Bind this component context\\n\' +\n' +
-            '                        \'const svgElement = component;\\n\' +\n' +
-            '                        \'\\n\' +\n' +
-            '                        \'// Execute the original script with safety measures\\n\' +\n' +
-            '                        \'try {\\n\' +\n' +
-            '                        \'  \' + safeScriptContent +\n' +
-            '                        \'\\n} catch(e) { console.warn("Script execution error:", e); }\\n\' +\n' +
-            '                        \'// Try to call any update functions if they exist\\n\' +\n' +
-            '                        \'try { if(typeof updateMotor === "function") { updateMotor(svgElement); } } catch(e) {}\\n\' +\n' +
-            '                        \'try { if(typeof updateLED === "function") { updateLED(svgElement); } } catch(e) {}\\n\' +\n' +
-            '                        \'try { if(typeof update === "function") { update(svgElement); } } catch(e) {}\\n\' +\n' +
-            '                        \'try { if(typeof initPump === "function") { initPump(svgElement); } } catch(e) {}\\n\' +\n' +
-            '                        \'try { if(typeof initValve === "function") { initValve(svgElement); } } catch(e) {}\'\n' +
-            '                    );\n' +
-            '                    \n' +
-            '                    scriptFn(component);\n' +
-            '                    \n' +
-            '                    console.log(\'Successfully initialized animation script for component:\', component.getAttribute(\'data-id\'));\n' +
-            '                } catch (e) {\n' +
-            '                    console.error(\'Error initializing animation script:\', e);\n' +
-            '                }\n' +
-            '            }\n' +
-            '        });\n' +
-            '    });\n' +
-            '    \n' +
-            '    // Add safety check for MutationObservers\n' +
-            '    function safelyAddObserver(targetElement, config, callback) {\n' +
-            '        if (!targetElement) {\n' +
-            '            console.warn(\'Cannot add MutationObserver: Target element not found\');\n' +
-            '            return null;\n' +
-            '        }\n' +
-            '        \n' +
-            '        try {\n' +
-            '            const observer = new MutationObserver(callback);\n' +
-            '            observer.observe(targetElement, config);\n' +
-            '            return observer;\n' +
-            '        } catch (e) {\n' +
-            '            console.error(\'Error setting up MutationObserver:\', e);\n' +
-            '            return null;\n' +
-            '        }\n' +
-            '    }\n' +
-            '    \n' +
-            '    // Example of safely adding an observer\n' +
-            '});\n' +
-            // Set script content and append the script element to the SVG
-            scriptElement.textContent = scriptContent;
-            exportCanvas.appendChild(scriptElement);
+            // Generate SVG as string
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(exportCanvas);
+
+            // Create download link
+            const blob = new Blob([svgString], {type: 'image/svg+xml;charset=utf-8'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'digital-twin-' + new Date().toISOString().slice(0, 10) + '.svg';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            console.log('SVG exported successfully');
         } catch (error) {
             console.error('Error in export process:', error);
         }
     }
-
+    
+    /**
+     * Preserve component metadata for SVG export
+     * @param {SVGElement} exportCanvas - The export canvas
+     */
+    preserveComponentMetadata(exportCanvas) {
+        try {
+            // Find all components in original canvas
+            const originalComponents = this.svgCanvas.querySelectorAll('[data-id]');
+            
+            originalComponents.forEach(originalElement => {
+                const componentId = originalElement.getAttribute('data-id');
+                const component = exportCanvas.querySelector('[data-id="' + componentId + '"]');
+                
+                if (!component) {
+                    console.warn('Warning: Component ' + componentId + ' not found in export canvas');
+                    return;
+                }
+                
+                // Ensure metadata is preserved
+                const metadataStr = originalElement.getAttribute('data-metadata');
+                if (metadataStr) {
+                    // Clone metadata to the exported component
+                    component.setAttribute('data-metadata', metadataStr);
+                    
+                    // Preserve metadata without interactive visual updates
+                }
+                
+                // Preserve other important attributes
+                const preserveAttrs = ['data-svg-url', 'data-component-params', 'transform'];
+                preserveAttrs.forEach(attr => {
+                    const value = originalElement.getAttribute(attr);
+                    if (value) {
+                        component.setAttribute(attr, value);
+                    }
+                });
+            });
+        } catch (error) {
+            console.error("Error preserving component metadata:", error);
+        }
+    }
+    
     /**
      * Remove selection artifacts from exported SVG (highlights, resize handles, etc.)
      * @param {SVGElement} exportCanvas - The cloned canvas for export
      */
     removeSelectionArtifacts(exportCanvas) {
-
-                // Remove CDATA markers that can cause syntax errors
-                scriptContent = scriptContent.replace(/<!\\[CDATA\\[/g, '');
-                                    scriptContent = scriptContent.replace(/\\]\\]>/g, '');
-
-                // Remove any XML artifacts
-                scriptContent = scriptContent.replace(/<\\?xml[^>]*>/g, '');
-
-                // Trim whitespace
-                scriptContent = scriptContent.trim();
-
-                // Skip empty scripts
-                if (!scriptContent) {
-                    console.warn('Warning: Skipping empty script content');
-                    return;
-                }
-
-                // Execute the script in component context
-                // Ensure no regex or syntax errors by properly escaping content
-                const safeScriptContent = scriptContent
-                    .replace(/\//g, '\\/') // Escape forward slashes for regex
-                    .replace(/\$/g, '\\$') // Escape dollar signs
-                    .replace(/`/g, '\\`');  // Escape backticks
-
-                // Create a safe wrapper around script execution
-                const scriptFn = new Function('component',
-                    '// Bind this component context\\n' +
-                    'const svgElement = component;\\n' +
-                    '\\n' +
-                    '// Execute the original script with safety measures\\n' +
-                    'try {\\n' +
-                    '  ' + safeScriptContent +
-                    '\\n} catch(e) { console.warn("Script execution error:", e); }\\n' +
-                    '// Try to call any update functions if they exist\\n' +
-                    'try { if(typeof updateMotor === "function") { updateMotor(svgElement); } } catch(e) {}\\n' +
-                    'try { if(typeof updateLED === "function") { updateLED(svgElement); } } catch(e) {}\\n' +
-                    'try { if(typeof update === "function") { update(svgElement); } } catch(e) {}\\n' +
-                    'try { if(typeof initPump === "function") { initPump(svgElement); } } catch(e) {}\\n' +
-                    'try { if(typeof initValve === "function") { initValve(svgElement); } } catch(e) {}'
-                );
-
-                scriptFn(component);
-
-                console.log('Successfully initialized animation script for component:', component.getAttribute('data-id'));
-            } catch (e) {
-                console.error('Error initializing animation script:', e);
-            }
-        }
-    });
-});
-
-// Add safety check for MutationObservers
-function safelyAddObserver(targetElement, config, callback) {
-    if (!targetElement) {
-        console.warn('Cannot add MutationObserver: Target element not found');
-        return null;
-    }
-
-    try {
-        const observer = new MutationObserver(callback);
-        observer.observe(targetElement, config);
-        return observer;
-    } catch (e) {
-        console.error('Error setting up MutationObserver:', e);
-        return null;
-    }
-}
-
-originalComponents.forEach(originalElement => {
-    const componentId = originalElement.getAttribute('data-id');
-    const component = exportCanvas.querySelector('[data-id="' + componentId + '"]');
-
-    if (!component) {
-        console.warn('Warning: Component ' + componentId + ' not found in export canvas');
-        return;
-    }
-
-    // Ensure metadata is preserved
-    const metadataStr = originalElement.getAttribute('data-metadata');
-    if (metadataStr) {
-        // Clone metadata to the exported component
-        component.setAttribute('data-metadata', metadataStr);
-
-        // Update component visuals based on metadata
         try {
-            const metadata = JSON.parse(metadataStr);
+            // Remove component selection outlines (blue borders)
+            const components = exportCanvas.querySelectorAll('[data-id]');
+            components.forEach(component => {
+                // Remove any inline outline styles
+                component.style.outline = '';
+                component.style.border = '';
 
-            // Update component label if it exists in metadata
-            if (metadata.parameters && metadata.parameters.label) {
-                const labelElements = component.querySelectorAll('.motor-label, .led-label, text[class*="label"]');
-                labelElements.forEach(labelEl => {
-                    labelEl.textContent = metadata.parameters.label;
-                });
-
-                // Also update metadata component label in SVG
-                const metadataLabelEl = component.querySelector('metadata component parameters label');
-                if (metadataLabelEl) {
-                    metadataLabelEl.textContent = metadata.parameters.label;
-                }
-            }
-
-            console.log('Preserved metadata for component ' + componentId + ': ' + (metadata.parameters?.label || 'unnamed'));
-        } catch (e) {
-            console.warn('Warning: Could not parse metadata for component ' + componentId + ':', e);
-        }
-    }
-
-    // Preserve other important attributes
-    const preserveAttrs = ['data-svg-url', 'data-component-params', 'transform'];
-    preserveAttrs.forEach(attr => {
-        const value = originalElement.getAttribute(attr);
-        if (value) {
-            component.setAttribute(attr, value);
-        }
-    });
-});
-} catch
-(error)
-{
-    console.error("Error preserving component metadata:", error);
-}
-}
-
-/**
- * Remove selection artifacts from exported SVG (highlights, resize handles, etc.)
- * @param {SVGElement} exportCanvas - The cloned canvas for export
- */
-removeSelectionArtifacts(exportCanvas)
-{
-    try {
-        // Remove component selection outlines (blue borders)
-        const components = exportCanvas.querySelectorAll('[data-id]');
-        components.forEach(component => {
-            // Remove any inline outline styles
-            component.style.outline = '';
-            component.style.border = '';
-
-            // Remove outline attributes if they exist
-            component.removeAttribute('outline');
-        });
-
-        // Remove resize handles groups
-        const resizeHandles = exportCanvas.querySelectorAll('.resize-handles, g.resize-handles');
-        resizeHandles.forEach(handleGroup => {
-            handleGroup.remove();
-        });
-
-        // Remove individual resize handles
-        const handles = exportCanvas.querySelectorAll('.resize-handle');
-        handles.forEach(handle => {
-            handle.remove();
-        });
-
-        // Remove any selection rectangles or highlight elements
-        const selectionElements = exportCanvas.querySelectorAll('[class*="selection"], [class*="highlight"], [class*="selected"]');
-        selectionElements.forEach(element => {
-            element.remove();
-        });
-
-        // Clean up any temporary CSS classes
-        const tempClasses = ['selected', 'highlighted', 'dragging', 'resizing'];
-        const allElements = exportCanvas.querySelectorAll('*');
-        allElements.forEach(element => {
-            tempClasses.forEach(className => {
-                element.classList.remove(className);
+                // Remove outline attributes if they exist
+                component.removeAttribute('outline');
             });
-        });
 
-        console.log('Successfully removed selection artifacts from exported SVG');
-    } catch (error) {
-        console.error("Error removing selection artifacts:", error);
+            // Remove resize handles groups
+            const resizeHandles = exportCanvas.querySelectorAll('.resize-handles, g.resize-handles');
+            resizeHandles.forEach(handleGroup => {
+                handleGroup.remove();
+            });
+
+            // Remove individual resize handles
+            const handles = exportCanvas.querySelectorAll('.resize-handle');
+            handles.forEach(handle => {
+                handle.remove();
+            });
+
+            // Remove any selection rectangles or highlight elements
+            const selectionElements = exportCanvas.querySelectorAll('[class*="selection"], [class*="highlight"], [class*="selected"]');
+            selectionElements.forEach(element => {
+                element.remove();
+            });
+
+            // Clean up any temporary CSS classes
+            const tempClasses = ['selected', 'highlighted', 'dragging', 'resizing'];
+            const allElements = exportCanvas.querySelectorAll('*');
+            allElements.forEach(element => {
+                tempClasses.forEach(className => {
+                    element.classList.remove(className);
+                });
+            });
+
+            console.log('Successfully removed selection artifacts from exported SVG');
+        } catch (error) {
+            console.error("Error removing selection artifacts:", error);
+        }
     }
-}
 }
 
 // Globalne funkcje dla wywołań z HTML
