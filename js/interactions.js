@@ -9,9 +9,12 @@
 export class InteractionsManager {
     constructor(componentManager, svgCanvas) {
         this.componentManager = componentManager;
-        this.svgCanvas = svgCanvas;
+        this.svgCanvas = svgCanvas || document.getElementById('svg-canvas');
         this.bindings = new Map(); // Mapa wszystkich aktywnych powiązań
         this.eventListeners = new Map(); // Mapa nasłuchiwaczy zdarzeń
+        
+        // Initialize action manager if available
+        this.actionManager = window.actionManager;
         
         // Inicjalizacja
         this.init();
@@ -22,6 +25,14 @@ export class InteractionsManager {
      */
     init() {
         console.log('Component interactions system initialized');
+        
+        if (!this.svgCanvas) {
+            console.error('SVG canvas not found for interactions');
+            return;
+        }
+        
+        // Set up component interactions
+        this.setupComponentInteractions();
         
         // Nasłuchiwanie na dodanie nowych komponentów
         this.svgCanvas.addEventListener('component-added', (e) => {
@@ -38,6 +49,69 @@ export class InteractionsManager {
         
         // Inicjalne przetworzenie istniejących komponentów
         this.processExistingComponents();
+    }
+    
+    /**
+     * Set up interaction handlers for SVG components
+     */
+    setupComponentInteractions() {
+        // Delegated event handling for component clicks
+        this.svgCanvas.addEventListener('click', (event) => {
+            // Find the closest component element
+            let target = event.target;
+            while (target && target !== this.svgCanvas) {
+                if (target.hasAttribute('data-component-id')) {
+                    const componentId = target.getAttribute('data-component-id');
+                    this.handleComponentClick(componentId, event);
+                    break;
+                }
+                target = target.parentNode;
+            }
+        });
+
+        // Add double-click for editing
+        this.svgCanvas.addEventListener('dblclick', (event) => {
+            let target = event.target;
+            while (target && target !== this.svgCanvas) {
+                if (target.hasAttribute('data-component-id')) {
+                    const componentId = target.getAttribute('data-component-id');
+                    if (window.propertiesManager) {
+                        window.propertiesManager.selectComponent(target);
+                    }
+                    break;
+                }
+                target = target.parentNode;
+            }
+        });
+
+        console.log('Component interactions configured');
+    }
+    
+    /**
+     * Handle component click events
+     * @param {string} componentId - ID of the clicked component
+     * @param {Event} event - Click event object
+     */
+    async handleComponentClick(componentId, event) {
+        if (!this.actionManager || !this.componentManager) return;
+
+        const component = this.componentManager.getComponent(componentId);
+        if (!component) return;
+
+        // Prevent default if it's a button or interactive element
+        if (component.type === 'button' || component.type === 'switch' || component.type === 'toggle') {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        // Toggle state for toggle components
+        if (component.type === 'toggle') {
+            const currentState = component.state?.on || false;
+            this.componentManager.updateComponentState(componentId, { on: !currentState });
+        }
+
+        // Trigger click event actions
+        await this.actionManager.triggerEvent(componentId, 'click');
     }
 
     /**

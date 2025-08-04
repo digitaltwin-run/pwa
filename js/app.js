@@ -123,6 +123,7 @@ class DigitalTwinApp {
             window.connectionManager = this.connectionManager;
             window.interactionsManager = this.interactionsManager;
             window.componentScaler = this.componentScaler;
+            window.actionManager = this.actionManager; // Expose actionManager for interactions
 
             // Load component library
             await this.componentManager.loadComponentLibrary();
@@ -147,73 +148,6 @@ class DigitalTwinApp {
         } catch (error) {
             console.error('Error initializing application:', error);
         }
-    }
-
-    /**
-     * Set up interaction handlers for SVG components
-     */
-    setupComponentInteractions() {
-        const svgCanvas = document.getElementById('svg-canvas');
-        if (!svgCanvas) {
-            console.error('SVG canvas not found');
-            return;
-        }
-
-        // Delegated event handling for component clicks
-        svgCanvas.addEventListener('click', (event) => {
-            // Find the closest component element
-            let target = event.target;
-            while (target && target !== svgCanvas) {
-                if (target.hasAttribute('data-component-id')) {
-                    const componentId = target.getAttribute('data-component-id');
-                    this.handleComponentClick(componentId, event);
-                    break;
-                }
-                target = target.parentNode;
-            }
-        });
-
-        // Add double-click for editing
-        svgCanvas.addEventListener('dblclick', (event) => {
-            let target = event.target;
-            while (target && target !== svgCanvas) {
-                if (target.hasAttribute('data-component-id')) {
-                    const componentId = target.getAttribute('data-component-id');
-                    this.propertiesManager.selectComponent(target);
-                    break;
-                }
-                target = target.parentNode;
-            }
-        });
-
-        console.log('Component interactions configured');
-    }
-
-    /**
-     * Handle component click events
-     * @param {string} componentId - ID of the clicked component
-     * @param {Event} event - Click event object
-     */
-    async handleComponentClick(componentId, event) {
-        if (!this.actionManager) return;
-
-        const component = this.componentManager.getComponent(componentId);
-        if (!component) return;
-
-        // Prevent default if it's a button or interactive element
-        if (component.type === 'button' || component.type === 'switch' || component.type === 'toggle') {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-
-        // Toggle state for toggle components
-        if (component.type === 'toggle') {
-            const currentState = component.state?.on || false;
-            this.componentManager.updateComponentState(componentId, { on: !currentState });
-        }
-
-        // Trigger click event actions
-        await this.actionManager.triggerEvent(componentId, 'click');
     }
 
     /**
