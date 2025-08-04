@@ -187,6 +187,10 @@ class I18nManager {
                 'properties.parameter_name': 'Parameter Name',
                 'properties.parameter_value': 'Value',
                 'properties.add_parameter': 'Add Parameter',
+                'properties.selection_list': 'Component List',
+                'properties.select_all': 'Select All',
+                'properties.clear_all': 'Clear All',
+                'properties.selected_count': 'Selected:',
                 
                 // Buttons
                 'buttons.apply': 'Apply',
@@ -302,6 +306,10 @@ class I18nManager {
                 'properties.parameter_name': 'Nazwa Parametru',
                 'properties.parameter_value': 'Wartość',
                 'properties.add_parameter': 'Dodaj Parametr',
+                'properties.selection_list': 'Lista Komponentów',
+                'properties.select_all': 'Zaznacz wszystkie',
+                'properties.clear_all': 'Odznacz wszystkie',
+                'properties.selected_count': 'Zaznaczonych:',
                 
                 // Buttons
                 'buttons.apply': 'Zastosuj',

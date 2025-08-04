@@ -17,6 +17,11 @@ import pwaConfig from '../config/pwa-config.js';
 import { CollaborationManager } from './collaboration-manager.js';
 import { I18nManager } from './i18n-manager.js';
 import { ComponentScaler } from './component-scaler.js';
+import { CanvasSelectionManager } from './canvas-selection-manager.js';
+import { CanvasZoomManager } from './canvas-zoom-manager.js';
+import { CanvasPropertiesManager } from './canvas-properties-manager.js';
+import { ComponentsColumnManager } from './components-column-manager.js';
+import { SelectionListManager } from './properties/selection-list-manager.js';
 import './svg-text-editor.js'; // Enable in-place SVG text editing
 import './global-component-initializer.js'; // Enable global SVG component initialization
 import { canvasSelectionManager } from './canvas-selection-manager.js'; // Enable canvas selection and copy-paste
@@ -130,8 +135,19 @@ class DigitalTwinApp {
             window.actionManager = this.actionManager; // Expose actionManager for interactions
             window.canvasSelectionManager = this.canvasSelectionManager; // Expose canvas selection manager
 
-            // Initialize canvas selection manager with references
+            // Initialize canvas managers with references
             this.canvasSelectionManager.setReferences(svgCanvas, this.componentManager);
+            canvasZoomManager.setReferences(svgCanvas, workspace);
+            canvasPropertiesManager.setCanvas(svgCanvas);
+            
+            // Initialize components column manager
+            this.componentsColumnManager = new ComponentsColumnManager();
+            this.componentsColumnManager.setReferences(this.componentManager, this.canvasSelectionManager);
+            
+            // Expose new canvas managers globally
+            window.canvasZoomManager = canvasZoomManager;
+            window.canvasPropertiesManager = canvasPropertiesManager;
+            window.componentsColumnManager = this.componentsColumnManager;
             
             // Dispatch canvas-ready event for selection manager
             const canvasReadyEvent = new CustomEvent('canvas-ready', {
@@ -292,9 +308,12 @@ class DigitalTwinApp {
                         this.propertiesManager.selectComponent(component);
                     }
                 } else {
-                    // Click on empty space - deselect component
+                    // Click on empty canvas - show canvas properties
                     if (!this.connectionManager.isConnectionMode) {
+                        // Clear component selection
                         this.propertiesManager.selectComponent(null);
+                        // Show canvas properties instead
+                        this.propertiesManager.showCanvasProperties();
                     }
                 }
             });

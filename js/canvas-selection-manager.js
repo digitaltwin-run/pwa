@@ -13,6 +13,11 @@ export class CanvasSelectionManager {
         this.canvasElement = null;
         this.componentManager = null;
         
+        // Drag functionality for selected components
+        this.isDragging = false;
+        this.dragStart = { x: 0, y: 0 };
+        this.originalPositions = new Map();
+        
         this.init();
     }
 
@@ -96,7 +101,7 @@ export class CanvasSelectionManager {
     setupCanvasEventListeners() {
         if (!this.canvasElement) return;
 
-        this.canvasElement.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+        this.canvasElement.addEventListener('mousedown', (e) => this.handleCanvasMouseDown(e));
         this.canvasElement.addEventListener('mousemove', (e) => this.handleMouseMove(e));
         this.canvasElement.addEventListener('mouseup', (e) => this.handleMouseUp(e));
         
@@ -108,57 +113,80 @@ export class CanvasSelectionManager {
     }
 
     /**
-     * Handle mouse down - start selection or component interaction
+     * Handle mouse down on canvas - check for multi-selection and start drag
      */
-    handleMouseDown(e) {
-        // Get all components at this point (for overlapping components)
-        const elementsAtPoint = document.elementsFromPoint(e.clientX, e.clientY);
-        const componentsAtPoint = elementsAtPoint.filter(el => el.hasAttribute('data-id'));
-        
-        if (componentsAtPoint.length > 0) {
-            // Component(s) clicked - choose the topmost one
-            const clickedComponent = componentsAtPoint[0];
-            
-            // If there are multiple components at this point, prioritize selected ones
-            const selectedAtPoint = componentsAtPoint.filter(comp => this.selectedComponents.has(comp));
-            const targetComponent = selectedAtPoint.length > 0 ? selectedAtPoint[0] : clickedComponent;
-            
+    handleCanvasMouseDown(e) {
+        if (e.target === this.canvasElement) {
+            // Clear selection if clicking on empty canvas
             if (!e.ctrlKey && !e.shiftKey) {
-                // Single selection (clear others)
                 this.clearSelection();
-                this.selectComponent(targetComponent);
-            } else if (e.ctrlKey) {
-                // Toggle selection
-                this.toggleComponentSelection(targetComponent);
             }
-            
-            // Mark this as a component interaction to prevent selection box
-            this.lastInteractionWasComponent = true;
         } else {
-            // Empty area clicked - start selection box
-            this.lastInteractionWasComponent = false;
-            if (!e.ctrlKey && !e.shiftKey) {
-                this.clearSelection();
+            // Check if clicked element is a component
+            let component = e.target.closest('.draggable-component');
+            if (component) {
+                // Get all overlapping components at this point
+                const rect = component.getBoundingClientRect();
+                const elementsAtPoint = document.elementsFromPoint(rect.left + rect.width/2, rect.top + rect.height/2);
+                const overlappingComponents = elementsAtPoint.filter(el => 
+                    el.classList.contains('draggable-component')
+                );
+                
+                if (overlappingComponents.length > 1) {
+                    console.log(`🎯 Found ${overlappingComponents.length} overlapping components`);
+                    
+                    // Prioritize already selected components
+                    const selectedOverlapping = overlappingComponents.filter(comp => 
+                        this.selectedComponents.has(comp)
+                    );
+                    
+                    if (selectedOverlapping.length > 0) {
+                        // Use the first selected overlapping component
+                        component = selectedOverlapping[0];
+                    }
+                }
+                
+                if (e.ctrlKey) {
+                    // Toggle selection
+                    this.toggleComponentSelection(component);
+                } else if (e.shiftKey) {
+                    // Add to selection
+                    this.selectComponent(component);
+                } else {
+                    // Single selection (unless already selected for multi-drag)
+                    if (!this.selectedComponents.has(component)) {
+                        this.clearSelection();
+                        this.selectComponent(component);
+                    }
+                }
+                
+                // Start drag if we have selected components
+                if (this.selectedComponents.size > 0) {
+                    this.startDrag(e);
+                }
             }
-            this.startSelectionBox(e);
         }
     }
 
     /**
-     * Handle mouse move - update selection box
+     * Handle mouse move - update selection box or component dragging
      */
     handleMouseMove(e) {
-        if (this.isSelecting) {
+        if (this.isDragging) {
+            this.updateDrag(e);
+        } else if (this.isSelecting && this.selectionBox) {
             this.updateSelectionBox(e);
         }
     }
 
     /**
-     * Handle mouse up - finalize selection
+     * Handle mouse up - finalize selection or dragging
      */
     handleMouseUp(e) {
-        if (this.isSelecting) {
-            this.finalizeSelectionBox();
+        if (this.isDragging) {
+            this.endDrag();
+        } else if (this.isSelecting) {
+            this.endSelectionBox();
         }
     }
 
@@ -583,6 +611,88 @@ export class CanvasSelectionManager {
             }
         });
         document.dispatchEvent(event);
+    }
+
+    /**
+     * Start dragging selected components
+     */
+    startDrag(e) {
+        if (this.selectedComponents.size === 0) return;
+        
+        this.isDragging = true;
+        this.dragStart = { x: e.clientX, y: e.clientY };
+        
+        // Store original positions of all selected components
+        this.originalPositions.clear();
+        this.selectedComponents.forEach(component => {
+            const x = parseInt(component.getAttribute('x')) || 0;
+            const y = parseInt(component.getAttribute('y')) || 0;
+            this.originalPositions.set(component, { x, y });
+        });
+        
+        // Add dragging visual feedback
+        this.selectedComponents.forEach(component => {
+            component.style.opacity = '0.7';
+            component.style.cursor = 'grabbing';
+        });
+        
+        console.log(`🎯 Started dragging ${this.selectedComponents.size} component(s)`);
+    }
+    
+    /**
+     * Update drag - move all selected components
+     */
+    updateDrag(e) {
+        if (!this.isDragging || this.selectedComponents.size === 0) return;
+        
+        const deltaX = e.clientX - this.dragStart.x;
+        const deltaY = e.clientY - this.dragStart.y;
+        
+        // Apply delta to all selected components
+        this.selectedComponents.forEach(component => {
+            const original = this.originalPositions.get(component);
+            if (original) {
+                const newX = original.x + deltaX;
+                const newY = original.y + deltaY;
+                
+                // Update component position
+                component.setAttribute('x', newX);
+                component.setAttribute('y', newY);
+                component.style.transform = `translate(${newX}px, ${newY}px)`;
+            }
+        });
+    }
+    
+    /**
+     * End dragging
+     */
+    endDrag() {
+        if (!this.isDragging) return;
+        
+        this.isDragging = false;
+        
+        // Remove dragging visual feedback
+        this.selectedComponents.forEach(component => {
+            component.style.opacity = '';
+            component.style.cursor = '';
+        });
+        
+        // Notify about position changes
+        const movedComponents = Array.from(this.selectedComponents).map(component => ({
+            id: component.getAttribute('data-id'),
+            x: parseInt(component.getAttribute('x')) || 0,
+            y: parseInt(component.getAttribute('y')) || 0
+        }));
+        
+        console.log(`🎯 Finished dragging. Moved components:`, movedComponents);
+        
+        // Dispatch event for other managers to update
+        const event = new CustomEvent('components-moved', {
+            detail: { components: movedComponents }
+        });
+        document.dispatchEvent(event);
+        
+        this.originalPositions.clear();
     }
 
     /**
