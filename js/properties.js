@@ -40,23 +40,7 @@ window.editMetadataRaw = function(id) {
     }
 };
 
-window.addInteraction = function(id) {
-    if (window.propertiesManager) {
-        window.propertiesManager.addInteraction(id);
-    }
-};
-
-window.updateInteraction = function(id, index, property, value) {
-    if (window.propertiesManager) {
-        window.propertiesManager.updateInteraction(id, index, property, value);
-    }
-};
-
-window.removeInteraction = function(id, index) {
-    if (window.propertiesManager) {
-        window.propertiesManager.removeInteraction(id, index);
-    }
-};
+// Global interaction functions moved to ../interactions project
 
 window.updateSvgColor = function(selector, type, color) {
     if (window.propertiesManager) {

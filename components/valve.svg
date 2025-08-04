@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60" onload="initValve(evt)" data-component-params="label,color,position,positionmin,positionmax,flow,unit,isactive,animationspeed,ison,isblinking,blinkrate">
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60" data-component-params="label,color,position,positionmin,positionmax,flow,unit,isactive,animationspeed,ison,isblinking,blinkrate">
     <metadata>
         <component id="valve-001" name="Control Valve" type="valve">
             <parameters>
@@ -19,84 +19,144 @@
     <defs>
         <script type="text/ecmascript">
         <![CDATA[
-            var valveParams = {
-                position: 50,
-                min: 0,
-                max: 100,
-                unit: '%',
-                isMoving: false,
-                targetPosition: 50,
-                animationSpeed: 1
-            };
+            (function() {
+                // Create instance-specific valve state
+                var valveInstance = {
+                    position: 50,
+                    min: 0,
+                    max: 100,
+                    unit: '%',
+                    isMoving: false,
+                    targetPosition: 50,
+                    animationSpeed: 1,
+                    animationId: null,
+                    svgElement: null
+                };
 
-            function initValve(evt) {
-                var svg = evt.target.ownerDocument;
-                var params = getParameters(svg);
-                
-                // Initialize parameters
-                valveParams.position = parseFloat(params.position) || 50;
-                valveParams.min = parseFloat(params.positionMin) || 0;
-                valveParams.max = parseFloat(params.positionMax) || 100;
-                valveParams.unit = params.unit || '%';
-                valveParams.animationSpeed = parseFloat(params.animationSpeed) || 1;
-                
-                // Set initial state
-                updateValveDisplay(svg);
-                
-                // Start animation loop
-                setInterval(function() { updateValve(svg); }, 16);
-            }
-            
-            function getParameters(svg) {
-                var params = {};
-                var paramElements = svg.getElementsByTagName('parameters')[0].children;
-                for (var i = 0; i < paramElements.length; i++) {
-                    var el = paramElements[i];
-                    params[el.tagName] = el.textContent;
-                }
-                return params;
-            }
-            
-            function updateValve(svg) {
-                if (Math.abs(valveParams.position - valveParams.targetPosition) > 0.5) {
-                    var direction = valveParams.position < valveParams.targetPosition ? 1 : -1;
-                    valveParams.position += direction * valveParams.animationSpeed;
+                function initValveInstance(evt) {
+                    var svgEl = evt.target;
+                    // Find the parent SVG element that contains this script
+                    while (svgEl && svgEl.tagName !== 'svg') {
+                        svgEl = svgEl.parentNode;
+                    }
                     
-                    // Clamp the value
-                    valveParams.position = Math.max(valveParams.min, Math.min(valveParams.max, valveParams.position));
+                    if (!svgEl) {
+                        console.error('Could not find parent SVG element for valve');
+                        return;
+                    }
                     
-                    updateValveDisplay(svg);
+                    valveInstance.svgElement = svgEl;
+                    
+                    // Mark this SVG as initialized to prevent double initialization
+                    if (svgEl.getAttribute('data-valve-initialized')) {
+                        return;
+                    }
+                    svgEl.setAttribute('data-valve-initialized', 'true');
+                    
+                    var params = getParameters(svgEl);
+                    
+                    // Initialize parameters
+                    valveInstance.position = parseFloat(params.position) || 50;
+                    valveInstance.min = parseFloat(params.positionMin) || 0;
+                    valveInstance.max = parseFloat(params.positionMax) || 100;
+                    valveInstance.unit = params.unit || '%';
+                    valveInstance.animationSpeed = parseFloat(params.animationSpeed) || 1;
+                    valveInstance.targetPosition = valveInstance.position;
+                    
+                    // Store instance reference on SVG element
+                    svgEl.valveInstance = valveInstance;
+                    
+                    // Set initial state
+                    updateValveDisplay(svgEl);
+                    
+                    // Start animation loop
+                    animate(svgEl);
+                    
+                    console.log('Valve initialized for SVG element:', svgEl.getAttribute('data-id'));
                 }
-            }
-            
-            function updateValveDisplay(svg) {
-                // Update the position indicator (circle rotation)
-                var circle = svg.getElementById('valveHandle');
-                var valueText = svg.getElementById('value');
-                var normalizedPos = (valveParams.position - valveParams.min) / (valveParams.max - valveParams.min);
-                var rotation = normalizedPos * 180 - 45; // -45 to 135 degrees
                 
-                if (circle) {
-                    circle.setAttribute('transform', `rotate(${rotation}, 30, 30)`);
+                function getParameters(svg) {
+                    var params = {};
+                    var parametersElements = svg.getElementsByTagName('parameters');
+                    if (parametersElements.length > 0) {
+                        var paramElements = parametersElements[0].children;
+                        for (var i = 0; i < paramElements.length; i++) {
+                            var el = paramElements[i];
+                            params[el.tagName] = el.textContent;
+                        }
+                    }
+                    return params;
                 }
                 
-                if (valueText) {
-                    valueText.textContent = Math.round(valveParams.position) + valveParams.unit;
+                function animate(svg) {
+                    if (!svg || !svg.valveInstance) return;
+                    
+                    updateValve(svg);
+                    
+                    // Continue animation using instance-specific reference
+                    svg.valveInstance.animationId = requestAnimationFrame(function() { 
+                        animate(svg); 
+                    });
                 }
-            }
-            
-            // Public API for external control
-            function setValvePosition(position) {
-                valveParams.targetPosition = Math.max(valveParams.min, Math.min(valveParams.max, position));
-            }
-            
-            function setValveOpen(isOpen) {
-                valveParams.targetPosition = isOpen ? valveParams.max : valveParams.min;
-            }
-            
-            function getValvePosition() {
-                return valveParams.position;
-            }
+                
+                function updateValve(svg) {
+                    if (!svg || !svg.valveInstance) return;
+                    
+                    var instance = svg.valveInstance;
+                    
+                    if (Math.abs(instance.position - instance.targetPosition) > 0.5) {
+                        var direction = instance.position < instance.targetPosition ? 1 : -1;
+                        instance.position += direction * instance.animationSpeed;
+                        
+                        // Clamp the value
+                        instance.position = Math.max(instance.min, Math.min(instance.max, instance.position));
+                        
+                        updateValveDisplay(svg);
+                    }
+                }
+                
+                function updateValveDisplay(svg) {
+                    if (!svg || !svg.valveInstance) return;
+                    
+                    var instance = svg.valveInstance;
+                    // Update the position indicator (circle rotation)
+                    var circle = svg.querySelector('#valveHandle');
+                    var valueText = svg.querySelector('#value');
+                    var normalizedPos = (instance.position - instance.min) / (instance.max - instance.min);
+                    var rotation = normalizedPos * 180 - 45; // -45 to 135 degrees
+                    
+                    if (circle) {
+                        circle.setAttribute('transform', 'rotate(' + rotation + ', 30, 30)');
+                    }
+                    
+                    if (valueText) {
+                        valueText.textContent = Math.round(instance.position) + instance.unit;
+                    }
+                }
+                
+                // Public API functions attached to SVG element
+                function setupValveAPI(svg) {
+                    if (!svg.valveInstance) return;
+                    
+                    svg.setValvePosition = function(position) {
+                        svg.valveInstance.targetPosition = Math.max(svg.valveInstance.min, Math.min(svg.valveInstance.max, position));
+                    };
+                    
+                    svg.setValveOpen = function(isOpen) {
+                        svg.valveInstance.targetPosition = isOpen ? svg.valveInstance.max : svg.valveInstance.min;
+                    };
+                    
+                    svg.getValvePosition = function() {
+                        return svg.valveInstance.position;
+                    };
+                }
+                
+                // Initialize when this script loads
+                // Use a small delay to ensure DOM is ready
+                setTimeout(function() {
+                    initValveInstance({ target: document.currentScript || document.scripts[document.scripts.length - 1] });
+                }, 10);
+            })();
         ]]>
         </script>
     </defs>

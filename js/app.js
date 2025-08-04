@@ -114,7 +114,7 @@ class DigitalTwinApp {
             this.exportManager = new ExportManager(this.componentManager, svgCanvas);
             this.simulationManager = new SimulationManager(this.componentManager);
             this.connectionManager = new ConnectionManager(this.componentManager, svgCanvas);
-            this.interactionsManager = new InteractionsManager(this.componentManager, svgCanvas);
+            // interactionsManager moved to ../interactions project
             this.componentScaler = new ComponentScaler(this.componentManager);
 
             // Expose managers globally for HTML calls
@@ -123,7 +123,7 @@ class DigitalTwinApp {
             window.exportManager = this.exportManager;
             window.simulationManager = this.simulationManager;
             window.connectionManager = this.connectionManager;
-            window.interactionsManager = this.interactionsManager;
+            // window.interactionsManager moved to ../interactions project
             window.componentScaler = this.componentScaler;
             window.actionManager = this.actionManager; // Expose actionManager for interactions
 

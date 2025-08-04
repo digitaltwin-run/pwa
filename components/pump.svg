@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="70" height="60" viewBox="0 0 70 60" onload="initPump(evt)" data-component-params="label,color,flowrate,flowratemin,flowratemax,unit,isactive,animationspeed,ison,isblinking,blinkrate">
+<svg xmlns="http://www.w3.org/2000/svg" width="70" height="60" viewBox="0 0 70 60" data-component-params="label,color,flowrate,flowratemin,flowratemax,unit,isactive,animationspeed,ison,isblinking,blinkrate">
     <metadata>
         <component id="pump-001" name="Centrifugal Pump" type="pump">
             <parameters>
