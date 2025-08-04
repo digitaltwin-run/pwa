@@ -83,7 +83,20 @@ export class PropertiesMapper {
         this.availableVariables.clear();
         
         svgComponents.forEach(svgElement => {
+            // Skip if element is null or doesn't exist
+            if (!svgElement) {
+                console.warn(`[PropertiesMapper] Skipping null or undefined element`);
+                return;
+            }
+            
             const componentId = svgElement.getAttribute('data-id');
+            
+            // Skip elements without data-id (like grid lines, backgrounds, etc.)
+            if (!componentId || componentId.trim() === '') {
+                console.log(`[PropertiesMapper] Skipping element without data-id:`, svgElement.tagName, svgElement.className || svgElement.id || 'no identifier');
+                return;
+            }
+            
             console.log(`[PropertiesMapper] Processing component ${componentId}`);
             
             // Pobieraj wszystko bezpośrednio z SVG

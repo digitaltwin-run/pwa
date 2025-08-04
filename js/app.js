@@ -220,7 +220,14 @@ class DigitalTwinApp {
      * Update toolbar button text based on current language
      */
     updateToolbarTexts() {
-        const t = window.i18nManager.t;
+        // Check if i18n manager is available and initialized
+        if (!window.i18nManager || typeof window.i18nManager.t !== 'function') {
+            console.warn('⚠️ I18n Manager not ready, skipping toolbar text update');
+            return;
+        }
+        
+        // Bind the context to prevent 'this' being undefined
+        const t = window.i18nManager.t.bind(window.i18nManager);
         
         // Update toolbar buttons
         const exportBtn = document.getElementById('export-btn');
@@ -435,16 +442,33 @@ const registerServiceWorker = async () => {
         }
         
         try {
-            // Check if we're in a secure context (https or localhost)
-            const isLocalhost = window.location.hostname === 'localhost' || 
-                             window.location.hostname === '127.0.0.1';
+            // Load configuration to determine service worker behavior
+            const { configManager } = await import('./config-manager.js');
+            await configManager.loadConfig();
             
-            if (window.location.protocol === 'https:' || isLocalhost) {
+            // Use configuration to determine if service worker should be enabled
+            if (!configManager.shouldEnableServiceWorker()) {
+                configManager.debugLog('serviceWorker', 'ServiceWorker registration skipped by configuration');
+                
+                // Unregister any existing service workers if disabled
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    configManager.debugLog('serviceWorker', 'Unregistering existing service worker:', registration.scope);
+                    await registration.unregister();
+                }
+                return;
+            }
+            
+            // Check protocol requirement (HTTPS in production)
+            const isDev = configManager.isDevelopmentMode();
+            const isSecure = window.location.protocol === 'https:' || isDev;
+            
+            if (isSecure) {
                 const registration = await navigator.serviceWorker.register('/sw.js');
-                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                configManager.debugLog('serviceWorker', 'ServiceWorker registration successful with scope:', registration.scope);
                 return registration;
             } else {
-                console.warn('ServiceWorker registration skipped: must be served over HTTPS or localhost');
+                console.warn('ServiceWorker registration skipped: must be served over HTTPS in production');
             }
         } catch (error) {
             console.warn('ServiceWorker registration failed: ', error);

@@ -8,20 +8,38 @@ import pwaConfig from '../config/pwa-config.js';
 
 class PWAManager {
     constructor() {
-        this.isSupported = 'serviceWorker' in navigator;
-        this.pushSupported = 'PushManager' in window;
-        this.notificationSupported = 'Notification' in window;
         this.registration = null;
-        this.pushSubscription = null;
+        this.isSupported = 'serviceWorker' in navigator;
+        this.isInstalled = false;
+        this.isUpdateAvailable = false;
+        this.config = null;
+        this.configManager = null;
         
-        console.log('🔔 PWA Manager initialized');
-        console.log('📊 PWA Support:', {
-            serviceWorker: this.isSupported,
-            pushNotifications: this.pushSupported,
-            notifications: this.notificationSupported
-        });
-        
-        this.init();
+        // Will be initialized after config is loaded
+        this.initPromise = this._initWithConfig();
+    }
+    
+    async _initWithConfig() {
+        try {
+            // Import config manager dynamically
+            const { configManager } = await import('./config-manager.js');
+            this.configManager = configManager;
+            
+            // Load configuration
+            this.config = await configManager.loadConfig();
+            
+            if (this.isSupported && this.configManager.shouldEnableServiceWorker()) {
+                await this.init();
+            } else {
+                if (!this.isSupported) {
+                    console.warn('⚠️ Service Workers not supported');
+                } else {
+                    this.configManager.debugLog('pwa', 'PWA/Service Worker disabled by configuration');
+                }
+            }
+        } catch (error) {
+            console.error('❌ PWA Manager initialization failed:', error);
+        }
     }
 
     async init() {
@@ -56,12 +74,28 @@ class PWAManager {
 
     // Service Worker Registration
     async registerServiceWorker() {
+        // Use configuration to determine if service worker should be enabled
+        if (!this.configManager.shouldEnableServiceWorker()) {
+            this.configManager.debugLog('serviceWorker', 'Service Worker registration skipped by configuration');
+            
+            // Unregister any existing service workers if disabled
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    this.configManager.debugLog('serviceWorker', 'Unregistering existing service worker:', registration.scope);
+                    await registration.unregister();
+                }
+            }
+            return;
+        }
+        
         try {
-            this.registration = await navigator.serviceWorker.register('/sw.js', {
+            const swConfig = {
                 scope: '/'
-            });
-
-            console.log('✅ Service Worker registered:', this.registration.scope);
+            };
+            
+            this.registration = await navigator.serviceWorker.register('/sw.js', swConfig);
+            this.configManager.debugLog('serviceWorker', 'Service Worker registered:', this.registration.scope);
 
             // Handle service worker updates
             this.registration.addEventListener('updatefound', () => {

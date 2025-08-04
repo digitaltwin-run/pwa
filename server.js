@@ -78,6 +78,49 @@ app.get('/api/status', (req, res) => {
     });
 });
 
+// 🔧 Configuration endpoint for frontend
+app.get('/api/config', (req, res) => {
+    // Only expose frontend-relevant configuration
+    const config = {
+        // Environment info
+        environment: process.env.NODE_ENV || 'development',
+        debugMode: process.env.DEBUG_MODE === 'true',
+        
+        // PWA settings
+        pwa: {
+            enabled: process.env.PWA_ENABLED === 'true',
+            offlineSupport: process.env.OFFLINE_SUPPORT === 'true',
+            pushNotifications: process.env.PUSH_NOTIFICATIONS === 'true'
+        },
+        
+        // Service Worker settings
+        serviceWorker: {
+            enabled: process.env.SERVICE_WORKER_ENABLED === 'true',
+            autoRegister: process.env.SERVICE_WORKER_AUTO_REGISTER === 'true',
+            skipWaiting: process.env.SERVICE_WORKER_SKIP_WAITING === 'true',
+            updateCheck: process.env.SERVICE_WORKER_UPDATE_CHECK === 'true',
+            devMode: process.env.SERVICE_WORKER_DEV_MODE === 'true'
+        },
+        
+        // Debug settings
+        debug: {
+            serviceWorker: process.env.DEBUG_SERVICE_WORKER === 'true',
+            pwa: process.env.DEBUG_PWA === 'true',
+            cache: process.env.DEBUG_CACHE === 'true',
+            offline: process.env.DEBUG_OFFLINE === 'true',
+            console: process.env.DEBUG_CONSOLE === 'true'
+        },
+        
+        // Environment detection overrides
+        overrides: {
+            forceProductionMode: process.env.FORCE_PRODUCTION_MODE === 'true',
+            disableDevModeCheck: process.env.DISABLE_DEV_MODE_CHECK === 'true'
+        }
+    };
+    
+    res.json(config);
+});
+
 // 📄 Serve test results
 app.use('/test-results', express.static('test-results'));
 
