@@ -137,7 +137,8 @@ class ErrorDetector {
             return { name: 'Properties Manager', status: 'FAIL', error: 'Not available' };
         }
         
-        const requiredComponents = ['propertiesMapper', 'interactionsManager', 'colorManager'];
+        // interactionsManager moved to ../interactions project - no longer required in PWA
+        const requiredComponents = ['propertiesMapper', 'colorManager'];
         const missing = requiredComponents.filter(comp => !propertiesManager[comp]);
         
         if (missing.length > 0) {

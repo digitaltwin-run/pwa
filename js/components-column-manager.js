@@ -30,11 +30,12 @@ export class ComponentsColumnManager {
         // Listen for canvas changes
         document.addEventListener('canvas-selection-changed', this.handleSelectionChange.bind(this));
         document.addEventListener('components-moved', this.refreshComponentsList.bind(this));
+        document.addEventListener('component-added', this.refreshComponentsList.bind(this));
+        document.addEventListener('component-removed', this.refreshComponentsList.bind(this));
+        document.addEventListener('components-loaded', this.refreshComponentsList.bind(this));
         
-        // Update list periodically to catch new components
-        setInterval(() => {
-            this.refreshComponentsList();
-        }, 2000);
+        // Initial refresh
+        this.refreshComponentsList();
     }
 
     /**

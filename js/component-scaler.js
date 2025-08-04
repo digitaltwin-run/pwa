@@ -49,8 +49,9 @@ export class ComponentScaler {
      * @param {string} componentId - Component ID
      * @param {number} scale - Scale factor (e.g., 1.5 = 150%)
      * @param {boolean} [updateMetadata=true] - Update component metadata
+     * @param {boolean} [syncAllComponents=true] - Synchronize scale with all components
      */
-    setComponentScale(componentId, scale, updateMetadata = true) {
+    setComponentScale(componentId, scale, updateMetadata = true, syncAllComponents = true) {
         const componentData = this.componentManager.getComponent(componentId);
         if (!componentData) {
             console.warn(`Component ${componentId} not found for scaling`);
@@ -116,6 +117,11 @@ export class ComponentScaler {
             if (selectedComponent && selectedComponent.element === svgElement) {
                 window.propertiesManager.showProperties(svgElement);
             }
+        }
+        
+        // Synchronize scale with all other components if requested
+        if (syncAllComponents) {
+            this.syncComponentsScale(clampedScale, componentId);
         }
     }
     
@@ -288,6 +294,28 @@ export class ComponentScaler {
         } catch (error) {
             console.warn('Could not get scaled bounds:', error);
             return { x: 0, y: 0, width: 50, height: 50, originalWidth: 50, originalHeight: 50, scale: 1 };
+        }
+    }
+    
+    /**
+     * Synchronize component scales to make all components have the same scale
+     * @param {number} targetScale - Scale factor to apply to all components
+     * @param {string} exceptComponentId - Component ID to exclude (usually the one that triggered sync)
+     */
+    syncComponentsScale(targetScale, exceptComponentId) {
+        // Get all components managed by the component manager
+        const components = this.componentManager.getAllComponents();
+        if (!components || components.length === 0) return;
+        
+        console.log(`🔄 Synchronizing scale of all components to ${(targetScale * 100).toFixed(0)}% (${targetScale.toFixed(2)}x)`);
+        
+        // Apply the target scale to all other components
+        for (const component of components) {
+            // Skip the component that initiated the sync to avoid infinite loop
+            if (component.id === exceptComponentId) continue;
+            
+            // Apply scale without triggering another sync (set syncAllComponents to false)
+            this.setComponentScale(component.id, targetScale, true, false);
         }
     }
     

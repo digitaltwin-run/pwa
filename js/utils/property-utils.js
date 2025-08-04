@@ -15,6 +15,14 @@ export function normalizeColorValue(colorValue) {
         return colorValue;
     }
     
+    // Handle 3-character hex shorthand (#RGB)
+    if (/^#[0-9A-F]{3}$/i.test(colorValue)) {
+        const r = colorValue.charAt(1);
+        const g = colorValue.charAt(2);
+        const b = colorValue.charAt(3);
+        return `#${r}${r}${g}${g}${b}${b}`;
+    }
+    
     // Handle named colors or other formats
     const colors = {
         'red': '#ff0000',
@@ -35,7 +43,16 @@ export function normalizeColorValue(colorValue) {
     }
     
     // Try to parse RGB/RGBA
-    const rgbMatch = colorValue.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    let rgbMatch = colorValue.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    if (rgbMatch) {
+        const r = parseInt(rgbMatch[1]).toString(16).padStart(2, '0');
+        const g = parseInt(rgbMatch[2]).toString(16).padStart(2, '0');
+        const b = parseInt(rgbMatch[3]).toString(16).padStart(2, '0');
+        return `#${r}${g}${b}`;
+    }
+    
+    // Try to parse RGB without parentheses
+    rgbMatch = colorValue.match(/rgb\s*(\d+)\s*(\d+)\s*(\d+)/);
     if (rgbMatch) {
         const r = parseInt(rgbMatch[1]).toString(16).padStart(2, '0');
         const g = parseInt(rgbMatch[2]).toString(16).padStart(2, '0');

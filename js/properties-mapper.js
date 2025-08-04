@@ -708,6 +708,38 @@ export class PropertiesMapper {
         
         // Store the observer instance for potential cleanup
         this.canvasObserver = observer;
+
+        // Listen for selection changes from CanvasSelectionManager
+        document.addEventListener('canvas-selection-changed', (event) => {
+            console.log('[PropertiesMapper] Received selection change event:', event.detail);
+            
+            // Handle component selection
+            if (event.detail.selectedComponents && event.detail.selectedComponents.length > 0) {
+                // Get the first selected component for now (single selection mode)
+                const selectedComponent = event.detail.selectedComponents[0];
+                
+                if (this.componentManager && selectedComponent) {
+                    console.log('[PropertiesMapper] Setting selected component:', selectedComponent);
+                    // Update component selection in the ComponentManager and UI
+                    this.componentManager.setSelectedComponent(selectedComponent);
+                    
+                    // If PropertiesCore is available, update its UI
+                    if (window.propertiesCore) {
+                        window.propertiesCore.selectComponent(selectedComponent);
+                    }
+                }
+            } else {
+                // Clear selection if nothing is selected
+                if (this.componentManager) {
+                    this.componentManager.setSelectedComponent(null);
+                    
+                    // Clear properties UI if available
+                    if (window.propertiesCore) {
+                        window.propertiesCore.clearProperties();
+                    }
+                }
+            }
+        });
     }
     
     // Cleanup method to disconnect observers

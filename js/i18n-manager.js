@@ -10,7 +10,7 @@ class I18nManager {
         this.translations = new Map();
         this.loadedLanguages = new Set();
         this.fallbackChain = ['en', 'pl'];
-        
+
         // Supported languages
         this.supportedLanguages = {
             'en': { name: 'English', nativeName: 'English', flag: '🇺🇸' },
@@ -23,7 +23,7 @@ class I18nManager {
             'zh': { name: 'Chinese', nativeName: '中文', flag: '🇨🇳' },
             'ja': { name: 'Japanese', nativeName: '日本語', flag: '🇯🇵' }
         };
-        
+
         console.log('🌍 I18n Manager initialized');
         this.init();
     }
@@ -32,20 +32,20 @@ class I18nManager {
         // Detect user's preferred language
         this.currentLanguage = this.detectLanguage();
         console.log('🔍 Detected language:', this.currentLanguage);
-        
+
         // Load initial translation data
         await this.loadLanguage(this.currentLanguage);
         await this.loadLanguage(this.defaultLanguage); // Always load fallback
-        
+
         // Apply translations to current page
         this.applyTranslations();
-        
+
         // Setup language switcher UI
         this.setupLanguageSwitcher();
-        
+
         // Setup automatic translation detection
         this.setupAutoTranslation();
-        
+
         console.log('✅ I18n Manager ready');
     }
 
@@ -57,19 +57,19 @@ class I18nManager {
         if (urlLang && this.supportedLanguages[urlLang]) {
             return urlLang;
         }
-        
+
         // 2. Check localStorage
         const storedLang = localStorage.getItem('preferred-language');
         if (storedLang && this.supportedLanguages[storedLang]) {
             return storedLang;
         }
-        
+
         // 3. Check browser language
         const browserLang = navigator.language.split('-')[0];
         if (this.supportedLanguages[browserLang]) {
             return browserLang;
         }
-        
+
         // 4. Check browser languages array
         for (const lang of navigator.languages) {
             const langCode = lang.split('-')[0];
@@ -77,7 +77,7 @@ class I18nManager {
                 return langCode;
             }
         }
-        
+
         // 5. Fallback to default
         return this.defaultLanguage;
     }
@@ -90,7 +90,7 @@ class I18nManager {
 
         try {
             console.log(`📥 Loading translations for: ${langCode}`);
-            
+
             // Try to load from file first
             const translations = await this.loadTranslationsFromFile(langCode);
             if (translations) {
@@ -99,7 +99,7 @@ class I18nManager {
                 console.log(`✅ Loaded ${Object.keys(translations).length} translations for ${langCode}`);
                 return true;
             }
-            
+
             // Fallback to embedded translations
             const embeddedTranslations = this.getEmbeddedTranslations(langCode);
             if (embeddedTranslations) {
@@ -108,7 +108,7 @@ class I18nManager {
                 console.log(`✅ Loaded embedded translations for ${langCode}`);
                 return true;
             }
-            
+
             console.warn(`⚠️ No translations found for ${langCode}`);
             return false;
         } catch (error) {
@@ -146,16 +146,19 @@ class I18nManager {
                 'ok': 'OK',
                 'yes': 'Yes',
                 'no': 'No',
-                
+
                 // Components
                 'components.title': 'Components',
                 'components.drag_to_canvas': 'Drag to canvas',
+                'components.list': 'Components List',
+                'components.select_all': 'Select All',
+                'components.clear_all': 'Clear All',
                 'components.led': 'LED',
                 'components.button': 'Button',
                 'components.switch': 'Switch',
                 'components.motor': 'Motor',
                 'components.sensor': 'Sensor',
-                
+
                 // Properties Panel
                 'properties.title': 'Properties',
                 'properties.general': 'General',
@@ -183,7 +186,12 @@ class I18nManager {
                 'properties.position_y': 'Y Position',
                 'properties.font_family': 'Font Family',
                 'properties.font_size': 'Font Size',
-                'properties.parameters': 'Parameters',
+                'properties.canvasSize': 'Canvas Size',
+                'properties.grid': 'Grid',
+                'properties.gridVisible': 'Grid Visible',
+                'properties.gridSize': 'Grid Size',
+                'properties.canvasBackground': 'Canvas Background',
+                'properties.backgroundColor': 'Background Color',
                 'properties.parameter_name': 'Parameter Name',
                 'properties.parameter_value': 'Value',
                 'properties.add_parameter': 'Add Parameter',
@@ -191,7 +199,7 @@ class I18nManager {
                 'properties.select_all': 'Select All',
                 'properties.clear_all': 'Clear All',
                 'properties.selected_count': 'Selected:',
-                
+
                 // Buttons
                 'buttons.apply': 'Apply',
                 'buttons.save': 'Save',
@@ -203,7 +211,7 @@ class I18nManager {
                 'buttons.stop': 'Stop',
                 'ui.buttons.start': 'Start',
                 'ui.buttons.stop': 'Stop',
-                
+
                 // Events
                 'events.click': 'Click',
                 'events.doubleclick': 'Double Click',
@@ -217,7 +225,7 @@ class I18nManager {
                 'events.input': 'Input',
                 'events.keydown': 'Key Down',
                 'events.keyup': 'Key Up',
-                
+
                 // Interactions
                 'interactions.title': 'Interactions',
                 'interactions.add': 'Add Interaction',
@@ -228,7 +236,7 @@ class I18nManager {
                 'interactions.select_event': 'Select event',
                 'interactions.select_component': 'Select component',
                 'interactions.select_property': 'Select property',
-                
+
                 // Collaboration
                 'collaboration.title': 'Collaboration',
                 'collaboration.join_room': 'Join Room',
@@ -238,20 +246,20 @@ class I18nManager {
                 'collaboration.connected_users': 'Connected Users',
                 'collaboration.user_joined': '{name} joined',
                 'collaboration.user_left': '{name} left',
-                
+
                 // PWA
                 'pwa.install': 'Install App',
                 'pwa.update_available': 'Update Available',
                 'pwa.offline_mode': 'Working Offline',
                 'pwa.back_online': 'Back Online',
-                
+
                 // Error messages
                 'error.generic': 'An error occurred',
                 'error.network': 'Network error',
                 'error.file_not_found': 'File not found',
                 'error.invalid_format': 'Invalid format'
             },
-            
+
             'pl': {
                 // Common UI
                 'app.title': 'Edytor Cyfrowych Bliźniaków',
@@ -265,7 +273,7 @@ class I18nManager {
                 'ok': 'OK',
                 'yes': 'Tak',
                 'no': 'Nie',
-                
+
                 // Components
                 'components.title': 'Komponenty',
                 'components.drag_to_canvas': 'Przeciągnij na obszar roboczy',
@@ -274,7 +282,7 @@ class I18nManager {
                 'components.switch': 'Przełącznik',
                 'components.motor': 'Silnik',
                 'components.sensor': 'Czujnik',
-                
+
                 // Properties Panel
                 'properties.title': 'Właściwości',
                 'properties.general': 'Ogólne',
@@ -283,7 +291,6 @@ class I18nManager {
                 'properties.metadata': 'Metadane',
                 'properties.name': 'Nazwa',
                 'properties.value': 'Wartość',
-                'properties.parameters': 'Parametry',
                 'properties.addParameter': 'Dodaj Parametr',
                 'properties.removeComponent': 'Usuń Komponent',
                 'properties.quickColors': 'Szybkie Kolory',
@@ -302,6 +309,14 @@ class I18nManager {
                 'properties.position_y': 'Pozycja Y',
                 'properties.font_family': 'Rodzina Czcionki',
                 'properties.font_size': 'Rozmiar Czcionki',
+                'properties.canvasSize': 'Rozmiar Obszaru Roboczego',
+                'properties.grid': 'Siatka',
+                'properties.gridVisible': 'Widoczna Siatka',
+                'properties.gridSize': 'Rozmiar Siatki',
+                'properties.canvasBackground': 'Tło Kanwy',
+                'properties.backgroundColor': 'Kolor Tła',
+                'ui.buttons.start': 'Start',
+                'ui.buttons.stop': 'Stop',
                 'properties.parameters': 'Parametry',
                 'properties.parameter_name': 'Nazwa Parametru',
                 'properties.parameter_value': 'Wartość',
@@ -310,7 +325,7 @@ class I18nManager {
                 'properties.select_all': 'Zaznacz wszystkie',
                 'properties.clear_all': 'Odznacz wszystkie',
                 'properties.selected_count': 'Zaznaczonych:',
-                
+
                 // Buttons
                 'buttons.apply': 'Zastosuj',
                 'buttons.save': 'Zapisz',
@@ -320,9 +335,7 @@ class I18nManager {
                 'buttons.remove': 'Usuń',
                 'buttons.start': 'Start',
                 'buttons.stop': 'Stop',
-                'ui.buttons.start': 'Start',
-                'ui.buttons.stop': 'Stop',
-                
+
                 // Events
                 'events.click': 'Kliknięcie',
                 'events.doubleclick': 'Podwójne Kliknięcie',
@@ -336,7 +349,7 @@ class I18nManager {
                 'events.input': 'Wprowadzanie Tekstu',
                 'events.keydown': 'Naciśnięcie Klawisza',
                 'events.keyup': 'Zwolnienie Klawisza',
-                
+
                 // Interactions
                 'interactions.title': 'Interakcje',
                 'interactions.add': 'Dodaj Interakcję',
@@ -347,7 +360,7 @@ class I18nManager {
                 'interactions.select_event': 'Wybierz zdarzenie',
                 'interactions.select_component': 'Wybierz komponent',
                 'interactions.select_property': 'Wybierz właściwość',
-                
+
                 // Collaboration
                 'collaboration.title': 'Współpraca',
                 'collaboration.join_room': 'Dołącz do Pokoju',
@@ -357,20 +370,20 @@ class I18nManager {
                 'collaboration.connected_users': 'Połączeni Użytkownicy',
                 'collaboration.user_joined': '{name} dołączył',
                 'collaboration.user_left': '{name} wyszedł',
-                
+
                 // PWA
                 'pwa.install': 'Zainstaluj Aplikację',
                 'pwa.update_available': 'Dostępna Aktualizacja',
                 'pwa.offline_mode': 'Praca Offline',
                 'pwa.back_online': 'Powrót Online',
-                
+
                 // Error messages
                 'error.generic': 'Wystąpił błąd',
                 'error.network': 'Błąd sieci',
                 'error.file_not_found': 'Nie znaleziono pliku',
                 'error.invalid_format': 'Nieprawidłowy format'
             },
-            
+
             // Add more languages as needed
             'de': {
                 'app.title': 'Digital Twin IDE',
@@ -381,7 +394,7 @@ class I18nManager {
                 // ... more German translations
             }
         };
-        
+
         return translations[langCode] || null;
     }
 
@@ -389,7 +402,7 @@ class I18nManager {
     t(key, params = {}) {
         // Try current language first
         let translation = this.getTranslation(key, this.currentLanguage);
-        
+
         // Fallback through fallback chain
         if (!translation) {
             for (const fallbackLang of this.fallbackChain) {
@@ -397,13 +410,13 @@ class I18nManager {
                 if (translation) break;
             }
         }
-        
+
         // Final fallback to key itself
         if (!translation) {
             console.warn(`⚠️ Missing translation: ${key}`);
             translation = key;
         }
-        
+
         // Replace parameters
         return this.interpolate(translation, params);
     }
@@ -412,11 +425,11 @@ class I18nManager {
     getTranslation(key, langCode) {
         const langTranslations = this.translations.get(langCode);
         if (!langTranslations) return null;
-        
+
         // Support nested keys like 'app.title'
         const keys = key.split('.');
         let value = langTranslations;
-        
+
         for (const k of keys) {
             if (value && typeof value === 'object' && k in value) {
                 value = value[k];
@@ -424,7 +437,7 @@ class I18nManager {
                 return null;
             }
         }
-        
+
         return typeof value === 'string' ? value : null;
     }
 
@@ -441,32 +454,32 @@ class I18nManager {
             console.error(`❌ Unsupported language: ${langCode}`);
             return false;
         }
-        
+
         console.log(`🔄 Changing language to: ${langCode}`);
-        
+
         // Load language if not already loaded
         await this.loadLanguage(langCode);
-        
+
         // Update current language
         this.currentLanguage = langCode;
-        
+
         // Save preference
         localStorage.setItem('preferred-language', langCode);
-        
+
         // Apply translations
         this.applyTranslations();
-        
+
         // Update language switcher
         this.updateLanguageSwitcher();
-        
+
         // Update document language
         document.documentElement.lang = langCode;
-        
+
         // Emit language change event
         window.dispatchEvent(new CustomEvent('languageChanged', {
             detail: { language: langCode }
         }));
-        
+
         console.log(`✅ Language changed to: ${langCode}`);
         return true;
     }
@@ -474,15 +487,15 @@ class I18nManager {
     // Apply translations to current page
     applyTranslations() {
         console.log('🔄 Applying translations...');
-        
+
         // Update static elements with data-i18n attribute
         const elements = document.querySelectorAll('[data-i18n]');
         let translatedCount = 0;
-        
+
         elements.forEach(element => {
             const key = element.getAttribute('data-i18n');
             const translation = this.t(key);
-            
+
             if (translation !== key) { // Only if translation found
                 // Check if it's a placeholder, title, or regular content
                 if (element.hasAttribute('placeholder')) {
@@ -499,25 +512,25 @@ class I18nManager {
                 translatedCount++;
             }
         });
-        
+
         // Update page title
         const titleKey = document.documentElement.getAttribute('data-i18n-title');
         if (titleKey) {
             document.title = this.t(titleKey);
         }
-        
+
         // Dispatch a custom event to notify all components about the language change
         // This allows dynamic UI components to update their content
         const event = new CustomEvent('languageChanged', {
-            detail: { 
+            detail: {
                 language: this.currentLanguage,
                 t: (key, params) => this.t(key, params) // Pass translation function
             }
         });
         document.dispatchEvent(event);
-        
+
         console.log(`✅ Applied ${translatedCount} translations`);
-        
+
         // Return the translation function for chaining if needed
         return this.t.bind(this);
     }
@@ -528,10 +541,10 @@ class I18nManager {
         const switcher = document.createElement('div');
         switcher.id = 'language-switcher';
         switcher.className = 'language-switcher';
-        
+
         const select = document.createElement('select');
         select.id = 'language-select';
-        
+
         // Add options for supported languages
         Object.entries(this.supportedLanguages).forEach(([code, info]) => {
             const option = document.createElement('option');
@@ -542,14 +555,14 @@ class I18nManager {
             }
             select.appendChild(option);
         });
-        
+
         // Add change listener
         select.addEventListener('change', (event) => {
             this.changeLanguage(event.target.value);
         });
-        
+
         switcher.appendChild(select);
-        
+
         // Add to page (you might want to position this differently)
         const existingSwitcher = document.getElementById('language-switcher');
         if (existingSwitcher) {
@@ -572,7 +585,7 @@ class I18nManager {
         // Watch for new elements being added to DOM
         const observer = new MutationObserver((mutations) => {
             let shouldTranslate = false;
-            
+
             mutations.forEach((mutation) => {
                 if (mutation.type === 'childList') {
                     mutation.addedNodes.forEach((node) => {
@@ -590,7 +603,7 @@ class I18nManager {
                     });
                 }
             });
-            
+
             if (shouldTranslate) {
                 // Debounce translation application
                 clearTimeout(this.translationTimeout);
@@ -599,7 +612,7 @@ class I18nManager {
                 }, 100);
             }
         });
-        
+
         observer.observe(document.body, {
             childList: true,
             subtree: true
@@ -624,12 +637,12 @@ class I18nManager {
         if (!this.translations.has(langCode)) {
             this.translations.set(langCode, {});
         }
-        
+
         const existing = this.translations.get(langCode);
         Object.assign(existing, translations);
-        
+
         this.loadedLanguages.add(langCode);
-        
+
         // Re-apply translations if it's the current language
         if (langCode === this.currentLanguage) {
             this.applyTranslations();
@@ -667,7 +680,7 @@ class I18nManager {
             'zh': 'zh-CN',
             'ja': 'ja-JP'
         };
-        
+
         return localeMap[this.currentLanguage] || 'en-US';
     }
 }

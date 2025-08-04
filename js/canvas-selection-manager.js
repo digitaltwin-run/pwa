@@ -116,11 +116,24 @@ export class CanvasSelectionManager {
      * Handle mouse down on canvas - check for multi-selection and start drag
      */
     handleCanvasMouseDown(e) {
-        if (e.target === this.canvasElement) {
-            // Clear selection if clicking on empty canvas
+        console.log('🎯 Mouse down on canvas', e.target === this.canvasElement, e.target.tagName, e.target.className);
+        
+        // Check if clicked on empty canvas area (canvas itself, grid, or non-component elements)
+        const isEmptyArea = e.target === this.canvasElement || 
+                           e.target.classList.contains('grid') ||
+                           (e.target.tagName === 'line' && e.target.getAttribute('stroke') === '#e0e0e0') ||
+                           (e.target.tagName === 'g' && e.target.classList.contains('grid')) ||
+                           !e.target.closest('.draggable-component');
+        
+        if (isEmptyArea) {
+            console.log('🎯 Empty area click detected - starting marquee selection');
+            // Clear selection if clicking on empty canvas (and not modifier key)
             if (!e.ctrlKey && !e.shiftKey) {
                 this.clearSelection();
             }
+            
+            // Always start selection box for multi-select with mouse drag on canvas
+            this.startSelectionBox(e);
         } else {
             // Check if clicked element is a component
             let component = e.target.closest('.draggable-component');
@@ -227,37 +240,65 @@ export class CanvasSelectionManager {
      * Create visual selection box element
      */
     createSelectionBox() {
+        // Remove old selection box if it exists
+        if (this.selectionBox) {
+            this.selectionBox.remove();
+        }
+        
+        // Create new selection box
         this.selectionBox = document.createElement('div');
         this.selectionBox.className = 'canvas-selection-box';
         this.selectionBox.style.cssText = `
-            position: fixed;
+            position: absolute;
             border: 2px dashed #007bff;
             background: rgba(0, 123, 255, 0.1);
             pointer-events: none;
             z-index: 9999;
-            display: none;
         `;
-        document.body.appendChild(this.selectionBox);
+        
+        // Add to workspace instead of body for better positioning
+        const workspace = document.getElementById('workspace');
+        if (workspace) {
+            workspace.appendChild(this.selectionBox);
+        } else {
+            document.body.appendChild(this.selectionBox);
+        }
+        
+        console.log('🎯 Created selection box', this.selectionBox);
     }
 
     /**
      * Update selection box size and position
      */
     updateSelectionBox(e) {
-        if (!this.selectionBox) return;
+        if (!this.selectionBox || !this.isSelecting) return;
 
-        const rect = {
+        // Get canvas position to adjust coordinates relative to workspace
+        const canvasRect = this.canvasElement ? this.canvasElement.getBoundingClientRect() : { left: 0, top: 0 };
+        
+        // Calculate rectangle in client coordinates
+        const clientRect = {
             left: Math.min(this.selectionStart.x, e.clientX),
             top: Math.min(this.selectionStart.y, e.clientY),
             width: Math.abs(e.clientX - this.selectionStart.x),
             height: Math.abs(e.clientY - this.selectionStart.y)
         };
+        
+        // Convert to workspace coordinates
+        const workspaceRect = {
+            left: clientRect.left - canvasRect.left,
+            top: clientRect.top - canvasRect.top,
+            width: clientRect.width,
+            height: clientRect.height
+        };
 
-        this.selectionBox.style.left = rect.left + 'px';
-        this.selectionBox.style.top = rect.top + 'px';
-        this.selectionBox.style.width = rect.width + 'px';
-        this.selectionBox.style.height = rect.height + 'px';
-        this.selectionBox.style.display = 'block';
+        // Apply position and size
+        this.selectionBox.style.left = workspaceRect.left + 'px';
+        this.selectionBox.style.top = workspaceRect.top + 'px';
+        this.selectionBox.style.width = workspaceRect.width + 'px';
+        this.selectionBox.style.height = workspaceRect.height + 'px';
+        
+        console.log('🎯 Selection box updated', workspaceRect);
     }
 
     /**
@@ -273,6 +314,13 @@ export class CanvasSelectionManager {
             this.selectionBox = null;
         }
         this.isSelecting = false;
+    }
+    
+    /**
+     * End selection box - alias for finalizeSelectionBox for consistency
+     */
+    endSelectionBox() {
+        this.finalizeSelectionBox();
     }
 
     /**
@@ -624,10 +672,27 @@ export class CanvasSelectionManager {
         
         // Store original positions of all selected components
         this.originalPositions.clear();
+        
         this.selectedComponents.forEach(component => {
-            const x = parseInt(component.getAttribute('x')) || 0;
-            const y = parseInt(component.getAttribute('y')) || 0;
+            // Get position data from transform attribute if available, or x/y attributes as fallback
+            let x = parseInt(component.getAttribute('x')) || 0;
+            let y = parseInt(component.getAttribute('y')) || 0;
+            
+            // If component is a g element or complex SVG, get position from transform
+            const transform = component.getAttribute('transform');
+            if (transform && transform.startsWith('translate')) {
+                const match = transform.match(/translate\(\s*([\d.-]+)(?:[,\s]+([\d.-]+))?\s*\)/);
+                if (match) {
+                    x = parseFloat(match[1]) || 0;
+                    y = parseFloat(match[2]) || 0;
+                }
+            }
+            
+            // Save original position
             this.originalPositions.set(component, { x, y });
+            
+            // Ensure component is tagged as draggable for CSS
+            component.classList.add('draggable-component');
         });
         
         // Add dragging visual feedback
@@ -637,6 +702,9 @@ export class CanvasSelectionManager {
         });
         
         console.log(`🎯 Started dragging ${this.selectedComponents.size} component(s)`);
+        
+        // Prevent default browser behavior
+        e.preventDefault();
     }
     
     /**
@@ -655,12 +723,28 @@ export class CanvasSelectionManager {
                 const newX = original.x + deltaX;
                 const newY = original.y + deltaY;
                 
-                // Update component position
-                component.setAttribute('x', newX);
-                component.setAttribute('y', newY);
-                component.style.transform = `translate(${newX}px, ${newY}px)`;
+                // Update component position based on component type
+                if (component.tagName.toLowerCase() === 'g') {
+                    // For group elements, set transform
+                    component.setAttribute('transform', `translate(${newX}, ${newY})`);
+                } else {
+                    // For other SVG elements like rect, circle, etc.
+                    component.setAttribute('x', newX);
+                    component.setAttribute('y', newY);
+                }
+                
+                // Store new position in data attributes for easier access
+                component.dataset.x = newX;
+                component.dataset.y = newY;
+                
+                // Update any associated resize handles
+                if (window.componentResizer) {
+                    window.componentResizer.updateHandlePositions(component);
+                }
             }
         });
+        
+        e.preventDefault();
     }
     
     /**
@@ -677,12 +761,39 @@ export class CanvasSelectionManager {
             component.style.cursor = '';
         });
         
-        // Notify about position changes
-        const movedComponents = Array.from(this.selectedComponents).map(component => ({
-            id: component.getAttribute('data-id'),
-            x: parseInt(component.getAttribute('x')) || 0,
-            y: parseInt(component.getAttribute('y')) || 0
-        }));
+        // Notify about position changes - get the actual updated positions
+        const movedComponents = Array.from(this.selectedComponents).map(component => {
+            // Get position data considering both attributes and transform
+            let x, y;
+            
+            if (component.tagName.toLowerCase() === 'g') {
+                // For group elements, parse transform
+                const transform = component.getAttribute('transform');
+                if (transform && transform.startsWith('translate')) {
+                    const match = transform.match(/translate\(\s*([\d.-]+)(?:[,\s]+([\d.-]+))?\s*\)/);
+                    if (match) {
+                        x = parseFloat(match[1]) || 0;
+                        y = parseFloat(match[2]) || 0;
+                    }
+                }
+            } else {
+                // For regular elements, use x/y attributes
+                x = parseInt(component.getAttribute('x')) || 0;
+                y = parseInt(component.getAttribute('y')) || 0;
+            }
+            
+            // Get data-id or generate fallback id if needed
+            const id = component.getAttribute('data-id') || 
+                      component.id || 
+                      `component-${Math.floor(Math.random() * 10000)}`;
+            
+            // Ensure component has data-id for future operations
+            if (!component.hasAttribute('data-id')) {
+                component.setAttribute('data-id', id);
+            }
+            
+            return { id, x, y };
+        });
         
         console.log(`🎯 Finished dragging. Moved components:`, movedComponents);
         
@@ -692,7 +803,27 @@ export class CanvasSelectionManager {
         });
         document.dispatchEvent(event);
         
+        // Also notify the ComponentManager directly if available
+        if (this.componentManager) {
+            movedComponents.forEach(comp => {
+                const element = document.querySelector(`[data-id="${comp.id}"]`);
+                if (element) {
+                    // ComponentManager doesn't have updateComponentPosition method
+                    // Position is already updated in DOM, so we just trigger update event
+                    this.componentManager.triggerComponentUpdate(comp.id);
+                }
+            });
+        }
+        
+        // If PropertiesMapper is available, trigger a refresh
+        if (window.propertiesMapper) {
+            window.propertiesMapper.scanCanvasProperties();
+        }
+        
         this.originalPositions.clear();
+        
+        // Update selection UI to ensure properties panel reflects changes
+        this.updateSelectionUI();
     }
 
     /**

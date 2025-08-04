@@ -137,6 +137,12 @@ class DigitalTwinApp {
 
             // Initialize canvas managers with references
             this.canvasSelectionManager.setReferences(svgCanvas, this.componentManager);
+            
+            // Create instances of canvas managers
+            const canvasZoomManager = new CanvasZoomManager();
+            const canvasPropertiesManager = new CanvasPropertiesManager();
+            
+            // Initialize canvas managers with references
             canvasZoomManager.setReferences(svgCanvas, workspace);
             canvasPropertiesManager.setCanvas(svgCanvas);
             

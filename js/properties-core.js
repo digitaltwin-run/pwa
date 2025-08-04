@@ -624,4 +624,56 @@ export class PropertiesManager {
             variables: this.propertiesMapper.availableVariables.size
         });
     }
+    
+    /**
+     * Show canvas properties in the properties panel
+     */
+    showCanvasProperties() {
+        const propertiesPanel = document.getElementById('properties-panel');
+        if (!propertiesPanel) return;
+        
+        // Clear any component-specific properties
+        this.clearProperties();
+        
+        // Use the new CanvasPropertiesManager to generate proper canvas properties
+        if (window.canvasPropertiesManager) {
+            propertiesPanel.innerHTML = window.canvasPropertiesManager.generateCanvasPropertiesHTML();
+            
+            // Apply translations after inserting HTML
+            setTimeout(() => {
+                if (window.i18nManager) {
+                    window.i18nManager.applyTranslations();
+                }
+            }, 10);
+        } else {
+            // Fallback if CanvasPropertiesManager is not available
+            propertiesPanel.innerHTML = `
+                <div class="properties-section">
+                    <h3>Właściwości Canvas</h3>
+                    <div class="property-group">
+                        <label>Szerokość:</label>
+                        <input type="number" id="canvas-width" class="form-control form-control-sm" 
+                               value="${document.getElementById('svg-canvas')?.getAttribute('width') || 800}" 
+                               onchange="window.canvasPropertiesManager?.updateCanvasSize(parseInt(this.value), null)">
+                    </div>
+                    <div class="property-group">
+                        <label>Wysokość:</label>
+                        <input type="number" id="canvas-height" class="form-control form-control-sm" 
+                               value="${document.getElementById('svg-canvas')?.getAttribute('height') || 600}" 
+                               onchange="window.canvasPropertiesManager?.updateCanvasSize(null, parseInt(this.value))">
+                    </div>
+                </div>
+                
+                <div class="properties-section">
+                    <h3>Tło Canvas</h3>
+                    <div class="color-picker">
+                        <input type="color" id="canvas-background" 
+                               value="#ffffff" 
+                               onchange="window.canvasPropertiesManager?.setBackgroundColor(this.value)">
+                        <label for="canvas-background">Kolor tła</label>
+                    </div>
+                </div>
+            `;
+        }
+    }
 }
