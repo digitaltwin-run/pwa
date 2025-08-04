@@ -7,20 +7,8 @@ w folderze js/components są pliki, które nie powinny istniec, gdyz sa kontekst
 jesli jakies skrytpy do obslugi np  pump.svg sa potrzebne to powinny byc tam zawarte w skrypcie w SVG component/*.svg
 
 
-Stworz kolejną aplikacje nodejs w folderze interactions - /home/tom/github/digitaltwin-run/interactions
-, ktora ma za zadanie polaczyc javascript z plikami SVG w celu obslugiwaniu akcje w czasie rzeczywistym, takie jak klikniecie, przeciecie, na bazie 
-wczesniej wygenerowane i wyeksportowanego canva SVG, ktory finalnie bedzie czescia pliku html do pliku svg 
-Rezultatem dzialania projektu interactions ma byc gotowy plik html z interakcjami w czasie rzeczywistym eksportowany jako strona html
-Przenies wszystko co zwiazane zinterakcjami do nowego projektu, np usun scriptContent interactions przy eksporrcie SVG z projektu pwa/js/export.svg 
 
-Dlatego przygotuj plik html jako canva dla interactions, gdzie bedzie mozliwe
-zaimportowanie np dwoch roznych canva z pliku SVG, ktore beda obslugiwane przez akcje w czasie rzeczywistym za pomoca jezyka JS
-ktory bedzie czescia tego pliku html,
-Celem interactions jest polaczenie plikow SVG z JS w celu stworzenia interaktywnegj strony html z obsluga wszystkich akcji w czasie rzeczywistym
-Aby to bylo mozliwe, nalezy stworzyc IDE, z lewą kolumną dla dostepnych zasobów, czyli plikow 
-.svg, .js, ktore mozna polaczyc w jednym pliku html
-kazdy plik .js powinien zawierac sie w tagach script, ktory bedzie obslugiwal akcje i widoki z svg i pozwalal na modyfikowanie widoku SVG np porzez zmiane wartosci XML w metadata 
-metadata powinna byc aktualizowana w czasie rzeczywistym a wewnetrzny skrypt componentu wlaczonego w SVG bedzie obslugiwal zmiany w metadata danego componentu wbudowanego w canva svg w czasie rzeczywistym
+Przenies wszystko co zwiazane z interakcjami do nowego projektu ../interactions, np usun scriptContent interactions przy eksporrcie SVG z projektu pwa/js/export.svg
 
 projekt /home/tom/github/digitaltwin-run/pwa powinien tylko pozwalac tworzyc design canva svg, ebez interakcji, dlatego przneis do interakctions te funkcje ktore wychodza poza funkcjonalnsoc budowania canva SVG z components
 
