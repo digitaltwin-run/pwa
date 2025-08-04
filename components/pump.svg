@@ -18,185 +18,209 @@
     <defs>
         <script>
         <![CDATA[
+            // Kod inicjalizujący pompę - uproszczony i bardziej niezawodny
             (function() {
-                // Function to read metadata from SVG
-                function getMetadata(svgElement) {
-                    var metadataElement = svgElement.querySelector('metadata component');
-                    if (metadataElement) {
-                        try {
-                            var parametersElement = metadataElement.querySelector('parameters');
-                            if (parametersElement) {
-                                var result = {
-                                    parameters: {
-                                        flowRate: parametersElement.querySelector('flowRate')?.textContent || '45',
-                                        flowRateMin: parametersElement.querySelector('flowRateMin')?.textContent || '0',
-                                        flowRateMax: parametersElement.querySelector('flowRateMax')?.textContent || '100',
-                                        flowRateUnit: parametersElement.querySelector('unit')?.textContent || ' m³/h',
-                                        isOn: parametersElement.querySelector('ison')?.textContent === 'true',
-                                        speed: parametersElement.querySelector('animationSpeed')?.textContent || '1.0'
-                                    }
-                                };
-                                return result;
+                // Funkcja pomocnicza - znajdź najbliższy element SVG zawierający pompę
+                function findPumpSvg() {
+                    // 1. Próba przez document.currentScript (działa w IDE)
+                    var svg = document.currentScript ? document.currentScript.closest('svg') : null;
+                    
+                    // 2. Jeśli nie zadziałało, szukaj po selektorach klasy
+                    if (!svg) {
+                        var svgs = document.querySelectorAll('svg');
+                        for (var i = 0; i < svgs.length; i++) {
+                            var candidate = svgs[i];
+                            // Sprawdź czy to pompa szukając charakterystycznych elementów
+                            if (candidate.querySelector('.pump-rotor') || 
+                                candidate.querySelector('.pump-housing') || 
+                                candidate.querySelector('.pump-flow-text')) {
+                                svg = candidate;
+                                break;
                             }
-                        } catch (e) {
-                            console.warn('Error parsing pump metadata:', e);
                         }
                     }
-                    return {};
-                }
-
-                // Function to update pump display
-                function updatePump(svgElement) {
-                    var metadata = getMetadata(svgElement);
-                    var params = metadata.parameters || {};
                     
-                    var flowText = svgElement.querySelector('.pump-flow-text');
+                    return svg;
+                }
+                
+                // Funkcja czytająca metadane z SVG
+                function getMetadata(svg) {
+                    try {
+                        var params = {
+                            flowRate: 45,
+                            flowRateUnit: ' m³/h',
+                            isOn: false,
+                            speed: 1.0
+                        };
+                        
+                        var metadata = svg.querySelector('metadata component parameters');
+                        if (metadata) {
+                            var flowRateEl = metadata.querySelector('flowRate');
+                            if (flowRateEl) params.flowRate = parseFloat(flowRateEl.textContent) || 45;
+                            
+                            var unitEl = metadata.querySelector('unit');
+                            if (unitEl) params.flowRateUnit = unitEl.textContent || ' m³/h';
+                            
+                            var isOnEl = metadata.querySelector('ison');
+                            if (isOnEl) params.isOn = isOnEl.textContent === 'true';
+                            
+                            var speedEl = metadata.querySelector('animationSpeed');
+                            if (speedEl) params.speed = parseFloat(speedEl.textContent) || 1.0;
+                        }
+                        
+                        return params;
+                    } catch(err) {
+                        console.error('Błąd odczytu metadanych pompy:', err);
+                        return {
+                            flowRate: 45,
+                            flowRateUnit: ' m³/h',
+                            isOn: false,
+                            speed: 1.0
+                        };
+                    }
+                }
+                
+                // Aktualizacja tekstu przepływu
+                function updateFlowText(svg, params) {
+                    var flowText = svg.querySelector('.pump-flow-text');
                     if (flowText) {
-                        var flow = parseFloat(params.flowRate) || 45;
-                        var unit = params.flowRateUnit || ' m³/h';
-                        flowText.textContent = flow.toFixed(1) + unit;
-                    }
-                    
-                    // Handle animation
-                    if (params.isOn) {
-                        startPumpAnimation(svgElement, parseFloat(params.speed) || 1.0);
-                    } else {
-                        stopPumpAnimation(svgElement);
+                        flowText.textContent = parseFloat(params.flowRate).toFixed(1) + params.flowRateUnit;
                     }
                 }
-
-                function startPumpAnimation(svgElement, speed) {
-                    // Stop existing animation
-                    if (svgElement.pumpAnimationId) {
-                        cancelAnimationFrame(svgElement.pumpAnimationId);
+                
+                // Animacja pompy
+                function animatePump(svg, params) {
+                    // Wstrzymaj istniejącą animację
+                    if (svg._pumpAnimationId) {
+                        cancelAnimationFrame(svg._pumpAnimationId);
+                        svg._pumpAnimationId = null;
                     }
                     
-                    var angle = svgElement.pumpAngle || 0;
+                    // Jeśli pompa jest wyłączona, nie uruchamiaj animacji
+                    if (!params.isOn) return;
                     
+                    // Inicjalizacja kąta obrotu
+                    var angle = svg._pumpAngle || 0;
+                    var speed = parseFloat(params.speed) || 1.0;
+                    var rotor = svg.querySelector('.pump-rotor');
+                    
+                    // Funkcja animująca
                     function animate() {
-                        if (!svgElement.isConnected) {
-                            return;
-                        }
+                        if (!svg.isConnected) return;
                         
+                        // Aktualizacja kąta
                         angle += 2 * speed;
-                        if (angle >= 360) {
-                            angle -= 360;
-                        }
-                        svgElement.pumpAngle = angle;
+                        if (angle >= 360) angle -= 360;
+                        svg._pumpAngle = angle;
                         
-                        var rotor = svgElement.querySelector('.pump-rotor');
+                        // Aktualizacja transformacji rotora
                         if (rotor) {
-                            rotor.setAttribute('transform', 'rotate(' + angle + ' 50 50)');
+                            rotor.setAttribute('transform', 'rotate(' + angle + ' 35 30)');
                         }
                         
-                        var metadata = getMetadata(svgElement);
-                        var params = metadata.parameters || {};
-                        
-                        if (params.isOn) {
-                            svgElement.pumpAnimationId = requestAnimationFrame(animate);
-                        }
+                        // Kontynuacja animacji
+                        svg._pumpAnimationId = requestAnimationFrame(animate);
                     }
                     
+                    // Uruchom animację
                     animate();
                 }
-
-                function stopPumpAnimation(svgElement) {
-                    if (svgElement.pumpAnimationId) {
-                        cancelAnimationFrame(svgElement.pumpAnimationId);
-                        svgElement.pumpAnimationId = null;
-                    }
-                }
-
-                function togglePump(svgElement) {
-                    var metadataElement = svgElement.querySelector('metadata component');
-                    if (metadataElement) {
-                        var isOnElement = metadataElement.querySelector('parameters ison');
-                        if (isOnElement) {
-                            var currentState = isOnElement.textContent === 'true';
-                            isOnElement.textContent = currentState ? 'false' : 'true';
-                            updatePump(svgElement);
-                        }
-                    }
-                }
-
-                // Auto-initialize - find parent SVG element following led.svg pattern
-                var svgElement = document.currentScript ? document.currentScript.closest('svg') : null;
                 
-                // If not found (exported SVG), search for SVG with pump components
-                if (!svgElement) {
-                    var allSvgs = document.querySelectorAll('svg');
-                    for (var i = 0; i < allSvgs.length; i++) {
-                        var svg = allSvgs[i];
-                        if (svg.querySelector('.pump-rotor') && svg.querySelector('.pump-flow-text')) {
-                            svgElement = svg;
-                            break;
-                        }
-                    }
+                // Przełączanie stanu pompy
+                function togglePump(svg) {
+                    var params = getMetadata(svg);
+                    params.isOn = !params.isOn;
+                    
+                    // Zapisz zmianę w metadanych
+                    var isOnEl = svg.querySelector('metadata component parameters ison');
+                    if (isOnEl) isOnEl.textContent = params.isOn ? 'true' : 'false';
+                    
+                    // Aktualizuj animację
+                    animatePump(svg, params);
                 }
                 
-                if (svgElement && !svgElement.hasAttribute('data-pump-initialized')) {
-                    svgElement.setAttribute('data-pump-initialized', 'true');
+                // Główna funkcja inicjalizująca
+                function initializePump() {
+                    // Znajdź SVG pompy
+                    var svg = findPumpSvg();
+                    if (!svg) {
+                        console.error('Nie znaleziono SVG pompy');
+                        return;
+                    }
                     
-                    // Store unique identifier
-                    svgElement.pumpInstanceId = 'pump-' + Math.random().toString(36).substr(2, 9);
+                    // Zabezpieczenie przed wielokrotną inicjalizacją
+                    if (svg.hasAttribute('data-pump-initialized')) return;
+                    svg.setAttribute('data-pump-initialized', 'true');
                     
-                    // Add click event listener
-                    var clickArea = svgElement.querySelector('.pump-housing');
-                    if (clickArea) {
-                        clickArea.addEventListener('click', function(e) {
-                            togglePump(svgElement);
+                    // Unikalne ID dla tej instancji
+                    svg._pumpId = 'pump-' + Math.floor(Math.random() * 10000);
+                    console.log('Inicjalizacja pompy: ' + svg._pumpId);
+                    
+                    // Odczyt parametrów
+                    var params = getMetadata(svg);
+                    
+                    // Aktualizacja tekstu przepływu
+                    updateFlowText(svg, params);
+                    
+                    // Ustawienie kliknięcia dla przełączania
+                    var housing = svg.querySelector('.pump-housing');
+                    if (housing) {
+                        housing.addEventListener('click', function(e) {
+                            togglePump(svg);
                             e.stopPropagation();
                         });
                     }
                     
-                    // Initial update
-                    updatePump(svgElement);
+                    // Uruchom animację jeśli pompa jest włączona
+                    animatePump(svg, params);
                     
-                    // Watch for parameter changes
-                    svgElement.pollingInterval = setInterval(function() {
-                        if (!svgElement.isConnected) {
-                            // Cleanup if element removed
-                            if (svgElement.pumpAnimationId) cancelAnimationFrame(svgElement.pumpAnimationId);
-                            if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
+                    // Obserwuj zmiany parametrów
+                    svg._pumpInterval = setInterval(function() {
+                        if (!svg.isConnected) {
+                            // Cleanup jeśli element został usunięty
+                            if (svg._pumpAnimationId) cancelAnimationFrame(svg._pumpAnimationId);
+                            clearInterval(svg._pumpInterval);
                             return;
                         }
                         
-                        var metadata = getMetadata(svgElement);
-                        var params = metadata.parameters || {};
+                        // Odczytaj aktualne parametry
+                        var currentParams = getMetadata(svg);
                         
-                        // Initialize currentParams if needed
-                        if (!svgElement.currentParams) {
-                            svgElement.currentParams = {};
-                        }
+                        // Aktualizuj tekst
+                        updateFlowText(svg, currentParams);
                         
-                        // Check if parameters changed
-                        var hasChanged = 
-                            params.flowRate !== svgElement.currentParams.flowRate ||
-                            params.isOn !== svgElement.currentParams.isOn ||
-                            params.speed !== svgElement.currentParams.speed;
-                            
-                        if (hasChanged) {
-                            svgElement.currentParams = { ...params };
-                            updatePump(svgElement);
+                        // Sprawdź czy stan włączenia się zmienił
+                        if (svg._lastIsOn !== currentParams.isOn) {
+                            svg._lastIsOn = currentParams.isOn;
+                            animatePump(svg, currentParams);
                         }
                     }, 500);
-                    
-                    // Cleanup function
-                    function cleanupPump() {
-                        if (svgElement.pumpAnimationId) cancelAnimationFrame(svgElement.pumpAnimationId);
-                        if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
-                    }
+                }
+                
+                // Funkcja inicjalizująca - uruchom natychmiast
+                initializePump();
+                
+                // Zarejestruj funkcję w DOMContentLoaded dla wyeksportowanych SVG
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initializePump);
+                }
+                
+                // Wyeksportuj funkcję do globalnej przestrzeni nazw w zwykłym JavaScript (nie ES6)
+                if (typeof window !== 'undefined') {
+                    window.initPump = function(evt) {
+                        initializePump();
+                    };
                 }
             })();
         ]]>
         </script>
     </defs>
 
-    <circle cx="35" cy="30" r="25" fill="#16a085" stroke="#138a76" stroke-width="3" class="pump-housing"/>
-    <g id="impeller" class="pump-rotor">
+    <circle cx="35" cy="30" r="25" fill="#16a085" stroke="#138a76" stroke-width="3" class="pump-housing" aria-label="Korpus pompy, kliknij aby przełączyć stan pompy"/>
+    <g id="impeller" class="pump-rotor" aria-label="Wirnik pompy, obraca się gdy pompa jest włączona">
         <path d="M25 20 L45 40 M45 20 L25 40" stroke="white" stroke-width="3" stroke-linecap="round"/>
     </g>
-    <circle id="statusIndicator" cx="55" cy="15" r="4" fill="#e74c3c"/>
-    <text id="label" x="35" y="20" font-size="12" text-anchor="middle" fill="white">P1</text>
-    <text id="value" x="35" y="50" font-size="12" text-anchor="middle" fill="white" class="pump-flow-text">45 m³/h</text>
+    <circle id="statusIndicator" cx="55" cy="15" r="4" fill="#e74c3c" aria-label="Wskaźnik statusu pompy"/>
+    <text id="label" class="pump-label" x="35" y="20" font-size="12" text-anchor="middle" fill="white" aria-label="Nazwa pompy">P1</text>
+    <text id="value" class="pump-flow-text" x="35" y="50" font-size="12" text-anchor="middle" fill="white" aria-label="Wartość przepływu pompy">45 m³/h</text>
 </svg>

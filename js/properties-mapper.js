@@ -563,16 +563,17 @@ export class PropertiesMapper {
     }
 
     // Odśwież panele interakcji po zmianie mappingu
-    refreshInteractionPanels() {
+    refreshInteractionPanels(retryCount = 0) {
         try {
             const targets = this.getAvailableTargetComponents();
-            console.log(`[PropertiesMapper] Refreshing interaction panels with ${targets.length} targets`);
             
             // Find all target component selects and refresh them
             const targetSelects = document.querySelectorAll('select[onchange*="target"], select[data-target-select="true"]');
             let refreshed = 0;
             
             if (targetSelects.length > 0) {
+                console.log(`[PropertiesMapper] Refreshing ${targetSelects.length} interaction panels with ${targets.length} targets`);
+                
                 targetSelects.forEach(select => {
                     const currentValue = select.value;
                     select.innerHTML = '<option value="">Wybierz komponent</option>';
@@ -604,12 +605,16 @@ export class PropertiesMapper {
                     const event = new Event('change');
                     select.dispatchEvent(event);
                 });
+                
+                console.log(`[PropertiesMapper] Refreshed ${refreshed} target selects successfully`);
+            } else if (retryCount < 3) {
+                // Limited retry for interaction panels that might be created after this method runs
+                // Max 3 retries to prevent infinite loop
+                setTimeout(() => this.refreshInteractionPanels(retryCount + 1), 500);
             } else {
-                // Try searching for interaction panels that might be created after this method runs
-                setTimeout(() => this.refreshInteractionPanels(), 500);
+                // Stop retrying after 3 attempts to prevent console spam
+                console.log(`[PropertiesMapper] No interaction panels found after ${retryCount} retries - stopping`);
             }
-            
-            console.log(`[PropertiesMapper] Refreshed ${refreshed}/${targetSelects.length} target selects`);
             
             // Dispatch a global event that interaction panels were refreshed
             document.dispatchEvent(new CustomEvent('interaction-panels-refreshed', {

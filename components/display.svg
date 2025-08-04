@@ -26,218 +26,299 @@
     <defs>
         <script>
         <![CDATA[
+            // Kod inicjalizujący komponent wyświetlacza - uproszczony i bardziej niezawodny
             (function() {
-                // Function to read metadata from SVG
-                function getMetadata(svgElement) {
-                    var metadataElement = svgElement.querySelector('metadata component');
-                    if (metadataElement) {
-                        try {
-                            var parametersElement = metadataElement.querySelector('parameters');
-                            if (parametersElement) {
-                                var result = {
-                                    parameters: {
-                                        url: parametersElement.querySelector('url')?.textContent || 'about:blank',
-                                        refreshInterval: parseInt(parametersElement.querySelector('refreshInterval')?.textContent || '0'),
-                                        isActive: parametersElement.querySelector('isActive')?.textContent !== 'false',
-                                        aspectRatio: parametersElement.querySelector('aspectRatio')?.textContent || '16:9',
-                                        label: parametersElement.querySelector('label')?.textContent || 'Display'
-                                    }
-                                };
-                                return result;
+                // Funkcja pomocnicza - znajdź najbliższy element SVG zawierający wyświetlacz
+                function findDisplaySvg() {
+                    // 1. Próba przez document.currentScript (działa w IDE)
+                    var svg = document.currentScript ? document.currentScript.closest('svg') : null;
+                    
+                    // 2. Jeśli nie zadziałało, szukaj po selektorach klasy
+                    if (!svg) {
+                        var svgs = document.querySelectorAll('svg');
+                        for (var i = 0; i < svgs.length; i++) {
+                            var candidate = svgs[i];
+                            // Sprawdź czy to wyświetlacz szukając charakterystycznych elementów
+                            if (candidate.querySelector('.display-body') || 
+                                candidate.querySelector('.display-title') || 
+                                candidate.querySelector('.display-label') ||
+                                candidate.querySelector('.display-value')) {
+                                svg = candidate;
+                                break;
                             }
-                        } catch (e) {
-                            console.warn('Error parsing display metadata:', e);
                         }
                     }
-                    return {};
-                }
-
-                // Function to update display
-                function updateDisplay(svgElement) {
-                    var metadata = getMetadata(svgElement);
-                    var params = metadata.parameters || {};
-            // Public API
-            function setDisplayUrl(url) {
-                displayParams.url = url || 'about:blank';
-                updateDisplay(document);
-            }
-            
-            function setRefreshInterval(seconds) {
-                displayParams.refreshInterval = Math.max(0, parseInt(seconds) || 0);
-                setupRefreshTimer(document);
-            }
-            
-            function setActive(isActive) {
-                displayParams.isActive = isActive !== false;
-                updateDisplay(document);
-            }
-            
-            function setAspectRatio(ratio) {
-                if (typeof ratio === 'string' && ratio.includes(':')) {
-                    displayParams.aspectRatio = ratio;
-                    updateDisplay(document);
-                }
-            }
-            
-            // Apply scaling to the SVG element
-            function applyScaling(svgRoot) {
-                if (!svgRoot) return;
-                
-                // Calculate new dimensions
-                var newWidth = Math.max(displayParams.minWidth, displayParams.originalWidth * displayParams.scaleX);
-                var newHeight = Math.max(displayParams.minHeight, displayParams.originalHeight * displayParams.scaleY);
-                
-                // Update SVG dimensions
-                svgRoot.setAttribute('width', newWidth);
-                svgRoot.setAttribute('height', newHeight);
-                
-                // Update viewBox to maintain proportions
-                if (displayParams.preserveAspectRatio) {
-                    svgRoot.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-                } else {
-                    svgRoot.setAttribute('preserveAspectRatio', 'none');
-                }
-                
-                // Update the display content container
-                updateContentSize(svgRoot);
-            }
-            
-            // Update the content container size based on current dimensions
-            function updateContentSize(svgRoot) {
-                var displayContent = svgRoot.getElementById('displayContent');
-                if (!displayContent) return;
-                
-                // Calculate content area (with padding from metadata)
-                var padding = displayParams.padding;
-                var contentX = padding * displayParams.scaleX;
-                var contentY = (displayParams.statusBarHeight + padding) * displayParams.scaleY;
-                var contentWidth = displayParams.originalWidth * displayParams.scaleX - (2 * padding * displayParams.scaleX);
-                var contentHeight = (displayParams.originalHeight - displayParams.statusBarHeight - padding) * displayParams.scaleY;
-                
-                // Update content container
-                displayContent.setAttribute('x', contentX);
-                displayContent.setAttribute('y', contentY);
-                displayContent.setAttribute('width', contentWidth);
-                displayContent.setAttribute('height', contentHeight);
-                
-                // Update status bar
-                var statusBar = svgRoot.getElementById('statusBar');
-                if (statusBar) {
-                    statusBar.setAttribute('width', contentWidth);
-                    statusBar.setAttribute('x', contentX);
-                    statusBar.setAttribute('y', contentY);
-                }
-                
-                // Update label position
-                var label = svgRoot.getElementById('label');
-                if (label) {
-                    label.setAttribute('x', contentX + 5);
-                    label.setAttribute('y', contentY + 10);
-                }
-            }
-            
-            // Make the display resizable
-            function makeResizable(svg, svgRoot) {
-                var resizeHandle = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                resizeHandle.setAttribute('class', 'resize-handle');
-                
-                // Calculate handle size based on component size (10% of the smaller dimension, with min/max limits)
-                var handleSize = Math.max(
-                    8, // min size
-                    Math.min(
-                        Math.min(displayParams.originalWidth, displayParams.originalHeight) * 0.1, 
-                        15 // max size
-                    )
-                );
-                
-                // Position handle in bottom-right corner with small margin
-                var handleMargin = 2;
-                var handleX = displayParams.originalWidth - handleSize - handleMargin;
-                var handleY = displayParams.originalHeight - handleSize - handleMargin;
-                
-                resizeHandle.setAttribute('x', handleX);
-                resizeHandle.setAttribute('y', handleY);
-                resizeHandle.setAttribute('width', handleSize);
-                resizeHandle.setAttribute('height', handleSize);
-                resizeHandle.setAttribute('fill', displayParams.color || '#3498db');
-                resizeHandle.setAttribute('rx', '3');
-                resizeHandle.setAttribute('style', 'cursor: nwse-resize;');
-                
-                svgRoot.appendChild(resizeHandle);
-                
-                var isResizing = false;
-                var startX, startY, startWidth, startHeight, startScaleX, startScaleY;
-                
-                resizeHandle.addEventListener('mousedown', startResize);
-                
-                function startResize(e) {
-                    e.stopPropagation();
-                    isResizing = true;
-                    startX = e.clientX;
-                    startY = e.clientY;
-                    startWidth = parseFloat(svgRoot.getAttribute('width'));
-                    startHeight = parseFloat(svgRoot.getAttribute('height'));
-                    startScaleX = displayParams.scaleX;
-                    startScaleY = displayParams.scaleY;
                     
-                    document.addEventListener('mousemove', resize);
-                    document.addEventListener('mouseup', stopResize);
+                    return svg;
                 }
                 
-                function resize(e) {
-                    if (!isResizing) return;
-                    
-                    var dx = e.clientX - startX;
-                    var dy = e.clientY - startY;
-                    
-                    // Calculate new dimensions
-                    var newWidth = Math.max(displayParams.minWidth, startWidth + dx);
-                    var newHeight = Math.max(displayParams.minHeight, startHeight + dy);
-                    
-                    // Calculate scale factors
-                    displayParams.scaleX = newWidth / displayParams.originalWidth;
-                    displayParams.scaleY = newHeight / displayParams.originalHeight;
-                    
-                    // Apply scaling
-                    applyScaling(svgRoot);
-                    
-                    // Update display content
-                    updateDisplay(svg);
+                // Funkcja czytająca metadane z SVG
+                function getMetadata(svg) {
+                    try {
+                        var params = {
+                            label: 'Display',
+                            text: 'Ready',
+                            status: 'OK',
+                            backlight: true,
+                            color: '#2c3e50',
+                            url: 'about:blank',
+                            refreshInterval: 0,
+                            isActive: true,
+                            aspectRatio: '16:9',
+                            allowFullScreen: true,
+                            scaleX: 1.0,
+                            scaleY: 1.0,
+                            minWidth: 40,
+                            minHeight: 30,
+                            preserveAspectRatio: true,
+                            originalWidth: 80,
+                            originalHeight: 60,
+                            padding: 5,
+                            statusBarHeight: 12
+                        };
+                        
+                        var metadata = svg.querySelector('metadata component parameters');
+                        if (metadata) {
+                            var labelEl = metadata.querySelector('label');
+                            if (labelEl) params.label = labelEl.textContent || 'Display';
+                            
+                            var textEl = metadata.querySelector('text');
+                            if (textEl) params.text = textEl.textContent || 'Ready';
+                            
+                            var statusEl = metadata.querySelector('status');
+                            if (statusEl) params.status = statusEl.textContent || 'OK';
+                            
+                            var backlightEl = metadata.querySelector('backlight');
+                            if (backlightEl) params.backlight = backlightEl.textContent !== 'false';
+                            
+                            var colorEl = metadata.querySelector('color');
+                            if (colorEl) params.color = colorEl.textContent || '#2c3e50';
+                            
+                            var urlEl = metadata.querySelector('url');
+                            if (urlEl) params.url = urlEl.textContent || 'about:blank';
+                            
+                            var refreshEl = metadata.querySelector('refreshInterval');
+                            if (refreshEl) params.refreshInterval = parseInt(refreshEl.textContent) || 0;
+                            
+                            var activeEl = metadata.querySelector('isActive');
+                            if (activeEl) params.isActive = activeEl.textContent !== 'false';
+                            
+                            var ratioEl = metadata.querySelector('aspectRatio');
+                            if (ratioEl) params.aspectRatio = ratioEl.textContent || '16:9';
+                            
+                            var fullscreenEl = metadata.querySelector('allowFullScreen');
+                            if (fullscreenEl) params.allowFullScreen = fullscreenEl.textContent !== 'false';
+                            
+                            var scaleXEl = metadata.querySelector('scaleX');
+                            if (scaleXEl) params.scaleX = parseFloat(scaleXEl.textContent) || 1.0;
+                            
+                            var scaleYEl = metadata.querySelector('scaleY');
+                            if (scaleYEl) params.scaleY = parseFloat(scaleYEl.textContent) || 1.0;
+                            
+                            var minWidthEl = metadata.querySelector('minWidth');
+                            if (minWidthEl) params.minWidth = parseFloat(minWidthEl.textContent) || 40;
+                            
+                            var minHeightEl = metadata.querySelector('minHeight');
+                            if (minHeightEl) params.minHeight = parseFloat(minHeightEl.textContent) || 30;
+                            
+                            var preserveAspectRatioEl = metadata.querySelector('preserveAspectRatio');
+                            if (preserveAspectRatioEl) params.preserveAspectRatio = preserveAspectRatioEl.textContent !== 'false';
+                            
+                            var originalWidthEl = metadata.querySelector('originalWidth');
+                            if (originalWidthEl) params.originalWidth = parseFloat(originalWidthEl.textContent) || 80;
+                            
+                            var originalHeightEl = metadata.querySelector('originalHeight');
+                            if (originalHeightEl) params.originalHeight = parseFloat(originalHeightEl.textContent) || 60;
+                            
+                            var paddingEl = metadata.querySelector('padding');
+                            if (paddingEl) params.padding = parseFloat(paddingEl.textContent) || 5;
+                            
+                            var statusBarHeightEl = metadata.querySelector('statusBarHeight');
+                            if (statusBarHeightEl) params.statusBarHeight = parseFloat(statusBarHeightEl.textContent) || 12;
+                        }
+                        
+                        return params;
+                    } catch(err) {
+                        console.error('Błąd odczytu metadanych wyświetlacza:', err);
+                        return {
+                            label: 'Display',
+                            text: 'Ready',
+                            status: 'OK',
+                            backlight: true,
+                            color: '#2c3e50'
+                        };
+                    }
                 }
                 
-                function stopResize() {
-                    isResizing = false;
-                    document.removeEventListener('mousemove', resize);
-                    document.removeEventListener('mouseup', stopResize);
+                // Aktualizacja wyświetlacza
+                function updateDisplayComponent(svg, params) {
+                    // Aktualizacja tła wyświetlacza
+                    var body = svg.querySelector('.display-body, #body');
+                    if (body && params.color) {
+                        body.setAttribute('fill', params.color);
+                    }
+                    
+                    // Aktualizacja etykiety wyświetlacza
+                    var label = svg.querySelector('.display-label');
+                    if (label && params.label) {
+                        label.textContent = params.label;
+                    }
+                    
+                    // Aktualizacja wartości wyświetlacza
+                    var valueText = svg.querySelector('.display-value');
+                    if (valueText && params.text) {
+                        valueText.textContent = params.text;
+                    }
+                    
+                    // Aktualizacja paska statusu
+                    var title = svg.querySelector('.display-title');
+                    if (title && params.label) {
+                        title.textContent = params.label;
+                    }
+                    
+                    // Podświetlenie (jeśli jest aktywne)
+                    if (body) {
+                        var strokeColor = params.backlight ? '#2ecc71' : '#34495e';
+                        body.setAttribute('stroke', strokeColor);
+                    }
                 }
-            }
-            
-            // Public API for setting scale
-            function setScale(scaleX, scaleY) {
-                if (scaleX > 0) displayParams.scaleX = scaleX;
-                if (scaleY > 0) displayParams.scaleY = scaleY;
-                applyScaling(document.documentElement);
-                updateDisplay(document);
-            }
-            
-            // Public API for setting minimum dimensions
-            function setMinDimensions(minWidth, minHeight) {
-                if (minWidth > 0) displayParams.minWidth = minWidth;
-                if (minHeight > 0) displayParams.minHeight = minHeight;
-                applyScaling(document.documentElement);
-                updateDisplay(document);
-            }
+                
+                // Funkcja odświeżania zawartości (URL)
+                function setupRefresh(svg, params) {
+                    // Tylko gdy interwał jest większy niż 0 i URL jest ustawiony
+                    if (params.refreshInterval <= 0 || !params.url || params.url === 'about:blank') {
+                        return;
+                    }
+                    
+                    // Usuń istniejący timer
+                    if (svg._refreshTimer) {
+                        clearInterval(svg._refreshTimer);
+                        svg._refreshTimer = null;
+                    }
+                    
+                    // Ustaw nowy timer
+                    svg._refreshTimer = setInterval(function() {
+                        if (!svg.isConnected) {
+                            // Cleanup if element removed
+                            clearInterval(svg._refreshTimer);
+                            return;
+                        }
+                        
+                        // Odśwież zawartość
+                        if (params.isActive) {
+                            // Tutaj kod odświeżania zawartości URL
+                            var contentElement = svg.querySelector('.display-content');
+                            if (contentElement) {
+                                // Do implementacji: odświeżanie zawartości
+                                console.log('Odświeżanie zawartości URL:', params.url);
+                            }
+                        }
+                    }, params.refreshInterval * 1000);
+                }
+                
+                // Publiczne API wyświetlacza
+                function setupDisplayAPI(svg) {
+                    // Ustaw tekst wyświetlacza
+                    svg.setDisplayText = function(text) {
+                        if (!svg._displayConfig) return;
+                        
+                        svg._displayConfig.text = text || 'Ready';
+                        updateDisplayComponent(svg, svg._displayConfig);
+                    };
+                    
+                    // Ustaw URL źródła wyświetlacza
+                    svg.setDisplayUrl = function(url) {
+                        if (!svg._displayConfig) return;
+                        
+                        svg._displayConfig.url = url || 'about:blank';
+                        setupRefresh(svg, svg._displayConfig);
+                    };
+                    
+                    // Ustaw interwał odświeżania
+                    svg.setRefreshInterval = function(seconds) {
+                        if (!svg._displayConfig) return;
+                        
+                        svg._displayConfig.refreshInterval = Math.max(0, parseInt(seconds) || 0);
+                        setupRefresh(svg, svg._displayConfig);
+                    };
+                    
+                    // Włącz/wyłącz wyświetlacz
+                    svg.setActive = function(isActive) {
+                        if (!svg._displayConfig) return;
+                        
+                        svg._displayConfig.isActive = isActive !== false;
+                        svg._displayConfig.backlight = isActive !== false;
+                        updateDisplayComponent(svg, svg._displayConfig);
+                    };
+                    
+                    // Ustaw label wyświetlacza
+                    svg.setDisplayLabel = function(label) {
+                        if (!svg._displayConfig) return;
+                        
+                        svg._displayConfig.label = label || 'Display';
+                        updateDisplayComponent(svg, svg._displayConfig);
+                    };
+                }
+                
+                // Główna funkcja inicjalizująca
+                function initializeDisplay() {
+                    // Znajdź SVG wyświetlacza
+                    var svg = findDisplaySvg();
+                    if (!svg) {
+                        console.error('Nie znaleziono SVG wyświetlacza');
+                        return;
+                    }
+                    
+                    // Zabezpieczenie przed wielokrotną inicjalizacją
+                    if (svg.hasAttribute('data-display-initialized')) return;
+                    svg.setAttribute('data-display-initialized', 'true');
+                    
+                    // Unikalne ID dla tej instancji
+                    svg._displayId = 'display-' + Math.floor(Math.random() * 10000);
+                    console.log('Inicjalizacja wyświetlacza: ' + svg._displayId);
+                    
+                    // Odczyt parametrów
+                    var params = getMetadata(svg);
+                    
+                    // Konfiguracja wyświetlacza
+                    svg._displayConfig = params;
+                    
+                    // Konfiguracja API
+                    setupDisplayAPI(svg);
+                    
+                    // Aktualizacja początkowa
+                    updateDisplayComponent(svg, svg._displayConfig);
+                    
+                    // Ustaw odświeżanie jeśli potrzebne
+                    setupRefresh(svg, svg._displayConfig);
+                }
+                
+                // Funkcja inicjalizująca - uruchom natychmiast
+                initializeDisplay();
+                
+                // Zarejestruj funkcję w DOMContentLoaded dla wyeksportowanych SVG
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initializeDisplay);
+                }
+                
+                // Wyeksportuj funkcję do globalnej przestrzeni nazw w zwykłym JavaScript (nie ES6)
+                if (typeof window !== 'undefined') {
+                    window.initDisplayInstance = function() {
+                        initializeDisplay();
+                    };
+                }
+            })();
         ]]>
         </script>
     </defs>
 
     <!-- Display frame -->
-    <rect x="2" y="2" width="76" height="56" rx="4" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
-    <rect x="5" y="5" width="70" height="50" rx="2" fill="#fff" stroke="#95a5a6" stroke-width="1"/>
+    <rect class="display-frame" x="2" y="2" width="76" height="56" rx="4" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1" aria-hidden="true"/>
+    <rect class="display-background" x="5" y="5" width="70" height="50" rx="2" fill="#fff" stroke="#95a5a6" stroke-width="1" aria-hidden="true"/>
     
     <!-- Status bar -->
-    <rect id="statusBar" x="5" y="5" width="70" height="12" fill="#3498db" rx="2"/>
-    <text id="label" x="10" y="15" font-size="8" fill="white">Display</text>
+    <rect id="statusBar" class="display-statusbar" x="5" y="5" width="70" height="12" fill="#3498db" rx="2" aria-label="Pasek statusu wyświetlacza"/>
+    <text id="title" class="display-title editable-text" x="10" y="15" font-size="8" fill="white" aria-label="Tytuł wyświetlacza" data-property="title">Display</text>
     
     <!-- Content will be inserted here by JavaScript -->
     
@@ -250,6 +331,12 @@
         }
         .resize-handle:hover {
             opacity: 1;
+        }
+        .editable-text {
+            cursor: text;
+        }
+        .editable-text:hover {
+            opacity: 0.8;
         }
     </style>
     <metadata>
@@ -265,8 +352,8 @@
     </metadata>
 
 
-  <rect id="body" x="5" y="5" width="70" height="50" rx="8" fill="#2c3e50" stroke="#34495e" stroke-width="2"/>
-  <rect x="15" y="15" width="50" height="20" fill="#ecf0f1" rx="4"/>
-  <text id="label" x="40" y="48" font-size="12" text-anchor="middle" fill="#bdc3c7">Panel</text>
-  <text id="value" x="40" y="28" font-size="14" text-anchor="middle" fill="#2c3e50">Ready</text>
+  <rect id="body" class="display-body" x="5" y="5" width="70" height="50" rx="8" fill="#2c3e50" stroke="#34495e" stroke-width="2" aria-label="Korpus wyświetlacza"/>
+  <rect class="display-screen" x="15" y="15" width="50" height="20" fill="#ecf0f1" rx="4" aria-label="Ekran wyświetlacza"/>
+  <text id="label" class="display-label editable-text" x="40" y="48" font-size="12" text-anchor="middle" fill="#bdc3c7" aria-label="Etykieta wyświetlacza" data-property="label">Panel</text>
+  <text id="value" class="display-value reading-text" x="40" y="28" font-size="14" text-anchor="middle" fill="#2c3e50" aria-label="Wartość wyświetlacza">Ready</text>
 </svg>

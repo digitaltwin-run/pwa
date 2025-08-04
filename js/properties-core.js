@@ -9,6 +9,7 @@ import { getComponentProperties } from './component-properties.js';
 // Import new modular components
 import { ColorsManager } from './properties/colors-manager.js';
 import { ScalingManager } from './properties/scaling-manager.js';
+import { SVGTextManager } from './properties/svg-text-manager.js';
 import { PropertyUIGenerator } from './properties/property-ui-generator.js';
 import { normalizeColorValue, detectPropertyType, parseComponentMetadata, getComponentBounds } from './utils/property-utils.js';
 
@@ -25,11 +26,13 @@ export class PropertiesManager {
         // Initialize new modular components
         this.colorsManager = new ColorsManager();
         this.scalingManager = new ScalingManager();
+        this.svgTextManager = new SVGTextManager();
         this.propertyUIGenerator = new PropertyUIGenerator();
         
         // Make managers available globally for UI interactions
         window.colorsManager = this.colorsManager;
         window.scalingManager = this.scalingManager;
+        window.svgTextManager = this.svgTextManager;
         
         // Uruchom automatyczne odświeżanie mapowania
         this.propertiesMapper.setupAutoRefresh();
@@ -200,7 +203,7 @@ export class PropertiesManager {
             </div>
         `;
         
-        // Add component-specific properties
+        // Add component-specific properties (excluding text properties - handled separately)
         html += this.generateComponentProperties(componentData);
         
         // Add position controls
@@ -226,6 +229,18 @@ export class PropertiesManager {
         
         // Add component scale/zoom section
         html += this.generateComponentScaleSection(componentData);
+        
+        // Add parameters section
+        const parametersHtml = this.generateParametersSection(componentData);
+        if (parametersHtml) {
+            html += parametersHtml;
+        }
+        
+        // Sekcja edycji tekstów SVG (zastępuje duplicate z generateComponentProperties)
+        const textEditHtml = this.svgTextManager.generateTextSection(svgElement, componentData);
+        if (textEditHtml) {
+            html += textEditHtml;
+        }
         
         // Odśwież mapowanie właściwości przed pokazaniem panelu
         this.propertiesMapper.scanCanvasProperties();
@@ -408,8 +423,15 @@ export class PropertiesManager {
 
     // Generuj sekcję właściwości komponentu
     generateComponentProperties(componentData) {
-        // Use the new modular colorsManager instead of the old colorManager
-        return this.colorsManager.generateColorsSection(componentData.element);
+        let html = '';
+        
+        // Add SVG text editing section
+        html += this.svgTextManager.generateTextSection(componentData.element);
+        
+        // Add color section (minimized)
+        html += this.colorsManager.generateColorsSection(componentData.element);
+        
+        return html;
     }
     
     // Generuj sekcję zoom/scale z zachowaniem proporcji

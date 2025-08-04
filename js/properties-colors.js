@@ -140,9 +140,16 @@ export class ColorManager {
                 const el = svgElement.querySelector(selector);
                 if (el) elements = [el];
             } else {
-                // Selektor tagu
-                elements = svgElement.getElementsByTagName(selector);
-                // Jeśli nie znaleziono elementów, spróbuj jako selektor CSS
+                // Selektor bez prefiksu - prawdopodobnie nazwa klasy
+                // Najpierw spróbuj jako selektor klasy CSS
+                elements = svgElement.querySelectorAll(`.${selector}`);
+                
+                // Jeśli nie znaleziono, spróbuj jako selektor tagu
+                if (elements.length === 0) {
+                    elements = svgElement.getElementsByTagName(selector);
+                }
+                
+                // Jeśli nadal nie znaleziono, spróbuj jako bezpośredni selektor CSS
                 if (elements.length === 0) {
                     elements = svgElement.querySelectorAll(selector);
                 }
@@ -176,29 +183,59 @@ export class ColorManager {
 
         // Zaktualizuj kolory w elementach SVG
         Array.from(elements).forEach(element => {
+            // Stwórz flagę informującą czy zmiana została zastosowana
+            let colorApplied = false;
+            
+            // Specjalna obsługa dla elementów tekstowych
+            const isTextElement = element.tagName.toLowerCase() === 'text';
+            
+            // Sprawdź czy element jest animowany (LED, pump, itp.)
+            const isAnimatedElement = this.isAnimatedElement(element, svgElement);
+            
             if (type === 'fill' || type === 'stroke') {
-                // Najpierw spróbuj ustawić atrybut bezpośrednio
-                element.setAttribute(type, color);
-
-                // Zaktualizuj również w stylu, jeśli istnieje
-                let style = element.getAttribute('style') || '';
-
-                // Usuń stary kolor z atrybutu style
-                style = style.replace(new RegExp(`${type}\\s*:\\s*[^;]*;?`, 'g'), '').trim();
-
-                // Dodaj nowy kolor do atrybutu style
-                if (style) {
-                    // Upewnij się, że style kończy się średnikiem
-                    if (!style.endsWith(';')) style += ';';
-                    style = `${style} ${type}:${color};`;
+                // Dla animowanych elementów, unikaj nadpisywania style CSS
+                if (isAnimatedElement && type === 'fill') {
+                    // Tylko ustaw atrybut, nie style CSS (aby nie kolidować z animacją)
+                    element.setAttribute(type, color);
+                    colorApplied = true;
+                    
+                    // Zaktualizuj również metadane komponentu, aby animacja używała nowego koloru
+                    this.updateAnimationColor(svgElement, color);
                 } else {
-                    style = `${type}:${color};`;
+                    // Dla nieanimowanych elementów lub stroke, użyj pełnej logiki
+                    element.setAttribute(type, color);
+                    colorApplied = true;
+                    
+                    // Zaktualizuj również w stylu, jeśli nie jest animowany
+                    if (!isAnimatedElement) {
+                        let style = element.getAttribute('style') || '';
+
+                        // Usuń stary kolor z atrybutu style
+                        style = style.replace(new RegExp(`${type}\\s*:\\s*[^;]*;?`, 'g'), '').trim();
+
+                        // Dodaj nowy kolor do atrybutu style
+                        if (style) {
+                            // Upewnij się, że style kończy się średnikiem
+                            if (!style.endsWith(';')) style += ';';
+                            style = `${style} ${type}:${color};`;
+                        } else {
+                            style = `${type}:${color};`;
+                        }
+
+                        // Ustaw zaktualizowany styl
+                        element.setAttribute('style', style);
+                    }
                 }
-
-                // Ustaw zaktualizowany styl
-                element.setAttribute('style', style);
-
-                console.log(`Updated ${type} for element:`, element);
+                
+                // Dodatkowe zabezpieczenie dla przeglądarek, które mogą ignorować zmianę fill dla tekstu
+                if (isTextElement) {
+                    // Spróbuj ustawić kolor przez CSS (tylko dla tekstu, nie animowanych elementów)
+                    element.style.color = color;
+                    // Ustaw dodatkowy atrybut dla SVG
+                    element.setAttribute('fill', color);
+                }
+                
+                console.log(`Updated ${type} for element ${element.tagName} (${element.id || element.className || 'no-id'}) to ${color} (animated: ${isAnimatedElement})`);
             }
         });
 
@@ -206,6 +243,46 @@ export class ColorManager {
         this.updateColorInMetadata(componentId, selector, type, color);
 
         console.log(`Updated ${type} color for ${selector} to ${color} (found ${elements.length} elements)`);
+    }
+
+    // Sprawdź czy element jest animowany (LED, pump, itp.)
+    isAnimatedElement(element, svgElement) {
+        // Sprawdź klasy elementów, które są zwykle animowane
+        const animatedClasses = ['led-core', 'pump-rotor', 'valve-handle', 'sensor-indicator'];
+        const elementClass = element.getAttribute('class') || '';
+        
+        // Sprawdź czy element ma klasę animowaną
+        if (animatedClasses.some(cls => elementClass.includes(cls))) {
+            return true;
+        }
+        
+        // Sprawdź czy rodzicowski SVG ma aktywne interwały (LED mruga)
+        if (svgElement && svgElement.blinkInterval) {
+            return element.classList.contains('led-core');
+        }
+        
+        return false;
+    }
+
+    // Zaktualizuj kolor animacji w metadanych komponentu
+    updateAnimationColor(svgElement, color) {
+        if (!svgElement) return;
+        
+        // Zaktualizuj metadane LED
+        const metadataElement = svgElement.querySelector('metadata component');
+        if (metadataElement) {
+            const colorElement = metadataElement.querySelector('parameters color');
+            if (colorElement) {
+                colorElement.textContent = color;
+                console.log(`🎨 Updated animation color in metadata to ${color}`);
+                
+                // Wymuś odświeżenie animacji LED poprzez zmianę parametru
+                const event = new CustomEvent('metadata-updated', {
+                    detail: { svgElement, parameter: 'color', value: color }
+                });
+                document.dispatchEvent(event);
+            }
+        }
     }
 
     // Aktualizuj kolor w metadanych komponentu

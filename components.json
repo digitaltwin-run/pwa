@@ -16,6 +16,11 @@
       "id": "pump-001"
     },
     {
+      "svg": "components/valve.svg",
+      "name": "Control Valve",
+      "id": "valve-001"
+    },
+    {
       "svg": "components/motor.svg",
       "name": "Electric Motor",
       "id": "motor-001"

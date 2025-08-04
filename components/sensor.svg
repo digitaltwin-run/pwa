@@ -20,101 +20,283 @@
     <defs>
         <script>
         <![CDATA[
+            // Kod inicjalizujący czujnik - uproszczony i bardziej niezawodny
             (function() {
-                // Function to read metadata from SVG
-                function getMetadata(svgElement) {
-                    var metadataElement = svgElement.querySelector('metadata component');
-                    if (metadataElement) {
-                        try {
-                            var parametersElement = metadataElement.querySelector('parameters');
-                            if (parametersElement) {
-                                var result = {
-                                    parameters: {
-                                        value: parseFloat(parametersElement.querySelector('value')?.textContent || '50'),
-                                        valueMin: parseFloat(parametersElement.querySelector('minValue')?.textContent || '0'),
-                                        valueMax: parseFloat(parametersElement.querySelector('maxValue')?.textContent || '100'),
-                                        unit: parametersElement.querySelector('unit')?.textContent || '%',
-                                        threshold: parseFloat(parametersElement.querySelector('threshold')?.textContent || '75'),
-                                        isActive: parametersElement.querySelector('isActive')?.textContent !== 'false',
-                                        label: parametersElement.querySelector('label')?.textContent || 'Sensor'
-                                    }
-                                };
-                                return result;
+                // Funkcja pomocnicza - znajdź najbliższy element SVG zawierający czujnik
+                function findSensorSvg() {
+                    // 1. Próba przez document.currentScript (działa w IDE)
+                    var svg = document.currentScript ? document.currentScript.closest('svg') : null;
+                    
+                    // 2. Jeśli nie zadziałało, szukaj po selektorach klasy
+                    if (!svg) {
+                        var svgs = document.querySelectorAll('svg');
+                        for (var i = 0; i < svgs.length; i++) {
+                            var candidate = svgs[i];
+                            // Sprawdź czy to czujnik szukając charakterystycznych elementów
+                            if (candidate.querySelector('.sensor-body') || 
+                                candidate.querySelector('.sensor-value') || 
+                                candidate.querySelector('.sensor-label') ||
+                                candidate.querySelector('.sensor-indicator')) {
+                                svg = candidate;
+                                break;
                             }
-                        } catch (e) {
-                            console.warn('Error parsing sensor metadata:', e);
                         }
                     }
-                    return {};
-                }
-
-                // Function to update sensor display
-                function updateSensor(svgElement) {
-                    var metadata = getMetadata(svgElement);
-                    var params = metadata.parameters || {};
                     
-                    var gauge = svgElement.querySelector('.sensor-gauge');
-                    if (gauge) {
-                        var percentage = (params.value - params.valueMin) / (params.valueMax - params.valueMin);
-                        percentage = Math.max(0, Math.min(1, percentage));
-                        var height = 25 * percentage;
-                        gauge.setAttribute('height', height);
-                        gauge.setAttribute('y', 35 - height);
+                    return svg;
+                }
+                
+                // Funkcja czytająca metadane z SVG
+                function getMetadata(svg) {
+                    try {
+                        var params = {
+                            value: 25,
+                            valueMin: 0,
+                            valueMax: 100,
+                            unit: '°C',
+                            threshold: 75,
+                            isActive: true,
+                            label: 'Sensor',
+                            updateInterval: 1000,
+                            variance: 2
+                        };
+                        
+                        var metadata = svg.querySelector('metadata component parameters');
+                        if (metadata) {
+                            var valueEl = metadata.querySelector('value');
+                            if (valueEl) params.value = parseFloat(valueEl.textContent) || 25;
+                            
+                            var minEl = metadata.querySelector('minValue');
+                            if (minEl) params.valueMin = parseFloat(minEl.textContent) || 0;
+                            
+                            var maxEl = metadata.querySelector('maxValue');
+                            if (maxEl) params.valueMax = parseFloat(maxEl.textContent) || 100;
+                            
+                            var unitEl = metadata.querySelector('unit');
+                            if (unitEl) params.unit = unitEl.textContent || '°C';
+                            
+                            var thresholdEl = metadata.querySelector('threshold');
+                            if (thresholdEl) params.threshold = parseFloat(thresholdEl.textContent) || 75;
+                            
+                            var isActiveEl = metadata.querySelector('isActive');
+                            if (isActiveEl) params.isActive = isActiveEl.textContent !== 'false';
+                            
+                            var labelEl = metadata.querySelector('label');
+                            if (labelEl) params.label = labelEl.textContent || 'Sensor';
+                            
+                            var updateIntervalEl = metadata.querySelector('updateInterval');
+                            if (updateIntervalEl) params.updateInterval = parseInt(updateIntervalEl.textContent) || 1000;
+                            
+                            var varianceEl = metadata.querySelector('variance');
+                            if (varianceEl) params.variance = parseFloat(varianceEl.textContent) || 2;
+                        }
+                        
+                        return params;
+                    } catch(err) {
+                        console.error('Błąd odczytu metadanych czujnika:', err);
+                        return {
+                            value: 25,
+                            valueMin: 0,
+                            valueMax: 100,
+                            unit: '°C',
+                            threshold: 75,
+                            isActive: true,
+                            label: 'Sensor',
+                            updateInterval: 1000,
+                            variance: 2
+                        };
+                    }
+                }
+                
+                // Aktualizacja wyświetlania czujnika
+                function updateSensorDisplay(svg, params) {
+                    // Aktualizacja etykiety czujnika
+                    var label = svg.querySelector('.sensor-label');
+                    if (label && params.label) {
+                        label.textContent = params.label;
                     }
                     
-                    var valueText = svgElement.querySelector('.sensor-value');
+                    // Aktualizacja wartości czujnika
+                    var valueText = svg.querySelector('.sensor-value');
                     if (valueText) {
                         valueText.textContent = params.value.toFixed(1) + params.unit;
                     }
                     
-                    var indicator = svgElement.querySelector('.sensor-indicator');
+                    // Aktualizacja wskaźnika stanu
+                    var indicator = svg.querySelector('.sensor-indicator');
                     if (indicator) {
-                        var color = '#2ecc71'; // Normal (green)
+                        var color = '#2ecc71'; // Normalny (zielony)
                         if (!params.isActive) {
-                            color = '#95a5a6'; // Inactive (gray)
+                            color = '#95a5a6'; // Nieaktywny (szary)
                         } else if (params.value >= params.threshold) {
-                            color = '#e74c3c'; // Over threshold (red)
+                            color = '#e74c3c'; // Ponad prog (czerwony)
                         } else if (params.value >= params.threshold * 0.8) {
-                            color = '#f39c12'; // Warning (orange)
+                            color = '#f39c12'; // Ostrzeżenie (pomarańczowy)
                         }
                         indicator.setAttribute('fill', color);
                     }
                 }
                 
-                // Public API functions attached to SVG element
+                // Symulacja zmian wartości czujnika
+                function startSensorSimulation(svg) {
+                    if (!svg._sensorConfig) return;
+                    
+                    // Zatrzymaj istniejącą animację
+                    if (svg._sensorAnimationId) {
+                        cancelAnimationFrame(svg._sensorAnimationId);
+                        svg._sensorAnimationId = null;
+                    }
+                    
+                    // Jeśli czujnik jest nieaktywny, zakończ
+                    if (!svg._sensorConfig.isActive) return;
+                    
+                    // Aktualizuj wartości czujnika okresowo
+                    var lastUpdateTime = performance.now();
+                    var updateInterval = svg._sensorConfig.updateInterval || 1000;
+                    
+                    function animate() {
+                        if (!svg.isConnected) {
+                            // Cleanup jeśli element został usunięty
+                            return;
+                        }
+                        
+                        var now = performance.now();
+                        var timeDelta = now - lastUpdateTime;
+                        
+                        // Aktualizacja tylko z określonym interwałem
+                        if (timeDelta >= updateInterval) {
+                            lastUpdateTime = now;
+                            
+                            var config = svg._sensorConfig;
+                            if (config.isActive) {
+                                // Dodaj losową wariancję dla realistycznego efektu
+                                var variance = (Math.random() - 0.5) * 2 * (config.variance || 0);
+                                var step = 0.1;
+                                
+                                // Poruszaj obecną wartością w kierunku wartości docelowej
+                                if (config.value < config.targetValue) {
+                                    config.value = Math.min(config.value + step, config.targetValue) + variance;
+                                } else if (config.value > config.targetValue) {
+                                    config.value = Math.max(config.value - step, config.targetValue) + variance;
+                                } else {
+                                    config.value = config.value + variance;
+                                }
+                                
+                                // Utrzymuj w granicach
+                                config.value = Math.max(config.valueMin, Math.min(config.valueMax, config.value));
+                                
+                                // Aktualizuj wyświetlanie
+                                updateSensorDisplay(svg, config);
+                            }
+                        }
+                        
+                        // Kontynuuj animację
+                        if (svg._sensorConfig && svg._sensorConfig.isActive) {
+                            svg._sensorAnimationId = requestAnimationFrame(animate);
+                        }
+                    }
+                    
+                    // Uruchom animację
+                    animate();
+                }
+                
+                // Publiczne API czujnika
                 function setupSensorAPI(svg) {
-                    if (!svg.sensorInstance) return;
-                    
+                    // Ustaw wartość czujnika
                     svg.setSensorValue = function(value) {
-                        svg.sensorInstance.targetValue = Math.max(svg.sensorInstance.min, 
-                                                         Math.min(svg.sensorInstance.max, 
-                                                                 parseFloat(value) || 0));
+                        if (!svg._sensorConfig) return;
+                        
+                        svg._sensorConfig.targetValue = Math.max(
+                            svg._sensorConfig.valueMin,
+                            Math.min(svg._sensorConfig.valueMax, parseFloat(value) || 0)
+                        );
                     };
                     
+                    // Pobierz wartość czujnika
                     svg.getSensorValue = function() {
-                        return svg.sensorInstance.value;
+                        return svg._sensorConfig ? svg._sensorConfig.value : 0;
                     };
                     
+                    // Włącz/wyłącz aktywność czujnika
                     svg.setActive = function(isActive) {
-                        svg.sensorInstance.isActive = isActive;
-                        if (isActive && !svg.sensorInstance.animationFrame) {
+                        if (!svg._sensorConfig) return;
+                        
+                        svg._sensorConfig.isActive = !!isActive;
+                        
+                        // Jeśli włączony, uruchom symulację
+                        if (isActive && !svg._sensorAnimationId) {
                             startSensorSimulation(svg);
                         }
                     };
                 }
                 
-                // Initialize when this script loads
-                // Use a small delay to ensure DOM is ready
-                setTimeout(function() {
-                    initSensorInstance({ target: document.currentScript || document.scripts[document.scripts.length - 1] });
-                }, 10);
+                // Główna funkcja inicjalizująca
+                function initializeSensor() {
+                    // Znajdź SVG czujnika
+                    var svg = findSensorSvg();
+                    if (!svg) {
+                        console.error('Nie znaleziono SVG czujnika');
+                        return;
+                    }
+                    
+                    // Zabezpieczenie przed wielokrotną inicjalizacją
+                    if (svg.hasAttribute('data-sensor-initialized')) return;
+                    svg.setAttribute('data-sensor-initialized', 'true');
+                    
+                    // Unikalne ID dla tej instancji
+                    svg._sensorId = 'sensor-' + Math.floor(Math.random() * 10000);
+                    console.log('Inicjalizacja czujnika: ' + svg._sensorId);
+                    
+                    // Odczyt parametrów
+                    var params = getMetadata(svg);
+                    
+                    // Konfiguracja czujnika
+                    svg._sensorConfig = {
+                        value: params.value,
+                        targetValue: params.value,
+                        valueMin: params.valueMin,
+                        valueMax: params.valueMax,
+                        unit: params.unit,
+                        threshold: params.threshold,
+                        isActive: params.isActive,
+                        label: params.label,
+                        updateInterval: params.updateInterval,
+                        variance: params.variance
+                    };
+                    
+                    // Konfiguracja API
+                    setupSensorAPI(svg);
+                    
+                    // Aktualizacja początkowa
+                    updateSensorDisplay(svg, svg._sensorConfig);
+                    
+                    // Uruchom symulację jeśli aktywny
+                    if (svg._sensorConfig.isActive) {
+                        startSensorSimulation(svg);
+                    }
+                }
+                
+                // Funkcja inicjalizująca - uruchom natychmiast
+                initializeSensor();
+                
+                // Zarejestruj funkcję w DOMContentLoaded dla wyeksportowanych SVG
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initializeSensor);
+                }
+                
+                // Wyeksportuj funkcję do globalnej przestrzeni nazw w zwykłym JavaScript (nie ES6)
+                if (typeof window !== 'undefined') {
+                    window.initSensorInstance = function(evt) {
+                        initializeSensor();
+                    };
+                }
             })();
         ]]>
         </script>
     </defs>
 
-    <rect id="body" x="5" y="5" width="50" height="50" rx="8" fill="#e74c3c" stroke="#c0392b" stroke-width="2"/>
-    <text id="label" x="30" y="20" font-size="12" text-anchor="middle" fill="white">Temp</text>
-    <text id="value" x="30" y="38" font-size="14" text-anchor="middle" fill="white">25°C</text>
-    <circle id="indicator" cx="30" cy="50" r="4" fill="#ecf0f1"/>
+    <rect id="body" class="sensor-body" x="5" y="5" width="50" height="50" rx="8" fill="#e74c3c" stroke="#c0392b" stroke-width="2"/>
+    <text id="label" class="sensor-label editable-text" x="30" y="20" font-size="12" text-anchor="middle" fill="white" aria-label="Etykieta czujnika" data-property="label">Temp</text>
+    <text id="value" class="sensor-value reading-text" x="30" y="38" font-size="14" text-anchor="middle" fill="white" aria-label="Wartość czujnika">25°C</text>
+    <circle id="indicator" class="sensor-indicator" cx="30" cy="50" r="4" fill="#ecf0f1" aria-label="Wskaźnik stanu czujnika"/>
 </svg>

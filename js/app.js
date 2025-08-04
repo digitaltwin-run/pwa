@@ -19,6 +19,7 @@ import { I18nManager } from './i18n-manager.js';
 import { ComponentScaler } from './component-scaler.js';
 import './svg-text-editor.js'; // Enable in-place SVG text editing
 import './global-component-initializer.js'; // Enable global SVG component initialization
+import { canvasSelectionManager } from './canvas-selection-manager.js'; // Enable canvas selection and copy-paste
 // Conditional imports for development tools
 let TestingSystem, FunctionalTests, ErrorDetector;
 try {
@@ -65,6 +66,7 @@ class DigitalTwinApp {
         this.actionManager = null;
         this.interactionsManager = null;
         this.componentScaler = null;
+        this.canvasSelectionManager = canvasSelectionManager;
         this.config = {
             canvas: {
                 grid: {
@@ -126,6 +128,19 @@ class DigitalTwinApp {
             // window.interactionsManager moved to ../interactions project
             window.componentScaler = this.componentScaler;
             window.actionManager = this.actionManager; // Expose actionManager for interactions
+            window.canvasSelectionManager = this.canvasSelectionManager; // Expose canvas selection manager
+
+            // Initialize canvas selection manager with references
+            this.canvasSelectionManager.setReferences(svgCanvas, this.componentManager);
+            
+            // Dispatch canvas-ready event for selection manager
+            const canvasReadyEvent = new CustomEvent('canvas-ready', {
+                detail: {
+                    canvas: svgCanvas,
+                    componentManager: this.componentManager
+                }
+            });
+            document.dispatchEvent(canvasReadyEvent);
 
             // Load component library
             await this.componentManager.loadComponentLibrary();

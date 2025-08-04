@@ -63,7 +63,7 @@ class ErrorDetector {
         results.checks.push(this.checkComponentManager());
         results.checks.push(this.checkPropertiesManager());
         results.checks.push(this.checkPropertiesMapper());
-        results.checks.push(this.checkInteractionsManager());
+        // InteractionsManager moved to ../interactions project
         
         // Component-specific checks
         results.checks.push(this.checkComponentsOnCanvas());
@@ -166,25 +166,7 @@ class ErrorDetector {
     }
 
     // 🔗 Check interactions manager
-    checkInteractionsManager() {
-        const interactionsMgr = window.propertiesManager?.interactionsManager;
-        
-        if (!interactionsMgr) {
-            this.addError('InteractionsManager missing', 'InteractionsManager not available');
-            return { name: 'Interactions Manager', status: 'FAIL', error: 'Not available' };
-        }
-        
-        // Test critical methods
-        const methods = ['generateTargetOptions', 'generatePropertyOptions', 'generateEventOptions'];
-        const missingMethods = methods.filter(method => typeof interactionsMgr[method] !== 'function');
-        
-        if (missingMethods.length > 0) {
-            this.addError('InteractionsManager incomplete', `Missing methods: ${missingMethods.join(', ')}`);
-            return { name: 'Interactions Manager', status: 'FAIL', error: `Missing methods: ${missingMethods.join(', ')}` };
-        }
-        
-        return { name: 'Interactions Manager', status: 'PASS' };
-    }
+    // checkInteractionsManager removed - InteractionsManager moved to ../interactions project
 
     // 🧩 Check components on canvas
     checkComponentsOnCanvas() {

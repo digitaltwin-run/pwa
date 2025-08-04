@@ -19,153 +19,205 @@
     <defs>
         <script>
         <![CDATA[
+            // Kod inicjalizujący zawór - uproszczony i bardziej niezawodny
             (function() {
-                // Function to read metadata from SVG
-                function getMetadata(svgElement) {
-                    var metadataElement = svgElement.querySelector('metadata component');
-                    if (metadataElement) {
-                        try {
-                            var parametersElement = metadataElement.querySelector('parameters');
-                            if (parametersElement) {
-                                var result = {
-                                    parameters: {
-                                        isOpen: parametersElement.querySelector('isOpen')?.textContent === 'true',
-                                        position: parseFloat(parametersElement.querySelector('position')?.textContent || '0'),
-                                        label: parametersElement.querySelector('label')?.textContent || 'Valve'
-                                    }
-                                };
-                                return result;
+                // Funkcja pomocnicza - znajdź najbliższy element SVG zawierający zawór
+                function findValveSvg() {
+                    // 1. Próba przez document.currentScript (działa w IDE)
+                    var svg = document.currentScript ? document.currentScript.closest('svg') : null;
+                    
+                    // 2. Jeśli nie zadziałało, szukaj po selektorach klasy
+                    if (!svg) {
+                        var svgs = document.querySelectorAll('svg');
+                        for (var i = 0; i < svgs.length; i++) {
+                            var candidate = svgs[i];
+                            // Sprawdź czy to zawór szukając charakterystycznych elementów
+                            if (candidate.querySelector('.valve-disc') || 
+                                candidate.querySelector('.valve-body') || 
+                                candidate.querySelector('.valve-label') ||
+                                candidate.querySelector('.valve-value')) {
+                                svg = candidate;
+                                break;
                             }
-                        } catch (e) {
-                            console.warn('Error parsing valve metadata:', e);
                         }
                     }
-                    return {};
+                    
+                    return svg;
                 }
-
-                // Function to update valve display
-                function updateValve(svgElement) {
-                    var metadata = getMetadata(svgElement);
-                    var params = metadata.parameters || {};
-                    
-                    var disc = svgElement.querySelector('.valve-disc');
-                    if (disc) {
-                        var rotation = params.position * 90; // 0-90 degrees
-                        disc.setAttribute('transform', 'rotate(' + rotation + ' 40 30)');
+                
+                // Funkcja czytająca metadane z SVG
+                function getMetadata(svg) {
+                    try {
+                        var params = {
+                            isOpen: false,
+                            position: 0.5, // 50% domyślnie
+                            label: 'V1'
+                        };
+                        
+                        var metadata = svg.querySelector('metadata component parameters');
+                        if (metadata) {
+                            var isOpenEl = metadata.querySelector('isOpen');
+                            if (isOpenEl) params.isOpen = isOpenEl.textContent === 'true';
+                            
+                            var positionEl = metadata.querySelector('position');
+                            if (positionEl) params.position = parseFloat(positionEl.textContent) / 100 || 0.5;
+                            
+                            var labelEl = metadata.querySelector('label');
+                            if (labelEl) params.label = labelEl.textContent || 'V1';
+                        }
+                        
+                        return params;
+                    } catch(err) {
+                        console.error('Błąd odczytu metadanych zaworu:', err);
+                        return {
+                            isOpen: false,
+                            position: 0.5,
+                            label: 'V1'
+                        };
                     }
-                    
-                    var indicator = svgElement.querySelector('.valve-indicator');
-                    if (indicator) {
-                        indicator.setAttribute('fill', params.isOpen ? '#2ecc71' : '#e74c3c');
-                    }
-                    
-                    var status = svgElement.querySelector('.valve-status');
-                    if (status) {
-                        status.textContent = (params.position * 100).toFixed(0) + '%';
-                    }
-                    
-                    var label = svgElement.querySelector('.valve-label');
+                }
+                
+                // Aktualizacja wyświetlania zaworu
+                function updateValveDisplay(svg, params) {
+                    // Aktualizacja etykiety zaworu
+                    var label = svg.querySelector('.valve-label');
                     if (label && params.label) {
                         label.textContent = params.label;
                     }
+                    
+                    // Aktualizacja pozycji tarczy zaworu (rotacja)
+                    var disc = svg.querySelector('.valve-disc');
+                    if (disc) {
+                        var rotation = params.position * 90; // 0-90 stopni
+                        disc.setAttribute('transform', 'rotate(' + rotation + ' 30 30)');
+                    }
+                    
+                    // Aktualizacja statusu (procent otwarcia)
+                    var status = svg.querySelector('.valve-value');
+                    if (status) {
+                        status.textContent = Math.round(params.position * 100) + '%';
+                    }
+                    
+                    // Aktualizacja wskaźnika (zielony/czerwony)
+                    var indicator = svg.querySelector('.valve-indicator');
+                    if (indicator) {
+                        indicator.setAttribute('fill', params.isOpen ? '#2ecc71' : '#e74c3c');
+                    }
                 }
-
-                function toggleValve(svgElement) {
-                    var metadataElement = svgElement.querySelector('metadata component');
-                    if (metadataElement) {
-                        var isOpenElement = metadataElement.querySelector('parameters isOpen');
-                        var positionElement = metadataElement.querySelector('parameters position');
+                
+                // Przełączanie stanu zaworu
+                function toggleValve(svg) {
+                    var params = getMetadata(svg);
+                    params.isOpen = !params.isOpen;
+                    params.position = params.isOpen ? 1.0 : 0.0;
+                    
+                    // Zapisz zmiany w metadanych
+                    var metadataParams = svg.querySelector('metadata component parameters');
+                    if (metadataParams) {
+                        var isOpenEl = metadataParams.querySelector('isOpen');
+                        if (isOpenEl) isOpenEl.textContent = params.isOpen ? 'true' : 'false';
                         
-                        if (isOpenElement && positionElement) {
-                            var currentState = isOpenElement.textContent === 'true';
-                            var newState = !currentState;
-                            var newPosition = newState ? 1 : 0;
-                            
-                            isOpenElement.textContent = newState.toString();
-                            positionElement.textContent = newPosition.toString();
-                            
-                            updateValve(svgElement);
-                        }
+                        var positionEl = metadataParams.querySelector('position');
+                        if (positionEl) positionEl.textContent = (params.position * 100).toString();
                     }
-                }
-
-                // Auto-initialize - find parent SVG element following led.svg pattern
-                var svgElement = document.currentScript ? document.currentScript.closest('svg') : null;
-                
-                // If not found (exported SVG), search for SVG with valve components
-                if (!svgElement) {
-                    var allSvgs = document.querySelectorAll('svg');
-                    for (var i = 0; i < allSvgs.length; i++) {
-                        var svg = allSvgs[i];
-                        if (svg.querySelector('.valve-disc') && svg.querySelector('.valve-indicator')) {
-                            svgElement = svg;
-                            break;
-                        }
-                    }
+                    
+                    // Aktualizuj wyświetlanie
+                    updateValveDisplay(svg, params);
                 }
                 
-                if (svgElement && !svgElement.hasAttribute('data-valve-initialized')) {
-                    svgElement.setAttribute('data-valve-initialized', 'true');
+                // Główna funkcja inicjalizująca
+                function initializeValve() {
+                    // Znajdź SVG zaworu
+                    var svg = findValveSvg();
+                    if (!svg) {
+                        console.error('Nie znaleziono SVG zaworu');
+                        return;
+                    }
                     
-                    // Store unique identifier
-                    svgElement.valveInstanceId = 'valve-' + Math.random().toString(36).substr(2, 9);
+                    // Zabezpieczenie przed wielokrotną inicjalizacją
+                    if (svg.hasAttribute('data-valve-initialized')) return;
+                    svg.setAttribute('data-valve-initialized', 'true');
                     
-                    // Add click event listener
-                    var clickArea = svgElement.querySelector('.valve-body');
-                    if (clickArea) {
-                        clickArea.addEventListener('click', function(e) {
-                            toggleValve(svgElement);
+                    // Unikalne ID dla tej instancji
+                    svg._valveId = 'valve-' + Math.floor(Math.random() * 10000);
+                    console.log('Inicjalizacja zaworu: ' + svg._valveId);
+                    
+                    // Odczyt parametrów
+                    var params = getMetadata(svg);
+                    
+                    // Aktualizacja wyświetlania
+                    updateValveDisplay(svg, params);
+                    
+                    // Ustawienie kliknięcia dla przełączania
+                    var body = svg.querySelector('.valve-body');
+                    if (body) {
+                        body.addEventListener('click', function(e) {
+                            toggleValve(svg);
                             e.stopPropagation();
                         });
                     }
                     
-                    // Initial update
-                    updateValve(svgElement);
-                    
-                    // Watch for parameter changes
-                    svgElement.pollingInterval = setInterval(function() {
-                        if (!svgElement.isConnected) {
-                            // Cleanup if element removed
-                            if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
+                    // Obserwuj zmiany parametrów
+                    svg._valveInterval = setInterval(function() {
+                        if (!svg.isConnected) {
+                            // Cleanup jeśli element został usunięty
+                            clearInterval(svg._valveInterval);
                             return;
                         }
                         
-                        var metadata = getMetadata(svgElement);
-                        var params = metadata.parameters || {};
+                        // Odczytaj aktualne parametry
+                        var currentParams = getMetadata(svg);
                         
-                        // Initialize currentParams if needed
-                        if (!svgElement.currentParams) {
-                            svgElement.currentParams = {};
+                        // Sprawdź czy któryś z parametrów się zmienił
+                        var hasChanged = false;
+                        
+                        if (!svg._lastParams) {
+                            svg._lastParams = {};
+                            hasChanged = true;
                         }
                         
-                        // Check if parameters changed
-                        var hasChanged = 
-                            params.isOpen !== svgElement.currentParams.isOpen ||
-                            params.position !== svgElement.currentParams.position ||
-                            params.label !== svgElement.currentParams.label;
-                            
+                        if (svg._lastParams.isOpen !== currentParams.isOpen || 
+                            svg._lastParams.position !== currentParams.position ||
+                            svg._lastParams.label !== currentParams.label) {
+                            hasChanged = true;
+                        }
+                        
                         if (hasChanged) {
-                            svgElement.currentParams = { ...params };
-                            updateValve(svgElement);
+                            svg._lastParams = {
+                                isOpen: currentParams.isOpen,
+                                position: currentParams.position,
+                                label: currentParams.label
+                            };
+                            updateValveDisplay(svg, currentParams);
                         }
                     }, 500);
-                    
-                    // Cleanup function
-                    function cleanupValve() {
-                        if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
-                    }
+                }
+                
+                // Funkcja inicjalizująca - uruchom natychmiast
+                initializeValve();
+                
+                // Zarejestruj funkcję w DOMContentLoaded dla wyeksportowanych SVG
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initializeValve);
+                }
+                
+                // Wyeksportuj funkcję do globalnej przestrzeni nazw w zwykłym JavaScript (nie ES6)
+                if (typeof window !== 'undefined') {
+                    window.initValve = function(evt) {
+                        initializeValve();
+                    };
                 }
             })();
         ]]>
         </script>
     </defs>
 
-    <rect id="body" class="valve-body" x="20" y="10" width="20" height="40" fill="#95a5a6" stroke="#7f8c8d" stroke-width="2" rx="4"/>
-    <g id="valveHandle" class="valve-disc">
-    <g id="valveHandle">
+    <rect id="body" class="valve-body" x="20" y="10" width="20" height="40" fill="#95a5a6" stroke="#7f8c8d" stroke-width="2" rx="4" aria-label="Korpus zaworu, kliknij aby przełączyć stan zaworu"/>
+    <g id="valveHandle" class="valve-disc" aria-label="Tarcza zaworu, obraca się wraz ze zmianą pozycji otwarcia">
         <line x1="30" y1="30" x2="30" y2="15" stroke="#2c3e50" stroke-width="3" stroke-linecap="round"/>
         <circle cx="30" cy="30" r="12" fill="#7f8c8d" stroke="#2c3e50" stroke-width="2" fill-opacity="0.7"/>
     </g>
-    <text id="label" x="30" y="20" font-size="12" text-anchor="middle" fill="white">V1</text>
-    <text id="value" x="30" y="55" font-size="12" text-anchor="middle" fill="#2c3e50">50%</text>
+    <circle cx="50" cy="15" r="4" fill="#e74c3c" class="valve-indicator" aria-label="Wskaźnik statusu zaworu"/>
+    <text id="label" class="valve-label valve-name valve-title" x="30" y="20" font-size="12" text-anchor="middle" fill="white" aria-label="Nazwa zaworu">V1</text>
+    <text id="value" class="valve-value valve-position valve-percent" x="30" y="55" font-size="12" text-anchor="middle" fill="#2c3e50" aria-label="Pozycja otwarcia zaworu">50%</text>
 </svg>

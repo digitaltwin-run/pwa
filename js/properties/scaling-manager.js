@@ -79,7 +79,7 @@ export class ScalingManager {
                 
                 <!-- Current Scale Info -->
                 <div style="margin-bottom: 18px; background: #ffffff; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
-                    <label style="display: block; margin-bottom: 10px; font-size: 13px; color: #495057; font-weight: 500;">Aktualne skalowanie:</label>
+                    <label style="display: block; margin-bottom: 10px; font-size: 13px; color: #495057; font-weight: 500;" data-i18n="properties.currentScale">Aktualne skalowanie:</label>
                     <div style="font-size: 12px; color: #495057; background: #f8f9fa; padding: 8px; border-radius: 4px; font-family: monospace; text-align: center; border: 1px solid #e9ecef;">
                         📏 ${scaleInfo.displayText}
                     </div>

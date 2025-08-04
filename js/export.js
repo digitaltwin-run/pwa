@@ -217,7 +217,7 @@ export class ExportManager {
         }
     }
 
-    // Eksportuj jako SVG (bez skryptów i interakcji)
+    // Eksportuj jako SVG (zachowując skrypty inicjalizujące, ale bez interakcji)
     exportAsSVG() {
         try {
             // Stwórz kopię canvas do eksportu z głębokim klonowaniem
@@ -228,6 +228,9 @@ export class ExportManager {
 
             // Usuń zaznaczenia i resize handles z eksportowanego SVG
             this.removeSelectionArtifacts(exportCanvas);
+            
+            // Preserve initialization scripts (needed for exported SVGs to function standalone)
+            this.preserveComponentScripts(exportCanvas);
 
             // Interaction scripts removed (moved to /interactions project)
 
@@ -290,6 +293,72 @@ export class ExportManager {
             });
         } catch (error) {
             console.error("Error preserving component metadata:", error);
+        }
+    }
+    
+    /**
+     * Preserve component initialization scripts for SVG export
+     * @param {SVGElement} exportCanvas - The export canvas
+     */
+    preserveComponentScripts(exportCanvas) {
+        try {
+            // Znajdź wszystkie komponenty w oryginalnym canvas
+            const originalComponents = this.svgCanvas.querySelectorAll('[data-id]');
+            
+            originalComponents.forEach(originalElement => {
+                const componentId = originalElement.getAttribute('data-id');
+                const component = exportCanvas.querySelector('[data-id="' + componentId + '"]');
+                
+                if (!component) {
+                    console.warn('Warning: Component ' + componentId + ' not found in export canvas');
+                    return;
+                }
+                
+                // Preserve <defs> containing <script> sections
+                const originalScripts = originalElement.querySelectorAll('defs script');
+                if (originalScripts.length > 0) {
+                    console.log(`Found ${originalScripts.length} script(s) to preserve for component ${componentId}`);
+                    
+                    // Ensure target component has <defs> section
+                    let defs = component.querySelector('defs');
+                    if (!defs) {
+                        defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                        component.appendChild(defs);
+                    }
+                    
+                    // Clone and append each script
+                    originalScripts.forEach(script => {
+                        const clonedScript = script.cloneNode(true);
+                        defs.appendChild(clonedScript);
+                    });
+                }
+            });
+            
+            // Add auto-init script after load for standalone operation
+            const autoInitScript = document.createElementNS('http://www.w3.org/2000/svg', 'script');
+            autoInitScript.textContent = `
+                // Auto-initialize all components after SVG is loaded
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Find all script elements in SVG and execute their initialization
+                    const scripts = document.querySelectorAll('svg script');
+                    scripts.forEach(script => {
+                        // Script content is already executed via browser
+                        console.log('Component script auto-initialized');
+                    });
+                });
+            `;
+            
+            // Add to main SVG defs
+            let mainDefs = exportCanvas.querySelector('defs');
+            if (!mainDefs) {
+                mainDefs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                exportCanvas.appendChild(mainDefs);
+            }
+            mainDefs.appendChild(autoInitScript);
+            
+            console.log('Successfully preserved component initialization scripts for export');
+        } catch (error) {
+            console.error("Error preserving component scripts:", error);
         }
     }
     

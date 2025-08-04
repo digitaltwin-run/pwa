@@ -36,85 +36,13 @@ export class ColorsManager {
         const currentColors = this.extractColorsFromElement(svgElement);
         
         return `
-            <div class="colors-section" style="margin-top: 15px; padding: 15px; background: linear-gradient(145deg, #f8f9fa, #e9ecef); border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                <h6 style="margin: 0 0 12px 0; color: #495057; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px;">🎨 <span>Kolory</span></h6>
-                
-                <!-- Current Colors -->
-                <div style="margin-bottom: 18px; background: #ffffff; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
-                    <label style="display: block; margin-bottom: 8px; font-size: 13px; color: #495057; font-weight: 500;">Aktualne kolory:</label>
-                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                        ${this.generateCurrentColorsDisplay(currentColors, svgElement)}
-                    </div>
-                </div>
-                
-                <!-- Color Presets -->
-                <div style="margin-bottom: 18px; background: #ffffff; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
-                    <label style="display: block; margin-bottom: 10px; font-size: 13px; color: #495057; font-weight: 500;" data-i18n="properties.quickColors">Szybkie kolory:</label>
-                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;">
-                        ${this.generateColorPresets(svgElement)}
-                    </div>
-                </div>
-                
-                <!-- Custom Color Picker -->
-                <div style="margin-bottom: 18px; background: #ffffff; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
-                    <label style="display: block; margin-bottom: 10px; font-size: 13px; color: #495057; font-weight: 500;" data-i18n="properties.customColor">Własny kolor:</label>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <input type="color" id="custom-color-${svgElement.id || 'element'}" 
-                               value="#ff0000"
-                               style="width: 50px; height: 35px; padding: 0; border: 2px solid #dee2e6; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                        <button onclick="window.colorsManager?.applyCustomColor('${svgElement.id || 'element'}')"
-                                style="padding: 8px 16px; background: linear-gradient(145deg, #007bff, #0056b3); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; box-shadow: 0 2px 4px rgba(0,123,255,0.3); transition: all 0.2s ease;"
-                                data-i18n="buttons.apply">
-                            Zastosuj
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Advanced Color Properties -->
-                <div style="background: #ffffff; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef; margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 12px; font-size: 13px; color: #495057; font-weight: 500;" data-i18n="properties.advancedSettings">Zaawansowane ustawienia:</label>
-                    
-                    <!-- Fill Color -->
-                    <div style="margin-bottom: 12px; padding: 8px; background: #f8f9fa; border-radius: 4px; display: flex; align-items: center; justify-content: space-between;">
-                        <span style="font-size: 12px; color: #495057; font-weight: 500;" data-i18n="properties.fill">Wypełnienie:</span>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="color" value="${currentColors.fill || '#000000'}"
-                                   onchange="window.colorsManager?.updateElementColor('${svgElement.id}', 'fill', this.value)"
-                                   style="width: 35px; height: 25px; border: 2px solid #dee2e6; border-radius: 4px; cursor: pointer;">
-                            <span style="font-size: 11px; color: #6c757d; font-family: monospace; background: #ffffff; padding: 2px 6px; border-radius: 3px; border: 1px solid #dee2e6;">${currentColors.fill || 'brak'}</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Stroke Color -->
-                    <div style="margin-bottom: 12px; padding: 8px; background: #f8f9fa; border-radius: 4px; display: flex; align-items: center; justify-content: space-between;">
-                        <span style="font-size: 12px; color: #495057; font-weight: 500;" data-i18n="properties.stroke">Obramowanie:</span>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="color" value="${currentColors.stroke || '#000000'}"
-                                   onchange="window.colorsManager?.updateElementColor('${svgElement.id}', 'stroke', this.value)"
-                                   style="width: 35px; height: 25px; border: 2px solid #dee2e6; border-radius: 4px; cursor: pointer;">
-                            <span style="font-size: 11px; color: #6c757d; font-family: monospace; background: #ffffff; padding: 2px 6px; border-radius: 3px; border: 1px solid #dee2e6;">${currentColors.stroke || 'brak'}</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Opacity -->
-                    <div style="margin-bottom: 0; padding: 8px; background: #f8f9fa; border-radius: 4px; display: flex; align-items: center; justify-content: space-between;">
-                        <span style="font-size: 12px; color: #495057; font-weight: 500;">Przezroczystość:</span>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="range" min="0" max="1" step="0.1" 
-                                   value="${currentColors.opacity || 1}"
-                                   onchange="window.colorsManager?.updateElementOpacity('${svgElement.id}', this.value)"
-                                   style="width: 80px; accent-color: #007bff;">
-                            <span style="font-size: 11px; color: #6c757d; font-family: monospace; background: #ffffff; padding: 2px 6px; border-radius: 3px; border: 1px solid #dee2e6; min-width: 35px; text-align: center;">${Math.round((currentColors.opacity || 1) * 100)}%</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Reset Button -->
-                <div style="margin-top: 0;">
-                    <button onclick="window.colorsManager?.resetElementColors('${svgElement.id}')"
-                            style="width: 100%; padding: 10px; background: linear-gradient(145deg, #6c757d, #5a6268); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; box-shadow: 0 2px 4px rgba(108,117,125,0.3); transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                        🔄 <span>Resetuj kolory</span>
-                    </button>
+            <div class="property-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; font-size: 13px; color: #495057; font-weight: 500;" data-i18n="properties.fill">Kolor:</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="color" value="${currentColors.fill || '#000000'}"
+                           onchange="window.colorsManager?.updateElementColor('${svgElement.id}', 'fill', this.value)"
+                           style="width: 40px; height: 30px; border: 2px solid #dee2e6; border-radius: 4px; cursor: pointer; padding: 0;">
+                    <span style="font-size: 12px; color: #6c757d; font-family: monospace; background: #f8f9fa; padding: 4px 8px; border-radius: 3px; border: 1px solid #dee2e6;">${currentColors.fill || 'brak'}</span>
                 </div>
             </div>
         `;
