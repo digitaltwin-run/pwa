@@ -187,7 +187,7 @@ export class PropertiesMapper {
                     });
                 }
             } catch (error) {
-                console.warn(`[PropertiesMapper] Failed to parse metadata for ${svgElement.getAttribute('data-id')}:`, error);
+                console.warn(`[PropertiesMapper] Failed to parse metadata for ${componentId}:`, error);
             }
         }
         
@@ -230,7 +230,7 @@ export class PropertiesMapper {
         return {
             id: svgElement.getAttribute('data-id'),
             type,
-            metadata: componentData.metadata || {},
+            metadata: {},
             svgAttributes,
             parameters,
             events,
@@ -240,6 +240,9 @@ export class PropertiesMapper {
             interactions: []
         };
     }
+
+    // (pozostałe metody klasy PropertiesMapper poniżej, np. extractElementProperties itd.)
+
 
     // Wyciągnij właściwości z pojedynczego elementu SVG
     extractElementProperties(svgElement, componentData) {
@@ -261,25 +264,7 @@ export class PropertiesMapper {
 
     // Wykryj typ komponentu na podstawie SVG i metadanych
     detectComponentType(svgElement, componentData) {
-        // Check if component registry is available first - new approach
-        if (typeof window.componentRegistry !== 'undefined') {
-            const svgUrl = svgElement.getAttribute('data-svg-url');
-            if (svgUrl) {
-                // Try to extract component type from URL using registry helper
-                const extractedType = window.componentRegistry.getComponentTypeFromUrl(svgUrl);
-                if (extractedType && extractedType !== 'unknown') {
-                    return extractedType;
-                }
-            }
-            
-            // Try to detect based on SVG element itself
-            const elementType = window.componentRegistry.getComponentTypeFromElement(svgElement);
-            if (elementType && elementType !== 'unknown') {
-                return elementType;
-            }
-        }
-
-        // Sprawdź metadane (legacy approach)
+        // Sprawdź metadane
         if (componentData.metadata && componentData.metadata.type) {
             return componentData.metadata.type;
         }
@@ -293,8 +278,6 @@ export class PropertiesMapper {
         if (classNames.includes('display')) return 'display';
         if (classNames.includes('gauge')) return 'gauge';
         if (classNames.includes('motor')) return 'motor';
-        if (classNames.includes('pump')) return 'pump';
-        if (classNames.includes('valve')) return 'valve';
 
         // Wykryj na podstawie elementów potomnych
         if (svgElement.querySelector('circle')) return 'button';
@@ -351,15 +334,6 @@ export class PropertiesMapper {
 
     // Pobierz dostępne zdarzenia dla komponentu
     getAvailableEvents(svgElement) {
-        // Try to get events from component registry first
-        if (typeof window.componentRegistry !== 'undefined') {
-            const componentType = this.detectComponentType(svgElement, {});
-            const metadata = window.componentRegistry.getMetadata(componentType);
-            if (metadata && Array.isArray(metadata.events)) {
-                return metadata.events;
-            }
-        }
-        
         // Wyciągnij metadane z SVG (tak samo jak w extractElementPropertiesFromSvg)
         let componentData = {};
         const dataMetadata = svgElement.getAttribute('data-metadata');
@@ -382,8 +356,6 @@ export class PropertiesMapper {
             'display': ['change', 'update', 'clear'],
             'gauge': ['change', 'min', 'max', 'threshold'],
             'motor': ['start', 'stop', 'change', 'speed'],
-            'pump': ['start', 'stop', 'change', 'speed', 'toggle'],
-            'valve': ['open', 'close', 'toggle', 'set'],
             'unknown': ['click', 'change']
         };
 
@@ -453,7 +425,7 @@ export class PropertiesMapper {
     // Dodaj zmienne do globalnej mapy zmiennych
     addVariablesToMap(componentId, properties) {
         const componentName = properties.metadata.name || componentId;
-
+        
         // Dodaj parametry jako zmienne
         Object.entries(properties.parameters).forEach(([paramName, paramData]) => {
             const variableName = `${componentName}.${paramName}`;
@@ -549,82 +521,198 @@ export class PropertiesMapper {
                 case 'toggle':
                     if (varData.type === 'boolean' && varData.writable) {
                         variables.push({
-                            name: varName,
-                            type: varData.type,
-                            componentId: varData.componentId,
-                            parameter: varData.parameter
-                        });
-                    }
-                    break;
-            }
-        });
 
-        return variables;
-    }
+// Wyciągnij kolory z elementu SVG
+extractColors(svgElement) {
+    const colors = {};
+    
+    // Sprawdź atrybuty fill i stroke
+    const fill = svgElement.getAttribute('fill');
+    const stroke = svgElement.getAttribute('stroke');
+    
+    if (fill && fill !== 'none') colors.fill = fill;
+    if (stroke && stroke !== 'none') colors.stroke = stroke;
 
-    // Odśwież panele interakcji po zmianie mappingu
-    refreshInteractionPanels() {
-        try {
-            const targets = this.getAvailableTargetComponents();
-            console.log(`[PropertiesMapper] Refreshing interaction panels with ${targets.length} targets`);
-            
-            // Find all target component selects and refresh them
-            const targetSelects = document.querySelectorAll('select[onchange*="target"], select[data-target-select="true"]');
-            let refreshed = 0;
-            
-            if (targetSelects.length > 0) {
-                targetSelects.forEach(select => {
-                    const currentValue = select.value;
-                    select.innerHTML = '<option value="">Wybierz komponent</option>';
-                    
-                    targets.forEach(target => {
-                        const option = document.createElement('option');
-                        option.value = target.id;
-                        
-                        // Format option text based on target information
-                        const typeInfo = target.type !== 'unknown' ? ` (${target.type})` : '';
-                        const paramCount = target.parameters ? target.parameters.length : 0;
-                        option.textContent = `${target.name}${typeInfo} - ${paramCount} param.`;
-                        
-                        // Keep selection if it was previously selected
-                        if (target.id === currentValue) {
-                            option.selected = true;
-                        }
-                        
-                        select.appendChild(option);
-                    });
-                    refreshed++;
-                    
-                    // Mark the select as refreshed to detect it easier next time
-                    if (!select.hasAttribute('data-target-select')) {
-                        select.setAttribute('data-target-select', 'true');
-                    }
-                    
-                    // Dispatch a change event to notify any listeners
-                    const event = new Event('change');
-                    select.dispatchEvent(event);
-                });
-            } else {
-                // Try searching for interaction panels that might be created after this method runs
-                setTimeout(() => this.refreshInteractionPanels(), 500);
-            }
-            
-            console.log(`[PropertiesMapper] Refreshed ${refreshed}/${targetSelects.length} target selects`);
-            
-            // Dispatch a global event that interaction panels were refreshed
-            document.dispatchEvent(new CustomEvent('interaction-panels-refreshed', {
-                detail: { targetsCount: targets.length }
-            }));
-        } catch (error) {
-            console.error('[PropertiesMapper] Error refreshing interaction panels:', error);
-        }
-    }
-
-    // Pobierz dostępne komponenty docelowe dla interakcji
-    getAvailableTargetComponents() {
-        const components = [];
+    // Sprawdź elementy potomne z kolorami
+    const coloredElements = svgElement.querySelectorAll('[fill], [stroke]');
+    coloredElements.forEach((el, index) => {
+        const className = el.getAttribute('class') || `element-${index}`;
+        const elFill = el.getAttribute('fill');
+        const elStroke = el.getAttribute('stroke');
         
-        this.mappedProperties.forEach((props, id) => {
+        if (elFill && elFill !== 'none') colors[`${className}-fill`] = elFill;
+        if (elStroke && elStroke !== 'none') colors[`${className}-stroke`] = elStroke;
+    });
+
+    return colors;
+}
+
+// Wyciągnij pozycję elementu
+extractPosition(svgElement) {
+    return {
+        x: parseFloat(svgElement.getAttribute('x')) || 0,
+        y: parseFloat(svgElement.getAttribute('y')) || 0,
+        width: parseFloat(svgElement.getAttribute('width')) || 0,
+        height: parseFloat(svgElement.getAttribute('height')) || 0
+    };
+}
+
+// Wyciągnij istniejące interakcje
+extractInteractions(componentData) {
+    if (componentData.metadata && componentData.metadata.interactions) {
+        return componentData.metadata.interactions;
+    }
+    return [];
+}
+
+// Dodaj zmienne do globalnej mapy zmiennych
+addVariablesToMap(componentId, properties) {
+    const componentName = properties.metadata.name || componentId;
+    
+    // Dodaj parametry jako zmienne
+    Object.entries(properties.parameters).forEach(([paramName, paramData]) => {
+        const variableName = `${componentName}.${paramName}`;
+        this.availableVariables.set(variableName, {
+            componentId: componentId,
+            parameter: paramName,
+            type: paramData.type,
+            writable: paramData.writable,
+            readable: paramData.readable,
+            currentValue: paramData.value
+        });
+    });
+
+    // Dodaj stany jako zmienne
+    Object.entries(properties.states).forEach(([stateName, stateValue]) => {
+        const variableName = `${componentName}.${stateName}`;
+        this.availableVariables.set(variableName, {
+            componentId: componentId,
+            parameter: stateName,
+            type: 'state',
+            writable: true,
+            readable: true,
+            currentValue: stateValue
+        });
+    });
+
+    // Dodaj kolory jako zmienne
+    Object.entries(properties.colors).forEach(([colorName, colorValue]) => {
+        const variableName = `${componentName}.${colorName}`;
+        this.availableVariables.set(variableName, {
+            componentId: componentId,
+            parameter: colorName,
+            type: 'color',
+            writable: true,
+            readable: true,
+            currentValue: colorValue
+        });
+    });
+}
+
+// Eksportuj zmapowane właściwości do JSON
+exportToMetadataJson() {
+    const metadata = {
+        timestamp: new Date().toISOString(),
+        components: Object.fromEntries(this.mappedProperties),
+        variables: Object.fromEntries(this.availableVariables),
+        summary: {
+            totalComponents: this.mappedProperties.size,
+            totalVariables: this.availableVariables.size,
+            componentTypes: this.getComponentTypesSummary()
+        }
+    };
+
+    return metadata;
+}
+
+// Pobierz podsumowanie typów komponentów
+getComponentTypesSummary() {
+    const types = {};
+    this.mappedProperties.forEach((props) => {
+        types[props.type] = (types[props.type] || 0) + 1;
+    });
+    return types;
+}
+
+// Pobierz zmienne dostępne dla konkretnego typu akcji
+getVariablesForActionType(actionType) {
+    const variables = [];
+
+    this.availableVariables.forEach((varData, varName) => {
+        switch (actionType) {
+            case 'set':
+                if (varData.writable) {
+                    variables.push({
+                        name: varName,
+                        type: varData.type,
+                        componentId: varData.componentId,
+                        parameter: varData.parameter
+                    });
+                }
+                break;
+            case 'get':
+            case 'read':
+                if (varData.readable) {
+                    variables.push({
+                        name: varName,
+                        type: varData.type,
+                        componentId: varData.componentId,
+                        parameter: varData.parameter
+                    });
+                }
+                break;
+            case 'toggle':
+                if (varData.type === 'boolean' && varData.writable) {
+                    variables.push({
+                        name: varName,
+                        type: varData.type,
+                        componentId: varData.componentId,
+                        parameter: varData.parameter
+                    });
+                }
+                break;
+        }
+    });
+
+    return variables;
+}
+
+// Odśwież panele interakcji po zmianie mappingu
+refreshInteractionPanels() {
+    try {
+        const targets = this.getAvailableTargetComponents();
+        console.log(`[PropertiesMapper] Refreshing interaction panels with ${targets.length} targets`);
+
+        // Find all target component selects and refresh them
+        const targetSelects = document.querySelectorAll('select[onchange*="target"], select[data-target-select="true"]');
+        let refreshed = 0;
+
+        if (targetSelects.length > 0) {
+            targetSelects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Wybierz komponent</option>';
+
+                targets.forEach(target => {
+                    const option = document.createElement('option');
+                    option.value = target.id;
+
+                    // Format option text based on target information
+                    const typeInfo = target.type !== 'unknown' ? ` (${target.type})` : '';
+                    const paramCount = target.parameters ? target.parameters.length : 0;
+                    option.textContent = `${target.name}${typeInfo} - ${paramCount} param.`;
+
+                    // Keep selection if it was previously selected
+                    if (target.id === currentValue) {
+                        option.selected = true;
+                    }
+
+                    select.appendChild(option);
+                });
+                refreshed++;
+
+                // Mark the select as refreshed to detect it easier next time
+                if (!select.hasAttribute('data-target-select')) {
+                    select.setAttribute('data-target-select', 'true');
             // Get component name using various fallback methods
             let name = id;
             if (props.svgAttributes) {
@@ -689,8 +777,6 @@ export class PropertiesMapper {
             if (shouldRefresh) {
                 console.log('Canvas changed, refreshing property mapping...');
                 this.scanCanvasProperties();
-                // Also refresh interaction panels when the canvas changes
-                this.refreshInteractionPanels();
             }
         });
 

@@ -1,0 +1,58 @@
+{
+  "testSuite": "Puppeteer E2E Tests",
+  "timestamp": "2025-08-04T08:53:00.130Z",
+  "totalTests": 8,
+  "passed": 0,
+  "failed": 8,
+  "skipped": 0,
+  "results": [
+    {
+      "testName": "Application Loading",
+      "status": "FAIL",
+      "error": "Waiting for selector `#svg-canvas` failed: Protocol error (Runtime.callFunctionOn): Target closed",
+      "timestamp": "2025-08-04T08:53:00.026Z"
+    },
+    {
+      "testName": "Drag and Drop",
+      "status": "FAIL",
+      "error": "Execution context was destroyed",
+      "timestamp": "2025-08-04T08:53:00.126Z"
+    },
+    {
+      "testName": "Properties Panel",
+      "status": "FAIL",
+      "error": "Attempted to use detached Frame 'A4A6C9F046C9B5C0EB1AA75A17E8FCA9'.",
+      "timestamp": "2025-08-04T08:53:00.127Z"
+    },
+    {
+      "testName": "Interactions System",
+      "status": "FAIL",
+      "error": "Attempted to use detached Frame 'A4A6C9F046C9B5C0EB1AA75A17E8FCA9'.",
+      "timestamp": "2025-08-04T08:53:00.127Z"
+    },
+    {
+      "testName": "Responsive - Mobile",
+      "status": "FAIL",
+      "error": "Protocol error (Emulation.setTouchEmulationEnabled): Session closed. Most likely the page has been closed.",
+      "timestamp": "2025-08-04T08:53:00.128Z"
+    },
+    {
+      "testName": "Responsive - Tablet",
+      "status": "FAIL",
+      "error": "Protocol error (Emulation.setTouchEmulationEnabled): Session closed. Most likely the page has been closed.",
+      "timestamp": "2025-08-04T08:53:00.129Z"
+    },
+    {
+      "testName": "Responsive - Desktop",
+      "status": "FAIL",
+      "error": "Protocol error (Emulation.setTouchEmulationEnabled): Session closed. Most likely the page has been closed.",
+      "timestamp": "2025-08-04T08:53:00.129Z"
+    },
+    {
+      "testName": "Responsive - Large Desktop",
+      "status": "FAIL",
+      "error": "Protocol error (Emulation.setTouchEmulationEnabled): Session closed. Most likely the page has been closed.",
+      "timestamp": "2025-08-04T08:53:00.130Z"
+    }
+  ]
+}

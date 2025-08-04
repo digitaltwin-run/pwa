@@ -1,0 +1,92 @@
+{
+  "version": "1.0.0",
+  "components": [
+    {
+      "type": "pump",
+      "name": "Pump",
+      "category": "Fluid",
+      "description": "A fluid pump component",
+      "modulePath": "/js/components/pump.js",
+      "svgPath": "/components/pump.svg",
+      "parameters": ["isOn", "flowRate", "pressure", "temperature"],
+      "events": ["click", "pump-state-change", "pump-ready"],
+      "actions": ["turnOn", "turnOff", "toggleState", "setFlowRate", "setPressure"]
+    },
+    {
+      "type": "valve",
+      "name": "Valve",
+      "category": "Fluid",
+      "description": "A control valve component",
+      "modulePath": "/js/components/valve.js",
+      "svgPath": "/components/valve.svg",
+      "parameters": ["isOpen", "openPercentage", "pressure"],
+      "events": ["click", "valve-state-change"],
+      "actions": ["open", "close", "toggle", "setOpenPercentage"]
+    },
+    {
+      "type": "sensor",
+      "name": "Sensor",
+      "category": "Measurement",
+      "description": "A measurement sensor component",
+      "modulePath": "/js/components/sensor.js",
+      "svgPath": "/components/sensor.svg",
+      "parameters": ["value", "unit", "minValue", "maxValue", "alarmThreshold"],
+      "events": ["value-change", "alarm"],
+      "actions": ["measure", "calibrate", "setAlarmThreshold"]
+    },
+    {
+      "type": "tank",
+      "name": "Tank",
+      "category": "Storage",
+      "description": "A fluid storage tank component",
+      "modulePath": "/js/components/tank.js",
+      "svgPath": "/components/tank.svg",
+      "parameters": ["level", "capacity", "temperature", "pressure"],
+      "events": ["level-change"],
+      "actions": ["fill", "drain", "setLevel"]
+    },
+    {
+      "type": "display",
+      "name": "Display",
+      "category": "Interface",
+      "description": "A digital display component",
+      "modulePath": "/js/components/display.js",
+      "svgPath": "/components/display.svg",
+      "parameters": ["value", "label", "unit", "precision", "color"],
+      "events": ["value-change"],
+      "actions": ["setValue", "setLabel", "setPrecision", "setColor"]
+    },
+    {
+      "type": "button",
+      "name": "Button",
+      "category": "Interface",
+      "description": "An interactive button component",
+      "modulePath": "/js/components/button.js",
+      "svgPath": "/components/button.svg",
+      "parameters": ["label", "isPressed", "isEnabled"],
+      "events": ["click", "press", "release"],
+      "actions": ["press", "release", "toggle", "enable", "disable"]
+    },
+    {
+      "type": "pipe",
+      "name": "Pipe",
+      "category": "Connection",
+      "description": "A fluid pipe connector component",
+      "modulePath": "/js/components/pipe.js",
+      "svgPath": "/components/pipe.svg",
+      "parameters": ["flowRate", "diameter", "material"],
+      "events": ["flow-change"],
+      "actions": ["setFlowRate"]
+    }
+  ],
+  "preload": ["pump", "valve", "sensor", "tank", "display"],
+  "categories": [
+    "Fluid",
+    "Measurement",
+    "Storage",
+    "Interface",
+    "Connection",
+    "Control",
+    "Electrical"
+  ]
+}
