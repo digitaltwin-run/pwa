@@ -18,144 +18,65 @@
     </metadata>
 
     <defs>
-(function() {
-                // Create instance-specific sensor state
-                var sensorInstance = {
-                    value: 25,
-                    min: -20,
-                    max: 120,
-                    unit: '°C',
-                    variance: 2,
-                    updateInterval: 1000,
-                    isActive: true,
-                    targetValue: 25,
-                    animationFrame: null,
-                    svgElement: null
-                };
-
-                function initSensorInstance(evt) {
-                    var svgEl = evt.target;
-                    // Find the parent SVG element that contains this script
-                    while (svgEl && svgEl.tagName !== 'svg') {
-                        svgEl = svgEl.parentNode;
-                    }
-                    
-                    if (!svgEl) {
-                        console.error('Could not find parent SVG element for sensor');
-                        return;
-                    }
-                    
-                    sensorInstance.svgElement = svgEl;
-                    
-                    // Mark this SVG as initialized to prevent double initialization
-                    if (svgEl.getAttribute('data-sensor-initialized')) {
-                        return;
-                    }
-                    svgEl.setAttribute('data-sensor-initialized', 'true');
-                    
-                    var params = getParameters(svgEl);
-                    
-                    // Initialize parameters
-                    sensorInstance.value = parseFloat(params.value) || 25;
-                    sensorInstance.min = parseFloat(params.minValue) || -20;
-                    sensorInstance.max = parseFloat(params.maxValue) || 120;
-                    sensorInstance.unit = params.unit || '°C';
-                    sensorInstance.variance = parseFloat(params.variance) || 2;
-                    sensorInstance.updateInterval = parseInt(params.updateInterval) || 1000;
-                    sensorInstance.isActive = params.isActive !== 'false';
-                    sensorInstance.targetValue = sensorInstance.value;
-                    
-                    // Store instance reference on SVG element
-                    svgEl.sensorInstance = sensorInstance;
-                    
-                    // Set initial state
-                    updateSensorDisplay(svgEl);
-                    
-                    // Start simulation
-                    startSensorSimulation(svgEl);
-                    
-                    console.log('Sensor initialized for SVG element:', svgEl.getAttribute('data-id'));
-                }
-                
-                function getParameters(svg) {
-                    var params = {};
-                    var parametersElements = svg.getElementsByTagName('parameters');
-                    if (parametersElements.length > 0) {
-                        var paramElements = parametersElements[0].children;
-                        for (var i = 0; i < paramElements.length; i++) {
-                            var el = paramElements[i];
-                            params[el.tagName] = el.textContent;
-                        }
-                    }
-                    return params;
-                }
-                
-                function startSensorSimulation(svg) {
-                    if (!svg || !svg.sensorInstance) return;
-                    
-                    var instance = svg.sensorInstance;
-                    
-                    if (instance.animationFrame) {
-                        clearTimeout(instance.animationFrame);
-                    }
-                    
-                    function update() {
-                        if (!svg.isConnected) {
-                            // Clean up if element was removed
-                            if (instance.animationFrame) {
-                                clearTimeout(instance.animationFrame);
-                                instance.animationFrame = null;
+        <script>
+        <![CDATA[
+            (function() {
+                // Function to read metadata from SVG
+                function getMetadata(svgElement) {
+                    var metadataElement = svgElement.querySelector('metadata component');
+                    if (metadataElement) {
+                        try {
+                            var parametersElement = metadataElement.querySelector('parameters');
+                            if (parametersElement) {
+                                var result = {
+                                    parameters: {
+                                        value: parseFloat(parametersElement.querySelector('value')?.textContent || '50'),
+                                        valueMin: parseFloat(parametersElement.querySelector('minValue')?.textContent || '0'),
+                                        valueMax: parseFloat(parametersElement.querySelector('maxValue')?.textContent || '100'),
+                                        unit: parametersElement.querySelector('unit')?.textContent || '%',
+                                        threshold: parseFloat(parametersElement.querySelector('threshold')?.textContent || '75'),
+                                        isActive: parametersElement.querySelector('isActive')?.textContent !== 'false',
+                                        label: parametersElement.querySelector('label')?.textContent || 'Sensor'
+                                    }
+                                };
+                                return result;
                             }
-                            return;
+                        } catch (e) {
+                            console.warn('Error parsing sensor metadata:', e);
                         }
-                        
-                        if (instance.isActive) {
-                            // Add small random variation to simulate real sensor
-                            var variation = (Math.random() * 2 - 1) * instance.variance;
-                            instance.value = Math.max(instance.min, 
-                                                       Math.min(instance.max, 
-                                                               instance.targetValue + variation));
-                            
-                            updateSensorDisplay(svg);
-                        }
-                        
-                        instance.animationFrame = setTimeout(update, instance.updateInterval);
                     }
-                    
-                    update();
+                    return {};
                 }
-                
-                function updateSensorDisplay(svg) {
-                    if (!svg || !svg.sensorInstance) return;
+
+                // Function to update sensor display
+                function updateSensor(svgElement) {
+                    var metadata = getMetadata(svgElement);
+                    var params = metadata.parameters || {};
                     
-                    var instance = svg.sensorInstance;
-                    var valueText = svg.querySelector('#value');
-                    var indicator = svg.querySelector('#indicator');
-                    
-                    if (valueText) {
-                        valueText.textContent = Math.round(instance.value * 10) / 10 + instance.unit;
+                    var gauge = svgElement.querySelector('.sensor-gauge');
+                    if (gauge) {
+                        var percentage = (params.value - params.valueMin) / (params.valueMax - params.valueMin);
+                        percentage = Math.max(0, Math.min(1, percentage));
+                        var height = 25 * percentage;
+                        gauge.setAttribute('height', height);
+                        gauge.setAttribute('y', 35 - height);
                     }
                     
+                    var valueText = svgElement.querySelector('.sensor-value');
+                    if (valueText) {
+                        valueText.textContent = params.value.toFixed(1) + params.unit;
+                    }
+                    
+                    var indicator = svgElement.querySelector('.sensor-indicator');
                     if (indicator) {
-                        // Update indicator color based on value
-                        var normalized = (instance.value - instance.min) / 
-                                       (instance.max - instance.min);
-                        
-                        // Calculate color gradient from blue to red
-                        var r, g, b;
-                        if (normalized < 0.5) {
-                            // Blue to green
-                            r = Math.round(0 * 255);
-                            g = Math.round(normalized * 2 * 255);
-                            b = Math.round((1 - normalized * 2) * 255);
-                        } else {
-                            // Green to red
-                            r = Math.round((normalized - 0.5) * 2 * 255);
-                            g = Math.round((1 - (normalized - 0.5) * 2) * 255);
-                            b = 0;
+                        var color = '#2ecc71'; // Normal (green)
+                        if (!params.isActive) {
+                            color = '#95a5a6'; // Inactive (gray)
+                        } else if (params.value >= params.threshold) {
+                            color = '#e74c3c'; // Over threshold (red)
+                        } else if (params.value >= params.threshold * 0.8) {
+                            color = '#f39c12'; // Warning (orange)
                         }
-                        
-                        var color = 'rgb(' + r + ', ' + g + ', ' + b + ')';
                         indicator.setAttribute('fill', color);
                     }
                 }

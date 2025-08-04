@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="80" height="60" viewBox="0 0 80 60" onload="initDisplay(evt)" preserveAspectRatio="none" data-component-params="label,color,url,refreshinterval,isactive,aspectratio,allowfullscreen,scalex,scaley,minwidth,minheight,preserveaspectratio,originalwidth,originalheight,padding,statusbarheight,ison,isblinking,blinkrate">
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="60" viewBox="0 0 80 60" preserveAspectRatio="none" data-component-params="label,color,url,refreshinterval,isactive,aspectratio,allowfullscreen,scalex,scaley,minwidth,minheight,preserveaspectratio,originalwidth,originalheight,padding,statusbarheight,ison,isblinking,blinkrate">
     <metadata>
         <component id="display-001" name="HTML Display" type="display">
             <parameters>
@@ -19,176 +19,43 @@
                 <originalHeight>60</originalHeight>
                 <padding>5</padding>
                 <statusBarHeight>12</statusBarHeight>
-            <ison>false</ison><isblinking>false</isblinking><blinkrate>500</blinkrate></parameters>
+                <ison>false</ison><isblinking>false</isblinking><blinkrate>500</blinkrate></parameters>
         </component>
     </metadata>
 
     <defs>
-        <script type="text/ecmascript">
+        <script>
         <![CDATA[
-            var displayParams = {
-                // These will be populated from metadata
-                refreshTimer: null,
-                
-                // Default values (will be overridden by metadata)
-                url: 'about:blank',
-                refreshInterval: 0,
-                isActive: true,
-                aspectRatio: '16:9',
-                allowFullScreen: true,
-                scaleX: 1.0,
-                scaleY: 1.0,
-                minWidth: 40,
-                minHeight: 30,
-                preserveAspectRatio: true,
-                originalWidth: 80,
-                originalHeight: 60,
-                padding: 5,
-                statusBarHeight: 12
-            };
-            
-            // Helper function to get parameter value with default
-            function getParam(params, name, defaultValue) {
-                const value = params[name];
-                if (value === undefined || value === '') return defaultValue;
-                
-                // Convert string values to appropriate types
-                if (typeof defaultValue === 'number') return parseFloat(value) || defaultValue;
-                if (typeof defaultValue === 'boolean') return value !== 'false' && value !== false;
-                return value;
-            }
+            (function() {
+                // Function to read metadata from SVG
+                function getMetadata(svgElement) {
+                    var metadataElement = svgElement.querySelector('metadata component');
+                    if (metadataElement) {
+                        try {
+                            var parametersElement = metadataElement.querySelector('parameters');
+                            if (parametersElement) {
+                                var result = {
+                                    parameters: {
+                                        url: parametersElement.querySelector('url')?.textContent || 'about:blank',
+                                        refreshInterval: parseInt(parametersElement.querySelector('refreshInterval')?.textContent || '0'),
+                                        isActive: parametersElement.querySelector('isActive')?.textContent !== 'false',
+                                        aspectRatio: parametersElement.querySelector('aspectRatio')?.textContent || '16:9',
+                                        label: parametersElement.querySelector('label')?.textContent || 'Display'
+                                    }
+                                };
+                                return result;
+                            }
+                        } catch (e) {
+                            console.warn('Error parsing display metadata:', e);
+                        }
+                    }
+                    return {};
+                }
 
-            function initDisplay(evt) {
-                var svg = evt.target.ownerDocument;
-                var svgRoot = svg.documentElement;
-                var params = getParameters(svg);
-                
-                // Load all parameters from metadata with defaults
-                displayParams.url = getParam(params, 'url', 'about:blank');
-                displayParams.refreshInterval = getParam(params, 'refreshInterval', 0);
-                displayParams.isActive = getParam(params, 'isActive', true);
-                displayParams.aspectRatio = getParam(params, 'aspectRatio', '16:9');
-                displayParams.allowFullScreen = getParam(params, 'allowFullScreen', true);
-                displayParams.scaleX = getParam(params, 'scaleX', 1.0);
-                displayParams.scaleY = getParam(params, 'scaleY', 1.0);
-                displayParams.minWidth = getParam(params, 'minWidth', 40);
-                displayParams.minHeight = getParam(params, 'minHeight', 30);
-                displayParams.preserveAspectRatio = getParam(params, 'preserveAspectRatio', true);
-                displayParams.originalWidth = getParam(params, 'originalWidth', 80);
-                displayParams.originalHeight = getParam(params, 'originalHeight', 60);
-                displayParams.padding = getParam(params, 'padding', 5);
-                displayParams.statusBarHeight = getParam(params, 'statusBarHeight', 12);
-                
-                // Calculate derived values
-                displayParams.originalViewBox = '0 0 ' + displayParams.originalWidth + ' ' + displayParams.originalHeight;
-                
-                // Apply initial scaling
-                applyScaling(svgRoot);
-                
-                // Create iframe container
-                createIframeContainer(svg);
-                
-                // Load initial content
-                updateDisplay(svg);
-                
-                // Make the display resizable
-                makeResizable(svg, svgRoot);
-            }
-            
-            function getParameters(svg) {
-                var params = {};
-                var paramElements = svg.getElementsByTagName('parameters')[0].children;
-                for (var i = 0; i < paramElements.length; i++) {
-                    var el = paramElements[i];
-                    params[el.tagName] = el.textContent;
-                }
-                return params;
-            }
-            
-            function createIframeContainer(svg) {
-                // Create foreignObject for HTML content
-                var foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-                foreignObject.setAttribute('x', '5');
-                foreignObject.setAttribute('y', '5');
-                foreignObject.setAttribute('width', '70');
-                foreignObject.setAttribute('height', '50');
-                foreignObject.setAttribute('id', 'displayContent');
-                
-                // Add to SVG
-                svg.documentElement.appendChild(foreignObject);
-            }
-            
-            function updateDisplay(svg) {
-                var displayContent = svg.getElementById('displayContent');
-                if (!displayContent) return;
-                
-                // Clear existing content
-                while (displayContent.firstChild) {
-                    displayContent.removeChild(displayContent.firstChild);
-                }
-                
-                if (!displayParams.isActive || !displayParams.url) {
-                    // Show placeholder when inactive or no URL
-                    var placeholder = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
-                    placeholder.style.width = '100%';
-                    placeholder.style.height = '100%';
-                    placeholder.style.backgroundColor = '#ecf0f1';
-                    placeholder.style.display = 'flex';
-                    placeholder.style.alignItems = 'center';
-                    placeholder.style.justifyContent = 'center';
-                    placeholder.style.color = '#7f8c8d';
-                    placeholder.style.fontFamily = 'Arial, sans-serif';
-                    placeholder.style.fontSize = '10px';
-                    placeholder.textContent = displayParams.url || 'No content';
-                    displayContent.appendChild(placeholder);
-                    return;
-                }
-                
-                try {
-                    // Create iframe
-                    var iframe = document.createElementNS('http://www.w3.org/1999/xhtml', 'iframe');
-                    iframe.setAttribute('width', '100%');
-                    iframe.setAttribute('height', '100%');
-                    iframe.setAttribute('frameborder', '0');
-                    iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-popups allow-forms');
-                    iframe.setAttribute('src', displayParams.url);
-                    
-                    if (displayParams.allowFullScreen) {
-                        iframe.setAttribute('allowfullscreen', '');
-                    }
-                    
-                    // Apply aspect ratio
-                    var [w, h] = displayParams.aspectRatio.split(':').map(Number);
-                    if (w && h) {
-                        var ratio = h / w;
-                        iframe.style.aspectRatio = `${w} / ${h}`;
-                    }
-                    
-                    displayContent.appendChild(iframe);
-                    
-                    // Set up refresh if needed
-                    setupRefreshTimer(svg);
-                    
-                } catch (e) {
-                    console.error('Error loading display content:', e);
-                }
-            }
-            
-            function setupRefreshTimer(svg) {
-                // Clear existing timer
-                if (displayParams.refreshTimer) {
-                    clearTimeout(displayParams.refreshTimer);
-                    displayParams.refreshTimer = null;
-                }
-                
-                // Set up new timer if refresh interval is positive
-                if (displayParams.refreshInterval > 0) {
-                    displayParams.refreshTimer = setTimeout(function() {
-                        updateDisplay(svg);
-                    }, displayParams.refreshInterval * 1000);
-                }
-            }
-            
+                // Function to update display
+                function updateDisplay(svgElement) {
+                    var metadata = getMetadata(svgElement);
+                    var params = metadata.parameters || {};
             // Public API
             function setDisplayUrl(url) {
                 displayParams.url = url || 'about:blank';

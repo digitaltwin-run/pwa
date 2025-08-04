@@ -241,9 +241,9 @@ export class PropertiesManager {
         // Add delete button
         html += `
             <div class="d-grid gap-2 mt-3">
-                <button class="btn btn-danger btn-sm" onclick="removeComponent('${id}')">
-                    <i class="bi bi-trash"></i> Usuń komponent
-                </button>
+                <button class="btn btn-danger btn-sm" onclick="removeComponent('${id}')" data-i18n="properties.removeComponent">
+                <i class="bi bi-trash"></i> Usuń komponent
+            </button>
             </div>
             
             <div class="mt-3 small text-muted">
@@ -340,7 +340,7 @@ export class PropertiesManager {
         let html = '';
         
         if (componentData.metadata && componentData.metadata.parameters) {
-            html += '<h5>Parametry:</h5>';
+            html += '<h5 data-i18n="properties.parameters">Parametry:</h5>';
 
             for (const [key, param] of Object.entries(componentData.metadata.parameters)) {
                 const label = this.componentManager.formatLabel(key);
@@ -373,7 +373,7 @@ export class PropertiesManager {
         
         // Dodaj parametr
         html += `
-            <button id="add-param-btn-${componentData.id}" class="btn btn-success" style="margin-top: 10px;">
+            <button id="add-param-btn-${componentData.id}" class="btn btn-success" style="margin-top: 10px;" data-i18n="properties.addParameter">
                 ➕ Dodaj parametr
             </button>
         `;

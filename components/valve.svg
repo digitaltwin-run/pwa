@@ -17,151 +17,151 @@
     </metadata>
 
     <defs>
-        <script type="text/ecmascript">
+        <script>
         <![CDATA[
             (function() {
-                // Create instance-specific valve state
-                var valveInstance = {
-                    position: 50,
-                    min: 0,
-                    max: 100,
-                    unit: '%',
-                    isMoving: false,
-                    targetPosition: 50,
-                    animationSpeed: 1,
-                    animationId: null,
-                    svgElement: null
-                };
-
-                function initValveInstance(evt) {
-                    var svgEl = evt.target;
-                    // Find the parent SVG element that contains this script
-                    while (svgEl && svgEl.tagName !== 'svg') {
-                        svgEl = svgEl.parentNode;
-                    }
-                    
-                    if (!svgEl) {
-                        console.error('Could not find parent SVG element for valve');
-                        return;
-                    }
-                    
-                    valveInstance.svgElement = svgEl;
-                    
-                    // Mark this SVG as initialized to prevent double initialization
-                    if (svgEl.getAttribute('data-valve-initialized')) {
-                        return;
-                    }
-                    svgEl.setAttribute('data-valve-initialized', 'true');
-                    
-                    var params = getParameters(svgEl);
-                    
-                    // Initialize parameters
-                    valveInstance.position = parseFloat(params.position) || 50;
-                    valveInstance.min = parseFloat(params.positionMin) || 0;
-                    valveInstance.max = parseFloat(params.positionMax) || 100;
-                    valveInstance.unit = params.unit || '%';
-                    valveInstance.animationSpeed = parseFloat(params.animationSpeed) || 1;
-                    valveInstance.targetPosition = valveInstance.position;
-                    
-                    // Store instance reference on SVG element
-                    svgEl.valveInstance = valveInstance;
-                    
-                    // Set initial state
-                    updateValveDisplay(svgEl);
-                    
-                    // Start animation loop
-                    animate(svgEl);
-                    
-                    console.log('Valve initialized for SVG element:', svgEl.getAttribute('data-id'));
-                }
-                
-                function getParameters(svg) {
-                    var params = {};
-                    var parametersElements = svg.getElementsByTagName('parameters');
-                    if (parametersElements.length > 0) {
-                        var paramElements = parametersElements[0].children;
-                        for (var i = 0; i < paramElements.length; i++) {
-                            var el = paramElements[i];
-                            params[el.tagName] = el.textContent;
+                // Function to read metadata from SVG
+                function getMetadata(svgElement) {
+                    var metadataElement = svgElement.querySelector('metadata component');
+                    if (metadataElement) {
+                        try {
+                            var parametersElement = metadataElement.querySelector('parameters');
+                            if (parametersElement) {
+                                var result = {
+                                    parameters: {
+                                        isOpen: parametersElement.querySelector('isOpen')?.textContent === 'true',
+                                        position: parseFloat(parametersElement.querySelector('position')?.textContent || '0'),
+                                        label: parametersElement.querySelector('label')?.textContent || 'Valve'
+                                    }
+                                };
+                                return result;
+                            }
+                        } catch (e) {
+                            console.warn('Error parsing valve metadata:', e);
                         }
                     }
-                    return params;
+                    return {};
                 }
-                
-                function animate(svg) {
-                    if (!svg || !svg.valveInstance) return;
+
+                // Function to update valve display
+                function updateValve(svgElement) {
+                    var metadata = getMetadata(svgElement);
+                    var params = metadata.parameters || {};
                     
-                    updateValve(svg);
+                    var disc = svgElement.querySelector('.valve-disc');
+                    if (disc) {
+                        var rotation = params.position * 90; // 0-90 degrees
+                        disc.setAttribute('transform', 'rotate(' + rotation + ' 40 30)');
+                    }
                     
-                    // Continue animation using instance-specific reference
-                    svg.valveInstance.animationId = requestAnimationFrame(function() { 
-                        animate(svg); 
-                    });
+                    var indicator = svgElement.querySelector('.valve-indicator');
+                    if (indicator) {
+                        indicator.setAttribute('fill', params.isOpen ? '#2ecc71' : '#e74c3c');
+                    }
+                    
+                    var status = svgElement.querySelector('.valve-status');
+                    if (status) {
+                        status.textContent = (params.position * 100).toFixed(0) + '%';
+                    }
+                    
+                    var label = svgElement.querySelector('.valve-label');
+                    if (label && params.label) {
+                        label.textContent = params.label;
+                    }
                 }
-                
-                function updateValve(svg) {
-                    if (!svg || !svg.valveInstance) return;
-                    
-                    var instance = svg.valveInstance;
-                    
-                    if (Math.abs(instance.position - instance.targetPosition) > 0.5) {
-                        var direction = instance.position < instance.targetPosition ? 1 : -1;
-                        instance.position += direction * instance.animationSpeed;
+
+                function toggleValve(svgElement) {
+                    var metadataElement = svgElement.querySelector('metadata component');
+                    if (metadataElement) {
+                        var isOpenElement = metadataElement.querySelector('parameters isOpen');
+                        var positionElement = metadataElement.querySelector('parameters position');
                         
-                        // Clamp the value
-                        instance.position = Math.max(instance.min, Math.min(instance.max, instance.position));
+                        if (isOpenElement && positionElement) {
+                            var currentState = isOpenElement.textContent === 'true';
+                            var newState = !currentState;
+                            var newPosition = newState ? 1 : 0;
+                            
+                            isOpenElement.textContent = newState.toString();
+                            positionElement.textContent = newPosition.toString();
+                            
+                            updateValve(svgElement);
+                        }
+                    }
+                }
+
+                // Auto-initialize - find parent SVG element following led.svg pattern
+                var svgElement = document.currentScript ? document.currentScript.closest('svg') : null;
+                
+                // If not found (exported SVG), search for SVG with valve components
+                if (!svgElement) {
+                    var allSvgs = document.querySelectorAll('svg');
+                    for (var i = 0; i < allSvgs.length; i++) {
+                        var svg = allSvgs[i];
+                        if (svg.querySelector('.valve-disc') && svg.querySelector('.valve-indicator')) {
+                            svgElement = svg;
+                            break;
+                        }
+                    }
+                }
+                
+                if (svgElement && !svgElement.hasAttribute('data-valve-initialized')) {
+                    svgElement.setAttribute('data-valve-initialized', 'true');
+                    
+                    // Store unique identifier
+                    svgElement.valveInstanceId = 'valve-' + Math.random().toString(36).substr(2, 9);
+                    
+                    // Add click event listener
+                    var clickArea = svgElement.querySelector('.valve-body');
+                    if (clickArea) {
+                        clickArea.addEventListener('click', function(e) {
+                            toggleValve(svgElement);
+                            e.stopPropagation();
+                        });
+                    }
+                    
+                    // Initial update
+                    updateValve(svgElement);
+                    
+                    // Watch for parameter changes
+                    svgElement.pollingInterval = setInterval(function() {
+                        if (!svgElement.isConnected) {
+                            // Cleanup if element removed
+                            if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
+                            return;
+                        }
                         
-                        updateValveDisplay(svg);
+                        var metadata = getMetadata(svgElement);
+                        var params = metadata.parameters || {};
+                        
+                        // Initialize currentParams if needed
+                        if (!svgElement.currentParams) {
+                            svgElement.currentParams = {};
+                        }
+                        
+                        // Check if parameters changed
+                        var hasChanged = 
+                            params.isOpen !== svgElement.currentParams.isOpen ||
+                            params.position !== svgElement.currentParams.position ||
+                            params.label !== svgElement.currentParams.label;
+                            
+                        if (hasChanged) {
+                            svgElement.currentParams = { ...params };
+                            updateValve(svgElement);
+                        }
+                    }, 500);
+                    
+                    // Cleanup function
+                    function cleanupValve() {
+                        if (svgElement.pollingInterval) clearInterval(svgElement.pollingInterval);
                     }
                 }
-                
-                function updateValveDisplay(svg) {
-                    if (!svg || !svg.valveInstance) return;
-                    
-                    var instance = svg.valveInstance;
-                    // Update the position indicator (circle rotation)
-                    var circle = svg.querySelector('#valveHandle');
-                    var valueText = svg.querySelector('#value');
-                    var normalizedPos = (instance.position - instance.min) / (instance.max - instance.min);
-                    var rotation = normalizedPos * 180 - 45; // -45 to 135 degrees
-                    
-                    if (circle) {
-                        circle.setAttribute('transform', 'rotate(' + rotation + ', 30, 30)');
-                    }
-                    
-                    if (valueText) {
-                        valueText.textContent = Math.round(instance.position) + instance.unit;
-                    }
-                }
-                
-                // Public API functions attached to SVG element
-                function setupValveAPI(svg) {
-                    if (!svg.valveInstance) return;
-                    
-                    svg.setValvePosition = function(position) {
-                        svg.valveInstance.targetPosition = Math.max(svg.valveInstance.min, Math.min(svg.valveInstance.max, position));
-                    };
-                    
-                    svg.setValveOpen = function(isOpen) {
-                        svg.valveInstance.targetPosition = isOpen ? svg.valveInstance.max : svg.valveInstance.min;
-                    };
-                    
-                    svg.getValvePosition = function() {
-                        return svg.valveInstance.position;
-                    };
-                }
-                
-                // Initialize when this script loads
-                // Use a small delay to ensure DOM is ready
-                setTimeout(function() {
-                    initValveInstance({ target: document.currentScript || document.scripts[document.scripts.length - 1] });
-                }, 10);
             })();
         ]]>
         </script>
     </defs>
 
-    <rect id="body" x="20" y="10" width="20" height="40" fill="#95a5a6" stroke="#7f8c8d" stroke-width="2" rx="4"/>
+    <rect id="body" class="valve-body" x="20" y="10" width="20" height="40" fill="#95a5a6" stroke="#7f8c8d" stroke-width="2" rx="4"/>
+    <g id="valveHandle" class="valve-disc">
     <g id="valveHandle">
         <line x1="30" y1="30" x2="30" y2="15" stroke="#2c3e50" stroke-width="3" stroke-linecap="round"/>
         <circle cx="30" cy="30" r="12" fill="#7f8c8d" stroke="#2c3e50" stroke-width="2" fill-opacity="0.7"/>
