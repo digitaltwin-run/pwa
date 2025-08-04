@@ -46,7 +46,7 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
     });
 }
 import { gridManager } from './grid.js';
-import { InteractionsManager, extendComponentWithEvents } from './interactions.js';
+// InteractionsManager moved to ../interactions project
 
 /**
  * Main application class for Digital Twin IDE

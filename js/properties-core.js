@@ -2,7 +2,7 @@
 
 import { ColorManager } from './properties-colors.js';
 import { MetadataManager } from './properties-metadata.js';
-import { PropertiesInteractionsManager } from './properties-interactions.js';
+// PropertiesInteractionsManager moved to ../interactions project
 import { PropertiesMapper } from './properties-mapper.js';
 import { getComponentProperties } from './component-properties.js';
 
@@ -19,7 +19,7 @@ export class PropertiesManager {
         // Initialize sub-managers
         this.colorManager = new ColorManager(componentManager);
         this.metadataManager = new MetadataManager(componentManager);
-        this.interactionsManager = new PropertiesInteractionsManager(componentManager);
+        // interactionsManager moved to ../interactions project
         this.propertiesMapper = new PropertiesMapper(componentManager);
         
         // Initialize new modular components
@@ -236,8 +236,7 @@ export class PropertiesManager {
             html += colorsHtml;
         }
         
-        // Add interactions section
-        html += this.interactionsManager.generateInteractionsSection(componentData);
+        // Interactions section moved to ../interactions project
         
         // Add delete button
         html += `
@@ -566,21 +565,7 @@ export class PropertiesManager {
         return this.colorManager.updateSvgColor(selector, type, color);
     }
 
-    generateInteractionsSection(componentData) {
-        return this.interactionsManager.generateInteractionsSection(componentData);
-    }
-
-    addInteraction(id) {
-        return this.interactionsManager.addInteraction(id);
-    }
-
-    updateInteraction(id, index, property, value) {
-        return this.interactionsManager.updateInteraction(id, index, property, value);
-    }
-
-    removeInteraction(id, index) {
-        return this.interactionsManager.removeInteraction(id, index);
-    }
+    // Interaction methods moved to ../interactions project
 
     editMetadataRaw(id) {
         return this.metadataManager.editMetadataRaw(id);

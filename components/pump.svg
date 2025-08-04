@@ -18,84 +18,135 @@
     <defs>
         <script type="text/ecmascript">
         <![CDATA[
-            var pump = {
-                flow: 45,
-                min: 0,
-                max: 100,
-                unit: ' m³/h',
-                isOn: false,
-                targetFlow: 45,
-                angle: 0,
-                speed: 1.0
-            };
+            (function() {
+                // Create instance-specific pump state
+                var pumpInstance = {
+                    flow: 45,
+                    min: 0,
+                    max: 100,
+                    unit: ' m³/h',
+                    isOn: false,
+                    targetFlow: 45,
+                    angle: 0,
+                    speed: 1.0,
+                    animationId: null,
+                    svgElement: null
+                };
 
-            function initPump(evt) {
-                var svg = evt.target.ownerDocument;
-                var params = getParams(svg);
-                
-                pump.flow = parseFloat(params.flowRate) || 45;
-                pump.min = parseFloat(params.flowRateMin) || 0;
-                pump.max = parseFloat(params.flowRateMax) || 100;
-                pump.unit = ' ' + (params.unit || 'm³/h');
-                pump.speed = parseFloat(params.animationSpeed) || 1.0;
-                pump.isOn = params.isActive === 'true';
-                
-                updateDisplay(svg);
-                animate(svg);
-            }
-            
-            function getParams(svg) {
-                var p = {};
-                var elems = svg.getElementsByTagName('parameters')[0].children;
-                for (var i = 0; i < elems.length; i++) {
-                    p[elems[i].tagName] = elems[i].textContent;
-                }
-                return p;
-            }
-            
-            function animate(svg) {
-                if (pump.isOn && pump.flow > 0) {
-                    var speed = pump.flow / pump.max * pump.speed;
-                    pump.angle = (pump.angle + speed) % 360;
+                function initPumpInstance(evt) {
+                    var svgEl = evt.target;
+                    // Find the parent SVG element that contains this script
+                    while (svgEl && svgEl.tagName !== 'svg') {
+                        svgEl = svgEl.parentNode;
+                    }
                     
-                    var impeller = svg.getElementById('impeller');
-                    if (impeller) {
-                        impeller.setAttribute('transform', `rotate(${pump.angle}, 35, 30)`);
+                    if (!svgEl) {
+                        console.error('Could not find parent SVG element for pump');
+                        return;
+                    }
+                    
+                    pumpInstance.svgElement = svgEl;
+                    
+                    // Mark this SVG as initialized to prevent double initialization
+                    if (svgEl.getAttribute('data-pump-initialized')) {
+                        return;
+                    }
+                    svgEl.setAttribute('data-pump-initialized', 'true');
+                    
+                    var params = getParams(svgEl);
+                    
+                    pumpInstance.flow = parseFloat(params.flowRate) || 45;
+                    pumpInstance.min = parseFloat(params.flowRateMin) || 0;
+                    pumpInstance.max = parseFloat(params.flowRateMax) || 100;
+                    pumpInstance.unit = ' ' + (params.unit || 'm³/h');
+                    pumpInstance.speed = parseFloat(params.animationSpeed) || 1.0;
+                    pumpInstance.isOn = params.isActive === 'true';
+                    
+                    // Store instance reference on SVG element
+                    svgEl.pumpInstance = pumpInstance;
+                    
+                    updateDisplay(svgEl);
+                    animate(svgEl);
+                    
+                    console.log('Pump initialized for SVG element:', svgEl.getAttribute('data-id'));
+                }
+                
+                function getParams(svg) {
+                    var p = {};
+                    var parametersElements = svg.getElementsByTagName('parameters');
+                    if (parametersElements.length > 0) {
+                        var elems = parametersElements[0].children;
+                        for (var i = 0; i < elems.length; i++) {
+                            p[elems[i].tagName] = elems[i].textContent;
+                        }
+                    }
+                    return p;
+                }
+                
+                function animate(svg) {
+                    if (!svg || !svg.pumpInstance) return;
+                    
+                    var instance = svg.pumpInstance;
+                    
+                    if (instance.isOn && instance.flow > 0) {
+                        var speed = instance.flow / instance.max * instance.speed;
+                        instance.angle = (instance.angle + speed) % 360;
+                        
+                        var impeller = svg.querySelector('#impeller');
+                        if (impeller) {
+                            impeller.setAttribute('transform', 'rotate(' + instance.angle + ', 35, 30)');
+                        }
+                    }
+                    
+                    if (Math.abs(instance.flow - instance.targetFlow) > 0.1) {
+                        instance.flow += (instance.targetFlow - instance.flow) * 0.1;
+                        updateDisplay(svg);
+                    }
+                    
+                    // Continue animation using instance-specific reference
+                    instance.animationId = requestAnimationFrame(function() { 
+                        animate(svg); 
+                    });
+                }
+                
+                function updateDisplay(svg) {
+                    if (!svg || !svg.pumpInstance) return;
+                    
+                    var instance = svg.pumpInstance;
+                    var value = svg.querySelector('#value');
+                    if (value) value.textContent = Math.round(instance.flow) + instance.unit;
+                    
+                    var status = svg.querySelector('#statusIndicator');
+                    if (status) {
+                        status.setAttribute('fill', 
+                            instance.isOn && instance.flow > 0 ? '#2ecc71' : '#e74c3c');
                     }
                 }
                 
-                if (Math.abs(pump.flow - pump.targetFlow) > 0.1) {
-                    pump.flow += (pump.targetFlow - pump.flow) * 0.1;
-                    updateDisplay(svg);
+                // Public API functions attached to SVG element
+                function setupPumpAPI(svg) {
+                    if (!svg.pumpInstance) return;
+                    
+                    svg.setPumpFlow = function(flow) {
+                        svg.pumpInstance.targetFlow = Math.max(svg.pumpInstance.min, Math.min(svg.pumpInstance.max, flow));
+                    };
+                    
+                    svg.setPumpState = function(on) {
+                        svg.pumpInstance.isOn = on;
+                        if (!on) svg.pumpInstance.targetFlow = 0;
+                    };
+                    
+                    svg.getPumpFlow = function() {
+                        return svg.pumpInstance.flow;
+                    };
                 }
                 
-                requestAnimationFrame(function() { animate(svg); });
-            }
-            
-            function updateDisplay(svg) {
-                var value = svg.getElementById('value');
-                if (value) value.textContent = Math.round(pump.flow) + pump.unit;
-                
-                var status = svg.getElementById('statusIndicator');
-                if (status) {
-                    status.setAttribute('fill', 
-                        pump.isOn && pump.flow > 0 ? '#2ecc71' : '#e74c3c');
-                }
-            }
-            
-            // Public API
-            function setPumpFlow(flow) {
-                pump.targetFlow = Math.max(pump.min, Math.min(pump.max, flow));
-            }
-            
-            function setPumpState(on) {
-                pump.isOn = on;
-                if (!on) pump.targetFlow = 0;
-            }
-            
-            function getPumpFlow() {
-                return pump.flow;
-            }
+                // Initialize when this script loads
+                // Use a small delay to ensure DOM is ready
+                setTimeout(function() {
+                    initPumpInstance({ target: document.currentScript || document.scripts[document.scripts.length - 1] });
+                }, 10);
+            })();
         ]]>
         </script>
     </defs>
