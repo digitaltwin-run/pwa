@@ -23,7 +23,7 @@ import { CanvasZoomManager } from './canvas-zoom-manager.js';
 import { CanvasPropertiesManager } from './canvas-properties-manager.js';
 import { ComponentsColumnManager } from './components-column-manager.js';
 // loadHTMLModules - removed as file doesn't exist
-import { integrateHMIWithApp } from './app-hmi-integration-simplified.js';
+import { integrateHMIWithApp } from './app-hmi-integration-new.js';
 import { SelectionListManager } from './properties/selection-list-manager.js';
 import './utils/advanced-logger.js'; // Advanced JSON logging & error analysis
 // Conditional imports for development tools
@@ -72,7 +72,7 @@ class DigitalTwinApp {
         this.actionManager = null;
         this.interactionsManager = null;
         this.componentScaler = null;
-        this.canvasSelectionManager = canvasSelectionManager;
+        this.canvasSelectionManager = new CanvasSelectionManager();
         this.config = {
             canvas: {
                 grid: {
@@ -108,18 +108,25 @@ class DigitalTwinApp {
             gridManager.updateConfig(this.config.canvas.grid);
             
             // Initialize managers
+            console.log('🔧 Creating ComponentManager...');
             this.componentManager = new ComponentManager({
                 snapToGrid: this.config.canvas.grid.snapToGrid,
                 gridSize: this.config.canvas.grid.size
             });
+            console.log('✅ ComponentManager created');
             this.actionManager = new ActionManager(this.componentManager);
+            console.log('✅ ActionManager created');
             
             // Set up cross-references
             this.componentManager.setActionManager(this.actionManager);
             
             this.dragDropManager = new DragDropManager(this.componentManager, svgCanvas, workspace);
+            console.log('🔧 Creating PropertiesManager...');
             this.propertiesManager = new PropertiesManager(this.componentManager);
+            console.log('✅ PropertiesManager created');
+            console.log('🔧 Creating PropertiesMapper...');
             this.propertiesMapper = new PropertiesMapper();
+            console.log('✅ PropertiesMapper created');
             this.exportManager = new ExportManager(this.componentManager, svgCanvas);
             this.simulationManager = new SimulationManager(this.componentManager);
             this.connectionManager = new ConnectionManager(this.componentManager, svgCanvas);
@@ -127,10 +134,17 @@ class DigitalTwinApp {
             this.componentScaler = new ComponentScaler(this.componentManager);
 
             // Expose managers globally for HTML calls
+            console.log('🌍 Exposing managers globally...');
             window.componentManager = this.componentManager;
             window.propertiesManager = this.propertiesManager;
             window.propertiesMapper = this.propertiesMapper;
             window.exportManager = this.exportManager;
+            console.log('✅ Managers exposed globally:', {
+                componentManager: !!window.componentManager,
+                propertiesManager: !!window.propertiesManager,
+                propertiesMapper: !!window.propertiesMapper,
+                exportManager: !!window.exportManager
+            });
             window.simulationManager = this.simulationManager;
             window.connectionManager = this.connectionManager;
             // window.interactionsManager moved to ../interactions project
@@ -427,6 +441,8 @@ class DigitalTwinApp {
 
 // Initialize application after DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('🎯 DOMContentLoaded event fired - starting app initialization...');
+    
     // Add global error handler
     window.addEventListener('error', (event) => {
         console.error('Global error:', event.error);
@@ -434,9 +450,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Initialize the app
+    console.log('🏗️ Creating DigitalTwinApp instance...');
     const app = new DigitalTwinApp();
     window.app = app; // Make app accessible globally
-    await app.init();
+    console.log('✅ DigitalTwinApp instance created, calling init()...');
+    
+    try {
+        await app.init();
+        console.log('🎉 App initialization completed successfully!');
+    } catch (error) {
+        console.error('💥 App initialization failed:', error);
+    }
 });
 
 // Register Service Worker for PWA in production
