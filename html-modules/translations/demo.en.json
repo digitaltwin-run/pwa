@@ -2,8 +2,15 @@
   "demo": {
     "title": "HTML Modules Demo",
     "subtitle": "Digital Twin IDE PWA - Native HTML Components",
+    "description": "This demo showcases the standardized HTML module system for the Digital Twin IDE. Each module is a self-contained Web Component with HTML templates, CSS styles, JavaScript logic, and i18n support - all in a single file without build requirements.",
     "features": {
-      "title": "🧩 Module System Features"
+      "title": "🧩 Module System Features",
+      "selfContained": "✓ Self-contained HTML modules (template + style + script)",
+      "webComponents": "✓ Web Components API with Shadow DOM",
+      "i18n": "✓ Multi-language support (i18n)",
+      "events": "✓ Event-driven communication",
+      "noBuild": "✓ No frameworks, no build step",
+      "cssIsolation": "✓ CSS isolation and theming"
     },
     "sections": {
       "fontEditor": "🔤 Font Editor Module",
@@ -16,13 +23,16 @@
       "clear": "Clear"
     },
     "integration": {
-      "title": "🔧 Integration with Digital Twin IDE"
+      "title": "🔧 Integration with Digital Twin IDE",
+      "description": "These modules can be directly integrated into the main IDE properties panel, replacing the current hardcoded HTML with reusable, maintainable components. Each module supports the existing event system and can communicate with other IDE components through custom events."
     },
     "language": {
       "en": "EN",
       "pl": "PL",
       "de": "DE",
-      "es": "ES"
+      "es": "ES",
+      "fr": "FR",
+      "it": "IT"
     }
   }
 }

@@ -34,12 +34,38 @@ export class VoiceHMI {
       this.recognition.interimResults = false;
       
       this.recognition.onresult = (e) => this.handleRecognitionResult(e);
-      this.recognition.onerror = (e) => console.error('Recognition error:', e);
-      this.recognition.onend = () => this.isListening && this.recognition?.start();
+      this.recognition.onerror = (e) => this.handleRecognitionError(e);
+      this.recognition.onend = () => this.handleRecognitionEnd();
       
       if (this.debug) console.log('🎤 Speech recognition initialized');
     } catch (error) {
       console.error('Failed to initialize speech recognition:', error);
+    }
+  }
+
+  handleRecognitionError(event) {
+    // Prevent console flooding by limiting error logging
+    if (!this.lastErrorTime || Date.now() - this.lastErrorTime > 5000) {
+      console.warn('🎤 Speech recognition error:', event.error);
+      this.lastErrorTime = Date.now();
+    }
+    
+    // Stop listening on critical errors to prevent infinite loops
+    if (event.error === 'network' || event.error === 'not-allowed') {
+      this.isListening = false;
+      if (this.debug) console.log('🎤 Speech recognition disabled due to error:', event.error);
+    }
+  }
+  
+  handleRecognitionEnd() {
+    // Only restart if we're supposed to be listening and haven't had recent errors
+    if (this.isListening && (!this.lastErrorTime || Date.now() - this.lastErrorTime > 10000)) {
+      try {
+        this.recognition?.start();
+      } catch (error) {
+        this.isListening = false;
+        if (this.debug) console.log('🎤 Failed to restart recognition:', error.message);
+      }
     }
   }
 

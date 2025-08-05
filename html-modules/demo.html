@@ -206,7 +206,7 @@
             <h1 class="demo-title" data-i18n="demo.title">HTML Modules Demo</h1>
             <p class="demo-subtitle" data-i18n="demo.subtitle">Digital Twin IDE PWA - Native HTML Components</p>
             <div class="demo-description">
-                <p>
+                <p data-i18n="demo.description">
                     This demo showcases the standardized HTML module system for the Digital Twin IDE. 
                     Each module is a self-contained Web Component with HTML templates, CSS styles, 
                     JavaScript logic, and i18n support - all in a single file without build requirements.
@@ -216,14 +216,14 @@
 
         <div class="demo-info">
             <h3 data-i18n="demo.features.title">🧩 Module System Features</h3>
-            <p>
-                ✓ Self-contained HTML modules (template + style + script)<br>
-                ✓ Web Components API with Shadow DOM<br>
-                ✓ Multi-language support (i18n)<br>
-                ✓ Event-driven communication<br>
-                ✓ No frameworks, no build step<br>
-                ✓ CSS isolation and theming
-            </p>
+            <ul class="feature-list">
+                <li data-i18n="demo.features.selfContained">✓ Self-contained HTML modules (template + style + script)</li>
+                <li data-i18n="demo.features.webComponents">✓ Web Components API with Shadow DOM</li>
+                <li data-i18n="demo.features.i18n">✓ Multi-language support (i18n)</li>
+                <li data-i18n="demo.features.events">✓ Event-driven communication</li>
+                <li data-i18n="demo.features.noBuild">✓ No frameworks, no build step</li>
+                <li data-i18n="demo.features.cssIsolation">✓ CSS isolation and theming</li>
+            </ul>
         </div>
 
         <div class="demo-grid">
@@ -274,7 +274,7 @@
 
         <div class="demo-info">
             <h3 data-i18n="demo.integration.title">🔧 Integration with Digital Twin IDE</h3>
-            <p>
+            <p data-i18n="demo.integration.description">
                 These modules can be directly integrated into the main IDE properties panel, 
                 replacing the current hardcoded HTML with reusable, maintainable components. 
                 Each module supports the existing event system and can communicate with 
