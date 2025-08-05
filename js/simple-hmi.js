@@ -338,6 +338,7 @@ class GestureDetector {
         this.target = target;
         this.gestures = new Map();
         this.currentPoints = [];
+        this.touchHistory = [];  // Initialize touchHistory array
         this.isDrawing = false;
         this.rafId = null;
         
