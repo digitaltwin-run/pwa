@@ -12,11 +12,112 @@
       "import": "Importar",
       "connect": "Conectar Componentes",
       "start": "Iniciar",
-      "stop": "Detener"
+      "stop": "Detener",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "apply": "Aplicar",
+      "reset": "Restablecer",
+      "add": "Agregar",
+      "remove": "Eliminar",
+      "edit": "Editar",
+      "delete": "Eliminar"
     },
     "simulation": {
       "title": "📊 Simulación de Datos",
       "noComponents": "No hay componentes para simular"
     }
+  },
+  "ui": {
+    "buttons": {
+      "start": "Iniciar",
+      "stop": "Detener"
+    }
+  },
+  "properties": {
+    "addParameter": "Agregar Parámetro",
+    "texts": "Textos",
+    "position_x": "Posición X",
+    "position_y": "Posición Y",
+    "font_family": "Fuente",
+    "font_size": "Tamaño de Fuente",
+    "removeComponent": "Eliminar Componente",
+    "canvasBackground": "Fondo del Lienzo",
+    "backgroundColor": "Color de Fondo",
+    "canvasGrid": "Cuadrícula del Lienzo",
+    "gridVisible": "Cuadrícula Visible",
+    "gridSize": "Tamaño de Cuadrícula",
+    "smallGridSize": "Tamaño de Cuadrícula Pequeña",
+    "mainGridColor": "Color de Cuadrícula Principal",
+    "smallGridColor": "Color de Cuadrícula Pequeña",
+    "multi_selection": "Selección Múltiple",
+    "selected_components": "componentes seleccionados",
+    "scale": "Escala",
+    "zoom_level": "Nivel de Zoom",
+    "colors": "Colores",
+    "color": "Color",
+    "position": "Posición",
+    "batch_actions": "Acciones por Lotes",
+    "copy_all": "Copiar Todo",
+    "delete_all": "Eliminar Todo",
+    "confirm_delete_multiple": "¿Está seguro de que desea eliminar",
+    "components": "componentes"
+  },
+  "components": {
+    "led": "LED",
+    "valve": "Válvula",
+    "sensor": "Sensor",
+    "pump": "Bomba",
+    "container": "Contenedor"
+  },
+  "errors": {
+    "loading_failed": "No se pudo cargar el recurso",
+    "connection_failed": "Error de conexión",
+    "save_failed": "Error al guardar los cambios",
+    "load_failed": "Error al cargar los datos"
+  },
+  "tabs": {
+    "properties": "Propiedades",
+    "appearance": "Apariencia",
+    "behavior": "Comportamiento",
+    "events": "Eventos",
+    "data": "Datos"
+  },
+  "common": {
+    "name": "Nombre",
+    "type": "Tipo",
+    "value": "Valor",
+    "description": "Descripción",
+    "enabled": "Habilitado",
+    "disabled": "Deshabilitado",
+    "default": "Predeterminado",
+    "custom": "Personalizado",
+    "none": "Ninguno",
+    "apply": "Aplicar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "close": "Cerrar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "finish": "Finalizar"
+  },
+  "tooltips": {
+    "add_component": "Agregar nuevo componente",
+    "delete_component": "Eliminar componente seleccionado",
+    "duplicate_component": "Duplicar componente seleccionado",
+    "align_left": "Alinear a la izquierda",
+    "align_center": "Centrar horizontalmente",
+    "align_right": "Alinear a la derecha",
+    "align_top": "Alinear arriba",
+    "align_middle": "Centrar verticalmente",
+    "align_bottom": "Alinear abajo"
+  },
+  "status": {
+    "connected": "Conectado",
+    "disconnected": "Desconectado",
+    "connecting": "Conectando...",
+    "saving": "Guardando...",
+    "loading": "Cargando...",
+    "ready": "Listo"
   }
 }

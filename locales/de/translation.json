@@ -12,11 +12,112 @@
       "import": "Importieren",
       "connect": "Komponenten verbinden",
       "start": "Starten",
-      "stop": "Stoppen"
+      "stop": "Stoppen",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "apply": "Übernehmen",
+      "reset": "Zurücksetzen",
+      "add": "Hinzufügen",
+      "remove": "Entfernen",
+      "edit": "Bearbeiten",
+      "delete": "Löschen"
     },
     "simulation": {
       "title": "📊 Datensimulation",
       "noComponents": "Keine Komponenten zur Simulation"
     }
+  },
+  "ui": {
+    "buttons": {
+      "start": "Starten",
+      "stop": "Stoppen"
+    }
+  },
+  "properties": {
+    "addParameter": "Parameter hinzufügen",
+    "texts": "Texte",
+    "position_x": "Position X",
+    "position_y": "Position Y",
+    "font_family": "Schriftart",
+    "font_size": "Schriftgröße",
+    "removeComponent": "Komponente entfernen",
+    "canvasBackground": "Zeichenflächenhintergrund",
+    "backgroundColor": "Hintergrundfarbe",
+    "canvasGrid": "Zeichenflächenraster",
+    "gridVisible": "Raster anzeigen",
+    "gridSize": "Rastergröße",
+    "smallGridSize": "Kleine Rastergröße",
+    "mainGridColor": "Hauptgitterfarbe",
+    "smallGridColor": "Kleine Gitterfarbe",
+    "multi_selection": "Mehrfachauswahl",
+    "selected_components": "Komponenten ausgewählt",
+    "scale": "Skalierung",
+    "zoom_level": "Zoomstufe",
+    "colors": "Farben",
+    "color": "Farbe",
+    "position": "Position",
+    "batch_actions": "Stapelverarbeitung",
+    "copy_all": "Alle kopieren",
+    "delete_all": "Alle löschen",
+    "confirm_delete_multiple": "Möchten Sie wirklich",
+    "components": "Komponenten"
+  },
+  "components": {
+    "led": "LED",
+    "valve": "Ventil",
+    "sensor": "Sensor",
+    "pump": "Pumpe",
+    "container": "Container"
+  },
+  "errors": {
+    "loading_failed": "Ressource konnte nicht geladen werden",
+    "connection_failed": "Verbindung fehlgeschlagen",
+    "save_failed": "Speichern fehlgeschlagen",
+    "load_failed": "Laden fehlgeschlagen"
+  },
+  "tabs": {
+    "properties": "Eigenschaften",
+    "appearance": "Erscheinungsbild",
+    "behavior": "Verhalten",
+    "events": "Ereignisse",
+    "data": "Daten"
+  },
+  "common": {
+    "name": "Name",
+    "type": "Typ",
+    "value": "Wert",
+    "description": "Beschreibung",
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert",
+    "default": "Standard",
+    "custom": "Benutzerdefiniert",
+    "none": "Keine",
+    "apply": "Übernehmen",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "close": "Schließen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "previous": "Zurück",
+    "finish": "Fertig"
+  },
+  "tooltips": {
+    "add_component": "Neue Komponente hinzufügen",
+    "delete_component": "Ausgewählte Komponente löschen",
+    "duplicate_component": "Ausgewählte Komponente duplizieren",
+    "align_left": "Linksbündig ausrichten",
+    "align_center": "Zentriert ausrichten",
+    "align_right": "Rechtsbündig ausrichten",
+    "align_top": "Oben ausrichten",
+    "align_middle": "Vertikal zentrieren",
+    "align_bottom": "Unten ausrichten"
+  },
+  "status": {
+    "connected": "Verbunden",
+    "disconnected": "Nicht verbunden",
+    "connecting": "Verbinde...",
+    "saving": "Speichern...",
+    "loading": "Laden...",
+    "ready": "Bereit"
   }
 }

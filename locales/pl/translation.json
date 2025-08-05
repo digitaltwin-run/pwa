@@ -12,11 +12,112 @@
       "import": "Importuj",
       "connect": "Łącz komponenty",
       "start": "Start",
-      "stop": "Stop"
+      "stop": "Stop",
+      "save": "Zapisz",
+      "cancel": "Anuluj",
+      "apply": "Zastosuj",
+      "reset": "Resetuj",
+      "add": "Dodaj",
+      "remove": "Usuń",
+      "edit": "Edytuj",
+      "delete": "Usuń"
     },
     "simulation": {
       "title": "📊 Symulacja Danych",
       "noComponents": "Brak komponentów do symulacji"
     }
+  },
+  "ui": {
+    "buttons": {
+      "start": "Start",
+      "stop": "Stop"
+    }
+  },
+  "properties": {
+    "addParameter": "Dodaj parametr",
+    "texts": "Teksty",
+    "position_x": "Pozycja X",
+    "position_y": "Pozycja Y",
+    "font_family": "Czcionka",
+    "font_size": "Rozmiar czcionki",
+    "removeComponent": "Usuń komponent",
+    "canvasBackground": "Tło płótna",
+    "backgroundColor": "Kolor tła",
+    "canvasGrid": "Siatka płótna",
+    "gridVisible": "Widoczność siatki",
+    "gridSize": "Rozmiar siatki",
+    "smallGridSize": "Rozmiar małej siatki",
+    "mainGridColor": "Kolor głównej siatki",
+    "smallGridColor": "Kolor małej siatki",
+    "multi_selection": "Wielokrotny wybór",
+    "selected_components": "zaznaczonych komponentów",
+    "scale": "Skala",
+    "zoom_level": "Poziom przybliżenia",
+    "colors": "Kolory",
+    "color": "Kolor",
+    "position": "Pozycja",
+    "batch_actions": "Akcje zbiorcze",
+    "copy_all": "Kopiuj wszystko",
+    "delete_all": "Usuń wszystko",
+    "confirm_delete_multiple": "Czy na pewno chcesz usunąć",
+    "components": "komponenty"
+  },
+  "components": {
+    "led": "Dioda LED",
+    "valve": "Zawór",
+    "sensor": "Czujnik",
+    "pump": "Pompa",
+    "container": "Kontener"
+  },
+  "errors": {
+    "loading_failed": "Nie udało się załadować zasobu",
+    "connection_failed": "Błąd połączenia",
+    "save_failed": "Nie udało się zapisać zmian",
+    "load_failed": "Nie udało się załadować danych"
+  },
+  "tabs": {
+    "properties": "Właściwości",
+    "appearance": "Wygląd",
+    "behavior": "Zachowanie",
+    "events": "Zdarzenia",
+    "data": "Dane"
+  },
+  "common": {
+    "name": "Nazwa",
+    "type": "Typ",
+    "value": "Wartość",
+    "description": "Opis",
+    "enabled": "Włączone",
+    "disabled": "Wyłączone",
+    "default": "Domyślne",
+    "custom": "Niestandardowe",
+    "none": "Brak",
+    "apply": "Zastosuj",
+    "cancel": "Anuluj",
+    "save": "Zapisz",
+    "close": "Zamknij",
+    "back": "Wstecz",
+    "next": "Dalej",
+    "previous": "Poprzednie",
+    "finish": "Zakończ"
+  },
+  "tooltips": {
+    "add_component": "Dodaj nowy komponent",
+    "delete_component": "Usuń zaznaczony komponent",
+    "duplicate_component": "Powiel zaznaczony komponent",
+    "align_left": "Wyrównaj do lewej",
+    "align_center": "Wyśrodkuj",
+    "align_right": "Wyrównaj do prawej",
+    "align_top": "Wyrównaj do góry",
+    "align_middle": "Wyśrodkuj pionowo",
+    "align_bottom": "Wyrównaj do dołu"
+  },
+  "status": {
+    "connected": "Połączono",
+    "disconnected": "Rozłączono",
+    "connecting": "Łączenie...",
+    "saving": "Zapisywanie...",
+    "loading": "Ładowanie...",
+    "ready": "Gotowe"
   }
 }

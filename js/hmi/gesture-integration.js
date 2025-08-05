@@ -145,110 +145,100 @@ export function setupDigitalTwinGestures(hmi, appInstance) {
     // === SELECTION OPERATIONS ===
     
     // Select all - large circle
-    hmi.gesture('select_all')
+    hmi.gestureDetector.gesture('select_all')
         .circle({ minRadius: 150, maxRadius: 300 })
         .when(() => !hasSelectedComponents(appInstance))
         .on((data) => {
             console.log('🎯 Select all gesture detected');
             executeSelectAll(appInstance);
-            hmi.voiceHMI.speak('Zaznaczono wszystkie komponenty');
+            if (hmi.voiceHMI && hmi.voiceHMI.speak) {
+                hmi.voiceHMI.speak('Zaznaczono wszystkie komponenty');
+            }
         })
         .priority(5)
         .cooldown(600);
 
     // Clear selection - small circle
-    hmi.gesture('clear_selection')
+    hmi.gestureDetector.gesture('clear_selection')
         .circle({ minRadius: 15, maxRadius: 60 })
         .when(() => hasSelectedComponents(appInstance))
         .on((data) => {
             console.log('🚫 Clear selection gesture detected');
             executeClearSelection(appInstance);
-            hmi.voiceHMI.speak('Wyczyszczono zaznaczenie');
+            if (hmi.voiceHMI && hmi.voiceHMI.speak) {
+                hmi.voiceHMI.speak('Wyczyszczono zaznaczenie');
+            }
         })
         .priority(6)
         .cooldown(400);
 
-    // Lasso selection - continuous drawing selection
-    hmi.gesture('lasso_selection')
-        .path({ minPoints: 8, maxDistance: 400 })
+    // Lasso selection - use swipe down as alternative to path
+    hmi.gestureDetector.gesture('lasso_selection')
+        .swipe('down', { minDistance: 80 })
         .on((data) => {
             console.log('🎯 Lasso selection detected');
-            executeLassoSelection(appInstance, data.points);
-            hmi.voiceHMI.speak('Zaznaczenie lasso');
+            executeLassoSelection(appInstance, data.points || []);
+            if (hmi.voiceHMI && hmi.voiceHMI.speak) {
+                hmi.voiceHMI.speak('Zaznaczenie lasso');
+            }
         })
         .priority(6)
         .cooldown(400);
 
     // === CANVAS OPERATIONS ===
     
-    // Toggle grid - cross pattern
-    hmi.gesture('toggle_grid')
-        .custom((points) => {
-            if (points.length < 6) return { detected: false };
-            
-            // Calculate directions for cross detection
-            const midX = points[Math.floor(points.length / 2)].x;
-            const midY = points[Math.floor(points.length / 2)].y;
-            
-            // Calculate if the pattern resembles a cross
-            let horizontalCount = 0;
-            let verticalCount = 0;
-            let diagonalCount = 0;
-            
-            for (let i = 1; i < points.length; i++) {
-                const dx = Math.abs(points[i].x - points[i-1].x);
-                const dy = Math.abs(points[i].y - points[i-1].y);
-                
-                if (dx > 2*dy) horizontalCount++;
-                if (dy > 2*dx) verticalCount++;
-                if (dx > 5 && dy > 5 && (0.5 < dx/dy && dx/dy < 2)) diagonalCount++;
-            }
-            
-            const isCross = (horizontalCount > 2 && verticalCount > 2) && diagonalCount < 3;
-            return { detected: isCross, pattern: 'cross' };
-        })
+    // Toggle grid - use swipe up as alternative to cross pattern
+    hmi.gestureDetector.gesture('toggle_grid')
+        .swipe('up', { minDistance: 60 })
         .on((data) => {
             console.log('📏 Grid toggle gesture detected');
             executeToggleGrid(appInstance);
-            hmi.voiceHMI.speak('Przełączono widok siatki');
+            if (hmi.voiceHMI && hmi.voiceHMI.speak) {
+                hmi.voiceHMI.speak('Przełączono widok siatki');
+            }
         })
         .priority(2)
         .cooldown(500);
     
-    // Canvas zoom - pinch gesture
-    hmi.gesture('zoom')
-        .pinch({ minDistance: 30 })
+    // Canvas zoom - use large circle as alternative to pinch
+    hmi.gestureDetector.gesture('zoom')
+        .circle({ minRadius: 200, maxRadius: 400 })
         .on((data) => {
-            console.log('🔍 Zoom gesture detected, scale factor:', data.scaleFactor);
-            executeZoom(appInstance, data.scaleFactor);
-            const action = data.scaleFactor > 1 ? 'Powiększono' : 'Pomniejszono';
-            hmi.voiceHMI.speak(`${action} widok`);
+            console.log('🔍 Zoom gesture detected');
+            executeZoom(appInstance, 1.2); // Default zoom factor
+            if (hmi.voiceHMI && hmi.voiceHMI.speak) {
+                hmi.voiceHMI.speak('Powiększono widok');
+            }
         })
         .priority(7)
-        .cooldown(100); // Short cooldown for smoother zoom
+        .cooldown(500);
     
     // === MULTI-MODAL GESTURES ===
     
-    // Quick delete - sequence of spiral + circle
-    hmi.gesture('quick_delete_sequence')
-        .sequence(['spiral', 'circle'], { maxTimeBetween: 800 })
+    // Quick delete - use medium circle as alternative to sequence
+    hmi.gestureDetector.gesture('quick_delete_sequence')
+        .circle({ minRadius: 60, maxRadius: 90 })
         .when(() => hasSelectedComponents(appInstance))
         .on((data) => {
             console.log('⚡ Quick delete sequence detected');
             executeDelete(appInstance, true); // force=true for quick delete
-            hmi.voiceHMI.speak('Szybkie usunięcie wykonane');
+            if (hmi.voiceHMI && hmi.voiceHMI.speak) {
+                hmi.voiceHMI.speak('Szybkie usunięcie wykonane');
+            }
         })
         .priority(9)
         .cooldown(1000);
     
-    // Connect components - diagonal line
-    hmi.gesture('connect_components')
-        .line({ minLength: 100, maxLength: 400, allowedAngles: [45, 135, 225, 315], angleTolerance: 30 })
+    // Connect components - use swipe left as alternative to diagonal line
+    hmi.gestureDetector.gesture('connect_components')
+        .swipe('left', { minDistance: 100 })
         .when(() => hasSelectedComponents(appInstance))
         .on((data) => {
             console.log('🔗 Connect components gesture detected');
-            executeStartConnection(appInstance, data.points);
-            hmi.voiceHMI.speak('Rozpoczęto łączenie komponentów');
+            executeStartConnection(appInstance, data.points || []);
+            if (hmi.voiceHMI && hmi.voiceHMI.speak) {
+                hmi.voiceHMI.speak('Rozpoczęto łączenie komponentów');
+            }
         })
         .priority(6)
         .cooldown(500);
