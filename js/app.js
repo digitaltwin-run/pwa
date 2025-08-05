@@ -100,6 +100,12 @@ class DigitalTwinApp {
         }
 
         try {
+            // Initialize i18n first
+            console.log('🌐 Initializing i18n...');
+            window.i18nManager = new I18nManager();
+            await window.i18nManager.init();
+            console.log('✅ i18n initialized');
+            
             // Load configuration
             await this.loadConfig();
             
@@ -209,14 +215,44 @@ class DigitalTwinApp {
      * Update toolbar button text based on current language
      */
     updateToolbarTexts() {
-        // Check if i18n manager is available and initialized
+        // Ensure i18n is available
         if (!window.i18nManager || typeof window.i18nManager.t !== 'function') {
-            console.warn('⚠️ I18n Manager not ready, skipping toolbar text update');
+            console.warn('i18nManager not available for translations');
             return;
         }
         
-        // Bind the context to prevent 'this' being undefined
         const t = window.i18nManager.t.bind(window.i18nManager);
+        
+        // Update all elements with data-i18n attribute
+        const elements = document.querySelectorAll('[data-i18n]');
+        elements.forEach(element => {
+            const key = element.getAttribute('data-i18n');
+            if (key) {
+                try {
+                    const translation = t(key);
+                    if (translation !== key) { // Only update if we got a translation
+                        if (element.tagName === 'INPUT' && element.type === 'text') {
+                            element.placeholder = translation;
+                        } else if (element.tagName === 'INPUT' && element.type === 'button') {
+                            element.value = translation;
+                        } else {
+                            element.textContent = translation;
+                        }
+                    }
+                } catch (error) {
+                    console.warn(`Failed to translate key: ${key}`, error);
+                }
+            }
+        });
+        
+        // Update title if it has a data-i18n attribute
+        const titleElement = document.querySelector('title[data-i18n]');
+        if (titleElement) {
+            const titleKey = titleElement.getAttribute('data-i18n');
+            if (titleKey) {
+                document.title = t(titleKey);
+            }
+        }
         
         // Update toolbar buttons
         const exportBtn = document.getElementById('export-btn');

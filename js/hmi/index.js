@@ -6,6 +6,7 @@
 import { GestureDetector } from './gestures/GestureDetector.js';
 import { VoiceHMI } from './voice/VoiceHMI.js';
 import { PatternDetectors } from './gestures/PatternDetectors.js';
+import { inputManager } from './input/input-manager.js';
 
 /**
  * Main HMI Manager class that combines gesture and voice control
@@ -19,10 +20,32 @@ export class HMIManager {
   constructor(target = document, options = {}) {
     this.gestureDetector = new GestureDetector(target);
     this.voiceHMI = new VoiceHMI();
+    this.inputManager = inputManager;
     this.multiModalGestures = new Map();
     this.debugMode = options.debug || false;
     
     this.setupEventListeners();
+    this.initializeInputSystems(target, options);
+  }
+
+  /**
+   * Initialize unified input systems
+   * @private
+   */
+  async initializeInputSystems(target, options) {
+    try {
+      // Initialize the unified input manager
+      await this.inputManager.init();
+      
+      // Set canvas reference if target is canvas
+      if (target && target.tagName === 'svg') {
+        this.inputManager.setReferences(target, window.app?.componentManager);
+      }
+      
+      console.log('🎮 HMI input systems initialized');
+    } catch (error) {
+      console.error('❌ Failed to initialize HMI input systems:', error);
+    }
   }
 
   /**
@@ -30,7 +53,12 @@ export class HMIManager {
    * @private
    */
   setupEventListeners() {
-    // Add any global event listeners here
+    // Listen for canvas ready events
+    document.addEventListener('canvas-ready', (e) => {
+      this.inputManager.setReferences(e.detail.canvas, e.detail.componentManager);
+    });
+    
+    // Add any other global event listeners here
   }
 
   // Gesture registration
@@ -65,13 +93,16 @@ export class HMIManager {
     this.debugMode = true;
     this.gestureDetector.debug = true;
     this.voiceHMI.debug = true;
-    console.log('HMI Debug mode enabled');
+    this.inputManager.toggleDebug();
+    console.log('🎮 HMI Debug mode enabled (unified system)');
   }
 
   // Lifecycle methods
   destroy() {
     this.gestureDetector.destroy();
     this.voiceHMI.destroy();
+    this.inputManager.destroy();
+    console.log('🎮 HMI system destroyed (unified)');
   }
 }
 
