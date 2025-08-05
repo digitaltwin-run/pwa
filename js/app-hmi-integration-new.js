@@ -1,31 +1,23 @@
 /**
  * COMPREHENSIVE HMI INTEGRATION
- * Uses the advanced HMI system from js/hmi/ folder with 15+ gesture patterns
+ * HMI Integration for Digital Twin PWA
+ * Integrates the comprehensive HMI system with unified input management
  */
 
-import { createHMI } from './hmi/index.js';
-import { setupDigitalTwinGestures } from './digital-twin-gestures.js';
+import { HMIManager } from './hmi/index.js';
+import { gesturePatterns } from './digital-twin-gestures.js';
+import { inputManager } from './hmi/input/input-manager.js';
 
 /**
  * Integration function that connects the new Simple HMI system with the main app
  */
 export async function integrateHMIWithApp(appInstance) {
-    console.info('🔄 Integrating NEW simplified HMI system with main application...');
+    console.info('🎮 Integrating comprehensive HMI system with unified input...');
     
-    try {
-        // Create the new HMI system
-        const hmi = createHMI(document.getElementById('svg-canvas'), {
-            debug: true,
-            voice: false  // Start with voice disabled, can be enabled later
-        });
-
-        // Set up gesture patterns for the Digital Twin IDE
-        setupDigitalTwinGestures(hmi, appInstance);
-        
-        // Set up voice commands if available
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            setupVoiceCommands(hmi, appInstance);
-        }
+    // Get the SVG canvas element
+    const svgCanvas = document.getElementById('svg-canvas');
+    if (!svgCanvas) {
+        throw new Error('SVG canvas not found');
 
         // Expose globally for debugging
         window.hmi = hmi;
