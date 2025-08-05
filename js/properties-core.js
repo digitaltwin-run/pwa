@@ -1,6 +1,6 @@
 // Digital Twin IDE - Properties Core Module
 
-import { ColorManager } from './properties-colors.js';
+import { ColorsManager } from './properties/colors-manager.js';
 import { MetadataManager } from './properties-metadata.js';
 // PropertiesInteractionsManager moved to ../interactions project
 import { PropertiesMapper } from './properties-mapper.js';

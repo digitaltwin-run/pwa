@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML Modules Demo - Digital Twin IDE PWA</title>
+    <title data-i18n="demo.title">HTML Modules Demo</title>
     <style>
         :root {
             --bg-primary: #ffffff;
@@ -193,14 +193,16 @@
 </head>
 <body>
     <div class="language-selector">
-        <button class="lang-btn active" data-lang="en">EN</button>
-        <button class="lang-btn" data-lang="pl">PL</button>
+        <button class="lang-btn active" data-lang="en" data-i18n="demo.language.en">EN</button>
+        <button class="lang-btn" data-lang="pl" data-i18n="demo.language.pl">PL</button>
+        <button class="lang-btn" data-lang="de" data-i18n="demo.language.de">DE</button>
+        <button class="lang-btn" data-lang="es" data-i18n="demo.language.es">ES</button>
     </div>
 
     <div class="demo-container">
         <div class="demo-header">
-            <h1 class="demo-title">HTML Modules Demo</h1>
-            <p class="demo-subtitle">Digital Twin IDE PWA - Native HTML Components</p>
+            <h1 class="demo-title" data-i18n="demo.title">HTML Modules Demo</h1>
+            <p class="demo-subtitle" data-i18n="demo.subtitle">Digital Twin IDE PWA - Native HTML Components</p>
             <div class="demo-description">
                 <p>
                     This demo showcases the standardized HTML module system for the Digital Twin IDE. 
@@ -211,7 +213,7 @@
         </div>
 
         <div class="demo-info">
-            <h3>🧩 Module System Features</h3>
+            <h3 data-i18n="demo.features.title">🧩 Module System Features</h3>
             <p>
                 ✓ Self-contained HTML modules (template + style + script)<br>
                 ✓ Web Components API with Shadow DOM<br>
@@ -225,10 +227,10 @@
         <div class="demo-grid">
             <!-- Font Editor Demo -->
             <div class="demo-section">
-                <h2 class="demo-section-title">🔤 Font Editor Module</h2>
+                <h2 class="demo-section-title" data-i18n="demo.sections.fontEditor">🔤 Font Editor Module</h2>
                 <div class="demo-controls">
-                    <button class="demo-btn" onclick="loadFontEditor()">Load Font Editor</button>
-                    <button class="demo-btn secondary" onclick="clearModule('font-editor-container')">Clear</button>
+                    <button class="demo-btn" onclick="loadFontEditor()" data-i18n="[html]demo.buttons.load" data-i18n-options='{"module": "Font Editor"}'>Load Font Editor</button>
+                    <button class="demo-btn secondary" onclick="clearModule('font-editor-container')" data-i18n="demo.buttons.clear">Clear</button>
                 </div>
                 <div id="font-editor-container"></div>
                 <div id="font-editor-output" class="demo-output" style="display: none;"></div>
@@ -236,10 +238,10 @@
 
             <!-- Color Picker Demo -->
             <div class="demo-section">
-                <h2 class="demo-section-title">🎨 Color Picker Module</h2>
+                <h2 class="demo-section-title" data-i18n="demo.sections.colorPicker">🎨 Color Picker Module</h2>
                 <div class="demo-controls">
-                    <button class="demo-btn" onclick="loadColorPicker()">Load Color Picker</button>
-                    <button class="demo-btn secondary" onclick="clearModule('color-picker-container')">Clear</button>
+                    <button class="demo-btn" onclick="loadColorPicker()" data-i18n="[html]demo.buttons.load" data-i18n-options='{"module": "Color Picker"}'>Load Color Picker</button>
+                    <button class="demo-btn secondary" onclick="clearModule('color-picker-container')" data-i18n="demo.buttons.clear">Clear</button>
                 </div>
                 <div id="color-picker-container"></div>
                 <div id="color-picker-output" class="demo-output" style="display: none;"></div>
@@ -247,10 +249,10 @@
 
             <!-- Scale Editor Demo -->
             <div class="demo-section">
-                <h2 class="demo-section-title">📏 Scale Editor Module</h2>
+                <h2 class="demo-section-title" data-i18n="demo.sections.scaleEditor">📏 Scale Editor Module</h2>
                 <div class="demo-controls">
-                    <button class="demo-btn" onclick="loadScaleEditor()">Load Scale Editor</button>
-                    <button class="demo-btn secondary" onclick="clearModule('scale-editor-container')">Clear</button>
+                    <button class="demo-btn" onclick="loadScaleEditor()" data-i18n="[html]demo.buttons.load" data-i18n-options='{"module": "Scale Editor"}'>Load Scale Editor</button>
+                    <button class="demo-btn secondary" onclick="clearModule('scale-editor-container')" data-i18n="demo.buttons.clear">Clear</button>
                 </div>
                 <div id="scale-editor-container"></div>
                 <div id="scale-editor-output" class="demo-output" style="display: none;"></div>
@@ -258,10 +260,10 @@
 
             <!-- Property Group Demo -->
             <div class="demo-section">
-                <h2 class="demo-section-title">📋 Property Group Module</h2>
+                <h2 class="demo-section-title" data-i18n="demo.sections.propertyGroup">📋 Property Group Module</h2>
                 <div class="demo-controls">
-                    <button class="demo-btn" onclick="loadPropertyGroup()">Load Property Group</button>
-                    <button class="demo-btn secondary" onclick="clearModule('property-group-container')">Clear</button>
+                    <button class="demo-btn" onclick="loadPropertyGroup()" data-i18n="[html]demo.buttons.load" data-i18n-options='{"module": "Property Group"}'>Load Property Group</button>
+                    <button class="demo-btn secondary" onclick="clearModule('property-group-container')" data-i18n="demo.buttons.clear">Clear</button>
                 </div>
                 <div id="property-group-container"></div>
                 <div id="property-group-output" class="demo-output" style="display: none;"></div>
@@ -269,7 +271,7 @@
         </div>
 
         <div class="demo-info">
-            <h3>🔧 Integration with Digital Twin IDE</h3>
+            <h3 data-i18n="demo.integration.title">🔧 Integration with Digital Twin IDE</h3>
             <p>
                 These modules can be directly integrated into the main IDE properties panel, 
                 replacing the current hardcoded HTML with reusable, maintainable components. 

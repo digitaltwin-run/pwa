@@ -1,0 +1,28 @@
+{
+  "demo": {
+    "title": "Demostración de Módulos HTML",
+    "subtitle": "Digital Twin IDE PWA - Componentes HTML Nativos",
+    "features": {
+      "title": "🧩 Características del Sistema de Módulos"
+    },
+    "sections": {
+      "fontEditor": "🔤 Editor de Fuentes",
+      "colorPicker": "🎨 Selector de Color",
+      "scaleEditor": "📏 Editor de Escala",
+      "propertyGroup": "📋 Grupo de Propiedades"
+    },
+    "buttons": {
+      "load": "Cargar {module}",
+      "clear": "Limpiar"
+    },
+    "integration": {
+      "title": "🔧 Integración con Digital Twin IDE"
+    },
+    "language": {
+      "en": "EN",
+      "pl": "PL",
+      "de": "DE",
+      "es": "ES"
+    }
+  }
+}
