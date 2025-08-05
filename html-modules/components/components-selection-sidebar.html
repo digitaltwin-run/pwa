@@ -1,17 +1,17 @@
 <!-- Components Selection Column -->
 <aside class="sidebar components-column">
-    <h3>📋 Komponenty Canvas</h3>
+    <h3 data-i18n="ui.components.canvasTitle">📋 Canvas Components</h3>
     <div id="components-selection-panel">
         <div class="selection-controls mb-2">
-            <button class="btn btn-sm btn-outline-primary" onclick="window.componentsColumnManager?.selectAll()" title="Zaznacz wszystkie">
-                ✓ Wszystkie
+            <button class="btn btn-sm btn-outline-primary" onclick="window.componentsColumnManager?.selectAll()" data-i18n="[title]ui.buttons.selectAll" title="Select all">
+                ✓ <span data-i18n="ui.buttons.all">All</span>
             </button>
-            <button class="btn btn-sm btn-outline-dark" onclick="window.componentsColumnManager?.clearAll()" title="Odznacz wszystkie">
-                ✗ Wyczyść
+            <button class="btn btn-sm btn-outline-dark" onclick="window.componentsColumnManager?.clearAll()" data-i18n="[title]ui.buttons.clearAll" title="Clear all">
+                ✗ <span data-i18n="ui.buttons.clear">Clear</span>
             </button>
         </div>
         <div id="components-list" class="components-list">
-            <p class="text-muted small">Brak komponentów na canvas</p>
+            <p class="text-muted small" data-i18n="ui.components.noComponentsOnCanvas">No components on canvas</p>
         </div>
     </div>
 </aside>

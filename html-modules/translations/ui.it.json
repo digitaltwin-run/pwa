@@ -23,6 +23,10 @@
     "simulation": {
       "title": "📊 Simulazione dati",
       "noComponents": "Nessun componente disponibile per la simulazione"
+    },
+    "properties": {
+      "title": "Proprietà",
+      "selectComponent": "Seleziona un componente per modificare le sue proprietà."
     }
   }
 }
