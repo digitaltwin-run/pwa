@@ -119,7 +119,7 @@ export class CanvasSelectionManager {
             
             // Start dragging if component is selected
             if (this.selectionCore.selectedComponents.has(clickedComponent)) {
-                this.dragDropManager.startDrag(e);
+                this.dragDropManager.startDragging(e);
             }
             
             // Prevent empty area selection logic

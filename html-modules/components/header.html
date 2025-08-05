@@ -1,0 +1,31 @@
+<!-- Header with Top Menu and Toolbar -->
+<div class="header-container">
+    <!-- Language Selector -->
+    <div id="language-switcher" class="language-switcher">
+        <select id="language-select" aria-label="Select language">
+            <option value="en">🇺🇸 English</option>
+            <option value="pl">🇵🇱 Polski</option>
+            <option value="de">🇩🇪 Deutsch</option>
+            <option value="es">🇪🇸 Español</option>
+        </select>
+    </div>
+    
+    <!-- Top Menu -->
+    <nav class="top-menu">
+        <ul>
+            <li><a href="#" class="menu-item" data-i18n="ui.menu.file">File</a></li>
+            <li><a href="#" class="menu-item" id="simulation-menu" data-i18n="ui.menu.tools">Tools</a></li>
+            <li><a href="#" class="menu-item" data-i18n="ui.menu.view">View</a></li>
+            <li><a href="#" class="menu-item" data-i18n="ui.menu.help">Help</a></li>
+        </ul>
+    </nav>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <button id="export-btn" class="btn btn-success">📤 Eksportuj (.dtwin)</button>
+        <button id="import-btn" class="btn btn-primary">📥 Importuj (.dtwin)</button>
+        <button id="export-png-btn" class="btn btn-warning">🖼️ PNG</button>
+        <button id="export-svg-btn" class="btn btn-primary">🟩 SVG</button>
+        <button id="connection-mode-btn" class="btn btn-purple">🔗 Łącz komponenty</button>
+    </div>
+</div>
