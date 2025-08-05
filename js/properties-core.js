@@ -36,6 +36,38 @@ export class PropertiesManager {
 
         // Uruchom automatyczne odświeżanie mapowania
         this.propertiesMapper.setupAutoRefresh();
+
+        // Listen for selection changes to update properties panel
+        this.setupSelectionEventListener();
+    }
+
+    // Setup event listener for selection changes
+    setupSelectionEventListener() {
+        document.addEventListener('canvas-selection-changed', (event) => {
+            const selectedComponents = event.detail.selectedComponents || [];
+            console.log('🎯 Selection changed:', selectedComponents.length, 'components selected');
+            
+            // Show appropriate properties based on selection
+            if (selectedComponents.length === 0) {
+                // No selection - show canvas properties
+                this.showCanvasProperties();
+            } else if (selectedComponents.length === 1) {
+                // Single selection - show component properties
+                this.showProperties(selectedComponents[0]);
+            } else {
+                // Multi-selection - show shared properties
+                this.showMultiSelectionProperties(selectedComponents);
+            }
+        });
+
+        // Also listen for component updates to refresh properties
+        document.addEventListener('components-batch-updated', (event) => {
+            const selectedComponents = window.canvasSelectionManager?.getSelectedComponents() || [];
+            if (selectedComponents.length > 1) {
+                // Refresh multi-selection display after batch update
+                this.showMultiSelectionProperties(selectedComponents);
+            }
+        });
     }
 
     // Wybór komponentu
@@ -62,6 +94,344 @@ export class PropertiesManager {
         } else {
             this.componentManager.setSelectedComponent(null);
             this.clearProperties();
+        }
+    }
+
+    // Multi-selection: Show shared properties for multiple selected components
+    showMultiSelectionProperties(selectedComponents) {
+        if (!selectedComponents || selectedComponents.length === 0) {
+            this.clearProperties();
+            return;
+        }
+
+        if (selectedComponents.length === 1) {
+            // Single component - use normal properties display
+            this.showProperties(selectedComponents[0]);
+            return;
+        }
+
+        // Multiple components - show shared properties
+        const sharedProperties = this.findSharedProperties(selectedComponents);
+        this.displaySharedProperties(selectedComponents, sharedProperties);
+    }
+
+    // Find properties that are common to all selected components
+    findSharedProperties(selectedComponents) {
+        if (!selectedComponents || selectedComponents.length === 0) return {};
+
+        const sharedProps = {};
+        const firstComponent = selectedComponents[0];
+        const firstMetadata = this.extractComponentMetadata(firstComponent);
+
+        // Common properties that can be batch-edited
+        const commonPropertyKeys = [
+            'transform', 'scale', 'zoom',
+            'fill', 'stroke', 'color',
+            'x', 'y', 'width', 'height',
+            'opacity', 'visibility',
+            'font-family', 'font-size'
+        ];
+
+        // Check each common property
+        commonPropertyKeys.forEach(propKey => {
+            const values = [];
+            let allHaveProperty = true;
+
+            selectedComponents.forEach(component => {
+                const metadata = this.extractComponentMetadata(component);
+                const value = this.getPropertyValue(component, metadata, propKey);
+
+                if (value !== null && value !== undefined) {
+                    values.push(value);
+                } else {
+                    allHaveProperty = false;
+                }
+            });
+
+            // If all components have this property, include it in shared props
+            if (allHaveProperty && values.length > 0) {
+                const uniqueValues = [...new Set(values)];
+                sharedProps[propKey] = {
+                    values: uniqueValues,
+                    isSame: uniqueValues.length === 1,
+                    currentValue: uniqueValues.length === 1 ? uniqueValues[0] : null
+                };
+            }
+        });
+
+        return sharedProps;
+    }
+
+    // Extract metadata from component element
+    extractComponentMetadata(element) {
+        if (!element) return {};
+
+        const metadataElement = element.querySelector('metadata component');
+        if (!metadataElement) return {};
+
+        try {
+            const parametersElement = metadataElement.querySelector('parameters');
+            if (!parametersElement) return {};
+
+            const params = {};
+            Array.from(parametersElement.children).forEach(param => {
+                params[param.tagName.toLowerCase()] = param.textContent;
+            });
+
+            return {
+                type: metadataElement.getAttribute('type'),
+                name: metadataElement.getAttribute('name'),
+                parameters: params
+            };
+        } catch (error) {
+            console.warn('Error extracting metadata:', error);
+            return {};
+        }
+    }
+
+    // Get property value from component and metadata
+    getPropertyValue(element, metadata, propKey) {
+        if (!element) return null;
+
+        // Try metadata first
+        if (metadata?.parameters?.[propKey]) {
+            return metadata.parameters[propKey];
+        }
+
+        // Try SVG attributes
+        const attrValue = element.getAttribute(propKey);
+        if (attrValue) return attrValue;
+
+        // Try CSS styles
+        const style = window.getComputedStyle(element);
+        if (style[propKey]) return style[propKey];
+
+        // Try transform scale extraction for zoom/scale
+        if (propKey === 'scale' || propKey === 'zoom') {
+            const transform = element.getAttribute('transform') || '';
+            const scaleMatch = transform.match(/scale\(([^)]+)\)/);
+            if (scaleMatch) {
+                const scaleValues = scaleMatch[1].split(',').map(v => parseFloat(v.trim()));
+                return scaleValues[0]; // Use X scale as main scale
+            }
+        }
+
+        return null;
+    }
+
+    // Display shared properties UI
+    displaySharedProperties(selectedComponents, sharedProperties) {
+        const propertiesPanel = document.getElementById('properties-panel');
+        if (!propertiesPanel) return;
+
+        let html = `
+            <div class="properties-section">
+                <h3 data-i18n="properties.multi_selection">${window.i18nManager ? window.i18nManager.translate('properties.multi_selection') : 'Multi-Selection'}</h3>
+                <p class="text-muted" data-i18n="properties.selected_components">${selectedComponents.length} ${window.i18nManager ? window.i18nManager.translate('properties.selected_components') : 'components selected'}</p>
+            </div>
+        `;
+
+        // Shared Scale/Zoom section
+        if (sharedProperties.scale || sharedProperties.zoom) {
+            const scaleInfo = sharedProperties.scale || sharedProperties.zoom;
+            html += `
+                <div class="properties-section">
+                    <h4 data-i18n="properties.scale">${window.i18nManager ? window.i18nManager.translate('properties.scale') : 'Scale'}</h4>
+                    <div class="property-group">
+                        <label data-i18n="properties.zoom_level">${window.i18nManager ? window.i18nManager.translate('properties.zoom_level') : 'Zoom Level'}:</label>
+                        <div class="input-group input-group-sm">
+                            <select class="form-control" id="multi-scale-select" onchange="window.propertiesManager?.updateMultipleComponents('scale', this.value)">
+                                ${this.generateZoomLevelOptions(scaleInfo.currentValue ? parseFloat(scaleInfo.currentValue) * 100 : 100)}
+                            </select>
+                            <div class="input-group-append">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        ${!scaleInfo.isSame ? '<small class="text-warning" data-i18n="properties.mixed_values">Mixed values</small>' : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Shared Color section
+        if (sharedProperties.fill || sharedProperties.color) {
+            const colorInfo = sharedProperties.fill || sharedProperties.color;
+            html += `
+                <div class="properties-section">
+                    <h4 data-i18n="properties.colors">${window.i18nManager ? window.i18nManager.translate('properties.colors') : 'Colors'}</h4>
+                    <div class="property-group">
+                        <label data-i18n="properties.color">${window.i18nManager ? window.i18nManager.translate('properties.color') : 'Color'}:</label>
+                        <input type="color" class="form-control form-control-sm" 
+                               value="${colorInfo.isSame ? colorInfo.currentValue : '#666666'}" 
+                               onchange="window.propertiesManager?.updateMultipleComponents('color', this.value)">
+                        ${!colorInfo.isSame ? '<small class="text-warning" data-i18n="properties.mixed_values">Mixed values</small>' : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Shared Position section
+        if (sharedProperties.x || sharedProperties.y) {
+            html += `
+                <div class="properties-section">
+                    <h4 data-i18n="properties.position">${window.i18nManager ? window.i18nManager.translate('properties.position') : 'Position'}</h4>
+            `;
+
+            if (sharedProperties.x) {
+                const xInfo = sharedProperties.x;
+                html += `
+                    <div class="property-group">
+                        <label>X:</label>
+                        <input type="number" class="form-control form-control-sm" 
+                               value="${xInfo.isSame ? xInfo.currentValue : ''}" 
+                               placeholder="${xInfo.isSame ? '' : 'Mixed'}"
+                               onchange="window.propertiesManager?.updateMultipleComponents('x', this.value)">
+                    </div>
+                `;
+            }
+
+            if (sharedProperties.y) {
+                const yInfo = sharedProperties.y;
+                html += `
+                    <div class="property-group">
+                        <label>Y:</label>
+                        <input type="number" class="form-control form-control-sm" 
+                               value="${yInfo.isSame ? yInfo.currentValue : ''}" 
+                               placeholder="${yInfo.isSame ? '' : 'Mixed'}"
+                               onchange="window.propertiesManager?.updateMultipleComponents('y', this.value)">
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+        }
+
+        // Batch Actions section
+        html += `
+            <div class="properties-section">
+                <h4 data-i18n="properties.batch_actions">${window.i18nManager ? window.i18nManager.translate('properties.batch_actions') : 'Batch Actions'}</h4>
+                <div class="btn-group btn-group-sm w-100" role="group">
+                    <button type="button" class="btn btn-outline-dark" 
+                            onclick="window.propertiesManager?.copyMultipleComponents()" 
+                            data-i18n="properties.copy_all">${window.i18nManager ? window.i18nManager.translate('properties.copy_all') : 'Copy All'}</button>
+                    <button type="button" class="btn btn-outline-danger" 
+                            onclick="window.propertiesManager?.deleteMultipleComponents()" 
+                            data-i18n="properties.delete_all">${window.i18nManager ? window.i18nManager.translate('properties.delete_all') : 'Delete All'}</button>
+                </div>
+            </div>
+        `;
+
+        propertiesPanel.innerHTML = html;
+
+        // Apply translations
+        setTimeout(() => {
+            if (window.i18nManager) {
+                window.i18nManager.applyTranslations();
+            }
+        }, 10);
+    }
+
+    // Update multiple components with the same property value
+    updateMultipleComponents(property, value) {
+        const selectedComponents = window.canvasSelectionManager?.getSelectedComponents() || [];
+        if (selectedComponents.length === 0) return;
+
+        selectedComponents.forEach(component => {
+            this.updateComponentProperty(component, property, value);
+        });
+
+        // Refresh the multi-selection display
+        this.showMultiSelectionProperties(selectedComponents);
+
+        // Notify other managers of the change
+        document.dispatchEvent(new CustomEvent('components-batch-updated', {
+            detail: { components: selectedComponents, property, value }
+        }));
+    }
+
+    // Update a single component's property
+    updateComponentProperty(element, property, value) {
+        if (!element || !property) return;
+
+        switch (property) {
+            case 'scale':
+            case 'zoom':
+                const scaleValue = parseFloat(value) / 100;
+                this.updateComponentTransform(element, scaleValue);
+                break;
+
+            case 'color':
+            case 'fill':
+                this.updateComponentColor(element, value);
+                break;
+
+            case 'x':
+            case 'y':
+                const coord = parseFloat(value);
+                element.setAttribute(property, coord);
+                break;
+
+            default:
+                // Try to update as attribute
+                element.setAttribute(property, value);
+                break;
+        }
+    }
+
+    // Update component transform for scaling
+    updateComponentTransform(element, scaleValue) {
+        let transform = element.getAttribute('transform') || '';
+        
+        // Remove existing scale
+        transform = transform.replace(/scale\([^)]*\)/g, '').trim();
+        
+        // Add new scale
+        if (scaleValue && scaleValue !== 1) {
+            transform += ` scale(${scaleValue})`;
+        }
+        
+        element.setAttribute('transform', transform.trim());
+    }
+
+    // Update component color
+    updateComponentColor(element, color) {
+        // Update fill attribute
+        element.setAttribute('fill', color);
+        
+        // Update metadata if present
+        const metadataElement = element.querySelector('metadata component parameters color');
+        if (metadataElement) {
+            metadataElement.textContent = color;
+        }
+        
+        // Update any child elements that should inherit color
+        const colorableElements = element.querySelectorAll('[fill], [stroke]');
+        colorableElements.forEach(child => {
+            if (child.getAttribute('fill') !== 'none') {
+                child.setAttribute('fill', color);
+            }
+        });
+    }
+
+    // Copy multiple components
+    copyMultipleComponents() {
+        const selectedComponents = window.canvasSelectionManager?.getSelectedComponents() || [];
+        if (selectedComponents.length === 0) return;
+
+        if (window.canvasSelectionManager?.copySelectedComponents) {
+            window.canvasSelectionManager.copySelectedComponents();
+        }
+    }
+
+    // Delete multiple components
+    deleteMultipleComponents() {
+        const selectedComponents = window.canvasSelectionManager?.getSelectedComponents() || [];
+        if (selectedComponents.length === 0) return;
+
+        if (confirm(`${window.i18nManager ? window.i18nManager.translate('properties.confirm_delete_multiple') : 'Delete'} ${selectedComponents.length} ${window.i18nManager ? window.i18nManager.translate('properties.components') : 'components'}?`)) {
+            if (window.canvasSelectionManager?.deleteSelectedComponents) {
+                window.canvasSelectionManager.deleteSelectedComponents();
+            }
         }
     }
 
@@ -203,7 +573,7 @@ export class PropertiesManager {
                 <label class="form-label">ID komponentu</label>
                 <div class="input-group input-group-sm">
                     <input type="text" class="form-control" value="${id}" readonly>
-                    <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('${id}')">
+                    <button class="btn btn-outline-dark" type="button" onclick="navigator.clipboard.writeText('${id}')">
                         Kopiuj
                     </button>
                 </div>
@@ -473,7 +843,7 @@ export class PropertiesManager {
                     <div class="col-12">
                         <label class="form-label small">Scale (% of original size)</label>
                         <div class="input-group input-group-sm">
-                            <button class="btn btn-outline-secondary" type="button" 
+                            <button class="btn btn-outline-dark" type="button" 
                                     onclick="zoomComponent('${componentData.id}', 'out')">
                                 <i class="bi bi-zoom-out"></i>
                             </button>
@@ -483,7 +853,7 @@ export class PropertiesManager {
                                    id="scale-slider-${componentData.id}"
                                    style="flex: 1; margin: 0 10px; align-self: center;"
                                    oninput="setComponentScalePercentage('${componentData.id}', this.value); document.getElementById('scale-input-${componentData.id}').value = this.value + '%'">
-                            <button class="btn btn-outline-secondary" type="button" 
+                            <button class="btn btn-outline-dark" type="button" 
                                     onclick="zoomComponent('${componentData.id}', 'in')">
                                 <i class="bi bi-zoom-in"></i>
                             </button>

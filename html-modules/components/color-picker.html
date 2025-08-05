@@ -1,0 +1,723 @@
+<!-- Color Picker HTML Module for Digital Twin IDE PWA -->
+<template>
+    <div class="color-picker">
+        <div class="color-picker-header">
+            <h4 class="color-picker-title" data-i18n="color.title">Color Picker</h4>
+        </div>
+        
+        <div class="color-picker-content">
+            <!-- Current Color Display -->
+            <div class="color-group">
+                <label class="color-label" data-i18n="color.current">Current Color:</label>
+                <div class="current-color-display">
+                    <div class="current-color-preview"></div>
+                    <input type="text" class="current-color-value" placeholder="#000000" maxlength="7">
+                </div>
+            </div>
+
+            <!-- Native Color Input -->
+            <div class="color-group">
+                <label class="color-label" data-i18n="color.select">Select Color:</label>
+                <input type="color" class="native-color-picker" value="#000000">
+            </div>
+
+            <!-- Color Palette -->
+            <div class="color-group">
+                <label class="color-label" data-i18n="color.palette">Color Palette:</label>
+                <div class="color-palette">
+                    <!-- Basic Colors -->
+                    <div class="palette-section">
+                        <span class="palette-title" data-i18n="color.basic">Basic:</span>
+                        <div class="palette-colors">
+                            <div class="palette-color" data-color="#000000" title="Black"></div>
+                            <div class="palette-color" data-color="#ffffff" title="White"></div>
+                            <div class="palette-color" data-color="#ff0000" title="Red"></div>
+                            <div class="palette-color" data-color="#00ff00" title="Green"></div>
+                            <div class="palette-color" data-color="#0000ff" title="Blue"></div>
+                            <div class="palette-color" data-color="#ffff00" title="Yellow"></div>
+                            <div class="palette-color" data-color="#ff00ff" title="Magenta"></div>
+                            <div class="palette-color" data-color="#00ffff" title="Cyan"></div>
+                        </div>
+                    </div>
+
+                    <!-- Industrial Colors -->
+                    <div class="palette-section">
+                        <span class="palette-title" data-i18n="color.industrial">Industrial:</span>
+                        <div class="palette-colors">
+                            <div class="palette-color" data-color="#ff6b35" title="Safety Orange"></div>
+                            <div class="palette-color" data-color="#f7931e" title="Warning Yellow"></div>
+                            <div class="palette-color" data-color="#00a651" title="Safety Green"></div>
+                            <div class="palette-color" data-color="#ed1c24" title="Alert Red"></div>
+                            <div class="palette-color" data-color="#0072ce" title="Process Blue"></div>
+                            <div class="palette-color" data-color="#662d91" title="Control Purple"></div>
+                            <div class="palette-color" data-color="#939598" title="Neutral Gray"></div>
+                            <div class="palette-color" data-color="#58595b" title="Dark Gray"></div>
+                        </div>
+                    </div>
+
+                    <!-- Custom Colors -->
+                    <div class="palette-section">
+                        <span class="palette-title" data-i18n="color.custom">Custom:</span>
+                        <div class="palette-colors custom-colors">
+                            <!-- Custom colors will be populated here -->
+                        </div>
+                        <button class="add-custom-btn" data-i18n="color.add_custom">+ Add Current</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HSL Controls -->
+            <div class="color-group">
+                <label class="color-label" data-i18n="color.hsl">HSL Controls:</label>
+                <div class="hsl-controls">
+                    <div class="hsl-slider">
+                        <label data-i18n="color.hue">Hue:</label>
+                        <input type="range" class="hue-slider" min="0" max="360" value="0">
+                        <span class="hsl-value">0°</span>
+                    </div>
+                    <div class="hsl-slider">
+                        <label data-i18n="color.saturation">Saturation:</label>
+                        <input type="range" class="saturation-slider" min="0" max="100" value="0">
+                        <span class="hsl-value">0%</span>
+                    </div>
+                    <div class="hsl-slider">
+                        <label data-i18n="color.lightness">Lightness:</label>
+                        <input type="range" class="lightness-slider" min="0" max="100" value="0">
+                        <span class="hsl-value">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RGB Controls -->
+            <div class="color-group">
+                <label class="color-label" data-i18n="color.rgb">RGB Controls:</label>
+                <div class="rgb-controls">
+                    <div class="rgb-input">
+                        <label>R:</label>
+                        <input type="number" class="rgb-r" min="0" max="255" value="0">
+                    </div>
+                    <div class="rgb-input">
+                        <label>G:</label>
+                        <input type="number" class="rgb-g" min="0" max="255" value="0">
+                    </div>
+                    <div class="rgb-input">
+                        <label>B:</label>
+                        <input type="number" class="rgb-b" min="0" max="255" value="0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Opacity Control -->
+            <div class="color-group">
+                <label class="color-label" data-i18n="color.opacity">Opacity:</label>
+                <div class="opacity-control">
+                    <input type="range" class="opacity-slider" min="0" max="100" value="100">
+                    <span class="opacity-value">100%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="color-picker-actions">
+            <button class="color-btn color-btn-apply" data-i18n="ui.apply">Apply</button>
+            <button class="color-btn color-btn-reset" data-i18n="ui.reset">Reset</button>
+            <button class="color-btn color-btn-copy" data-i18n="ui.copy">Copy Hex</button>
+        </div>
+    </div>
+</template>
+
+<style>
+    .color-picker {
+        background: var(--bg-secondary, #f8f9fa);
+        border: 1px solid var(--border-color, #dee2e6);
+        border-radius: 8px;
+        padding: 16px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        max-width: 400px;
+    }
+
+    .color-picker-header {
+        margin-bottom: 16px;
+        border-bottom: 1px solid var(--border-color, #dee2e6);
+        padding-bottom: 8px;
+    }
+
+    .color-picker-title {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary, #212529);
+    }
+
+    .color-picker-content {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .color-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .color-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-secondary, #6c757d);
+        margin-bottom: 4px;
+    }
+
+    .current-color-display {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .current-color-preview {
+        width: 40px;
+        height: 40px;
+        border: 2px solid var(--border-color, #ced4da);
+        border-radius: 4px;
+        background: #000000;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .current-color-preview::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        background: linear-gradient(45deg, #ccc 25%, transparent 25%), 
+                    linear-gradient(-45deg, #ccc 25%, transparent 25%), 
+                    linear-gradient(45deg, transparent 75%, #ccc 75%), 
+                    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+        background-size: 8px 8px;
+        background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+        z-index: -1;
+        border-radius: 4px;
+    }
+
+    .current-color-value {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid var(--border-color, #ced4da);
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 14px;
+        text-transform: uppercase;
+    }
+
+    .native-color-picker {
+        width: 60px;
+        height: 40px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .color-palette {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .palette-section {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .palette-title {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-secondary, #6c757d);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .palette-colors {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 4px;
+    }
+
+    .palette-color {
+        width: 32px;
+        height: 32px;
+        border: 2px solid var(--border-color, #ced4da);
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .palette-color:hover {
+        transform: scale(1.1);
+        border-color: var(--primary-color, #007bff);
+        z-index: 1;
+    }
+
+    .palette-color.active {
+        border-color: var(--primary-color, #007bff);
+        border-width: 3px;
+    }
+
+    .add-custom-btn {
+        grid-column: span 2;
+        padding: 8px;
+        border: 1px dashed var(--border-color, #ced4da);
+        border-radius: 4px;
+        background: transparent;
+        color: var(--text-secondary, #6c757d);
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .add-custom-btn:hover {
+        border-color: var(--primary-color, #007bff);
+        color: var(--primary-color, #007bff);
+    }
+
+    .hsl-controls,
+    .rgb-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .hsl-slider,
+    .rgb-input {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .hsl-slider label,
+    .rgb-input label {
+        min-width: 80px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .hue-slider,
+    .saturation-slider,
+    .lightness-slider,
+    .opacity-slider {
+        flex: 1;
+        height: 20px;
+        appearance: none;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+
+    .hue-slider {
+        background: linear-gradient(to right, 
+            hsl(0, 100%, 50%), hsl(60, 100%, 50%), hsl(120, 100%, 50%), 
+            hsl(180, 100%, 50%), hsl(240, 100%, 50%), hsl(300, 100%, 50%), 
+            hsl(360, 100%, 50%));
+    }
+
+    .saturation-slider {
+        background: linear-gradient(to right, hsl(0, 0%, 50%), hsl(0, 100%, 50%));
+    }
+
+    .lightness-slider {
+        background: linear-gradient(to right, hsl(0, 100%, 0%), hsl(0, 100%, 50%), hsl(0, 100%, 100%));
+    }
+
+    .opacity-slider {
+        background: linear-gradient(to right, transparent, currentColor);
+    }
+
+    .hsl-value,
+    .opacity-value {
+        min-width: 40px;
+        font-size: 13px;
+        font-weight: 500;
+        text-align: right;
+    }
+
+    .rgb-input input {
+        width: 60px;
+        padding: 4px 8px;
+        border: 1px solid var(--border-color, #ced4da);
+        border-radius: 3px;
+        text-align: center;
+        font-size: 13px;
+    }
+
+    .opacity-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .color-picker-actions {
+        margin-top: 16px;
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        border-top: 1px solid var(--border-color, #dee2e6);
+        padding-top: 16px;
+    }
+
+    .color-btn {
+        padding: 8px 16px;
+        border: 1px solid var(--border-color, #ced4da);
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .color-btn-apply {
+        background: var(--primary-color, #007bff);
+        color: white;
+        border-color: var(--primary-color, #007bff);
+    }
+
+    .color-btn-apply:hover {
+        background: var(--primary-color-dark, #0056b3);
+    }
+
+    .color-btn-reset,
+    .color-btn-copy {
+        background: var(--bg-primary, #ffffff);
+        color: var(--text-secondary, #6c757d);
+    }
+
+    .color-btn-reset:hover,
+    .color-btn-copy:hover {
+        background: var(--bg-hover, #e9ecef);
+    }
+
+    /* Dark theme support */
+    @media (prefers-color-scheme: dark) {
+        .color-picker {
+            --bg-primary: #2d3748;
+            --bg-secondary: #1a202c;
+            --bg-hover: #4a5568;
+            --text-primary: #f7fafc;
+            --text-secondary: #a0aec0;
+            --border-color: #4a5568;
+            --primary-color: #3182ce;
+            --primary-color-dark: #2c5282;
+        }
+    }
+</style>
+
+<script type="module">
+    import { ModuleBase, registerModule } from '../base/module-base.js';
+    import { I18nMixin } from '../base/i18n-mixin.js';
+
+    class ColorPicker extends I18nMixin(ModuleBase) {
+        constructor() {
+            super();
+            
+            this.currentColor = {
+                hex: '#000000',
+                rgb: { r: 0, g: 0, b: 0 },
+                hsl: { h: 0, s: 0, l: 0 },
+                opacity: 100
+            };
+            
+            this.customColors = [];
+        }
+
+        async init() {
+            await super.init();
+            await this.loadModuleTranslations('color-picker');
+            this.loadCustomColors();
+        }
+
+        render() {
+            const template = document.querySelector('template').content.cloneNode(true);
+            this.shadowRoot.innerHTML = '';
+            this.shadowRoot.appendChild(template);
+            
+            this.updateColorDisplay();
+            this.renderCustomColors();
+            this.applyTranslations();
+        }
+
+        bindEvents() {
+            // Native color picker
+            const nativePicker = this.$('.native-color-picker');
+            nativePicker?.addEventListener('input', (e) => {
+                this.setColor(e.target.value);
+            });
+
+            // Hex input
+            const hexInput = this.$('.current-color-value');
+            hexInput?.addEventListener('input', (e) => {
+                const hex = e.target.value;
+                if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+                    this.setColor(hex);
+                }
+            });
+
+            // Palette colors
+            this.$$('.palette-color').forEach(color => {
+                color.addEventListener('click', (e) => {
+                    const colorValue = e.target.dataset.color;
+                    if (colorValue) {
+                        this.setColor(colorValue);
+                    }
+                });
+            });
+
+            // HSL sliders
+            const hueSlider = this.$('.hue-slider');
+            const saturationSlider = this.$('.saturation-slider');
+            const lightnessSlider = this.$('.lightness-slider');
+
+            hueSlider?.addEventListener('input', (e) => {
+                this.currentColor.hsl.h = parseInt(e.target.value);
+                this.updateFromHSL();
+            });
+
+            saturationSlider?.addEventListener('input', (e) => {
+                this.currentColor.hsl.s = parseInt(e.target.value);
+                this.updateFromHSL();
+            });
+
+            lightnessSlider?.addEventListener('input', (e) => {
+                this.currentColor.hsl.l = parseInt(e.target.value);
+                this.updateFromHSL();
+            });
+
+            // RGB inputs
+            const rgbInputs = {
+                r: this.$('.rgb-r'),
+                g: this.$('.rgb-g'),
+                b: this.$('.rgb-b')
+            };
+
+            Object.entries(rgbInputs).forEach(([channel, input]) => {
+                input?.addEventListener('input', (e) => {
+                    this.currentColor.rgb[channel] = parseInt(e.target.value) || 0;
+                    this.updateFromRGB();
+                });
+            });
+
+            // Opacity slider
+            const opacitySlider = this.$('.opacity-slider');
+            opacitySlider?.addEventListener('input', (e) => {
+                this.currentColor.opacity = parseInt(e.target.value);
+                this.updateOpacityDisplay();
+                this.emit('color-changed', { color: this.currentColor });
+            });
+
+            // Add custom color
+            const addCustomBtn = this.$('.add-custom-btn');
+            addCustomBtn?.addEventListener('click', () => {
+                this.addCustomColor(this.currentColor.hex);
+            });
+
+            // Action buttons
+            const applyBtn = this.$('.color-btn-apply');
+            applyBtn?.addEventListener('click', () => {
+                this.emit('color-apply', { color: this.currentColor });
+            });
+
+            const resetBtn = this.$('.color-btn-reset');
+            resetBtn?.addEventListener('click', () => {
+                this.setColor('#000000');
+                this.emit('color-reset');
+            });
+
+            const copyBtn = this.$('.color-btn-copy');
+            copyBtn?.addEventListener('click', () => {
+                this.copyHexToClipboard();
+            });
+        }
+
+        setColor(hex) {
+            this.currentColor.hex = hex;
+            this.currentColor.rgb = this.hexToRgb(hex);
+            this.currentColor.hsl = this.rgbToHsl(this.currentColor.rgb);
+            
+            this.updateColorDisplay();
+            this.emit('color-changed', { color: this.currentColor });
+        }
+
+        updateFromHSL() {
+            this.currentColor.rgb = this.hslToRgb(this.currentColor.hsl);
+            this.currentColor.hex = this.rgbToHex(this.currentColor.rgb);
+            this.updateColorDisplay();
+            this.emit('color-changed', { color: this.currentColor });
+        }
+
+        updateFromRGB() {
+            this.currentColor.hex = this.rgbToHex(this.currentColor.rgb);
+            this.currentColor.hsl = this.rgbToHsl(this.currentColor.rgb);
+            this.updateColorDisplay();
+            this.emit('color-changed', { color: this.currentColor });
+        }
+
+        updateColorDisplay() {
+            // Update preview
+            const preview = this.$('.current-color-preview');
+            if (preview) {
+                preview.style.backgroundColor = this.currentColor.hex;
+            }
+
+            // Update hex input
+            const hexInput = this.$('.current-color-value');
+            if (hexInput) {
+                hexInput.value = this.currentColor.hex;
+            }
+
+            // Update native picker
+            const nativePicker = this.$('.native-color-picker');
+            if (nativePicker) {
+                nativePicker.value = this.currentColor.hex;
+            }
+
+            // Update HSL sliders
+            const hueSlider = this.$('.hue-slider');
+            const saturationSlider = this.$('.saturation-slider');
+            const lightnessSlider = this.$('.lightness-slider');
+
+            if (hueSlider) {
+                hueSlider.value = this.currentColor.hsl.h;
+                this.$('.hue-slider').nextElementSibling.textContent = this.currentColor.hsl.h + '°';
+            }
+            if (saturationSlider) {
+                saturationSlider.value = this.currentColor.hsl.s;
+                this.$('.saturation-slider').nextElementSibling.textContent = this.currentColor.hsl.s + '%';
+            }
+            if (lightnessSlider) {
+                lightnessSlider.value = this.currentColor.hsl.l;
+                this.$('.lightness-slider').nextElementSibling.textContent = this.currentColor.hsl.l + '%';
+            }
+
+            // Update RGB inputs
+            const rgbR = this.$('.rgb-r');
+            const rgbG = this.$('.rgb-g');
+            const rgbB = this.$('.rgb-b');
+
+            if (rgbR) rgbR.value = this.currentColor.rgb.r;
+            if (rgbG) rgbG.value = this.currentColor.rgb.g;
+            if (rgbB) rgbB.value = this.currentColor.rgb.b;
+
+            // Update palette selection
+            this.$$('.palette-color').forEach(color => {
+                color.classList.toggle('active', color.dataset.color === this.currentColor.hex);
+            });
+        }
+
+        updateOpacityDisplay() {
+            const opacityValue = this.$('.opacity-value');
+            if (opacityValue) {
+                opacityValue.textContent = this.currentColor.opacity + '%';
+            }
+        }
+
+        addCustomColor(hex) {
+            if (!this.customColors.includes(hex)) {
+                this.customColors.push(hex);
+                this.saveCustomColors();
+                this.renderCustomColors();
+            }
+        }
+
+        renderCustomColors() {
+            const customContainer = this.$('.custom-colors');
+            if (!customContainer) return;
+
+            customContainer.innerHTML = '';
+            this.customColors.forEach(hex => {
+                const colorEl = this.createElement('div', {
+                    className: 'palette-color',
+                    'data-color': hex,
+                    title: hex
+                });
+                colorEl.style.backgroundColor = hex;
+                colorEl.addEventListener('click', () => this.setColor(hex));
+                customContainer.appendChild(colorEl);
+            });
+        }
+
+        loadCustomColors() {
+            const saved = localStorage.getItem('color-picker-custom-colors');
+            if (saved) {
+                try {
+                    this.customColors = JSON.parse(saved);
+                } catch (e) {
+                    this.customColors = [];
+                }
+            }
+        }
+
+        saveCustomColors() {
+            localStorage.setItem('color-picker-custom-colors', JSON.stringify(this.customColors));
+        }
+
+        async copyHexToClipboard() {
+            try {
+                await navigator.clipboard.writeText(this.currentColor.hex);
+                this.emit('color-copied', { hex: this.currentColor.hex });
+            } catch (err) {
+                console.warn('Failed to copy to clipboard:', err);
+            }
+        }
+
+        // Color conversion utilities
+        hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : { r: 0, g: 0, b: 0 };
+        }
+
+        rgbToHex({ r, g, b }) {
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+
+        rgbToHsl({ r, g, b }) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+
+            if (max === min) {
+                h = s = 0;
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+
+            return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+        }
+
+        hslToRgb({ h, s, l }) {
+            h /= 360; s /= 100; l /= 100;
+            const a = s * Math.min(l, 1 - l);
+            const f = n => {
+                const k = (n + h / (1/12)) % 12;
+                return l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+            };
+            return { r: Math.round(f(0) * 255), g: Math.round(f(8) * 255), b: Math.round(f(4) * 255) };
+        }
+
+        // Public API
+        getColor() {
+            return { ...this.currentColor };
+        }
+
+        setInitialColor(color) {
+            this.setColor(color);
+        }
+    }
+
+    registerModule('color-picker', ColorPicker);
+</script>

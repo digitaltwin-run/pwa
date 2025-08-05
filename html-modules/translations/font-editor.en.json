@@ -1,0 +1,20 @@
+{
+  "font.title": "Font Settings",
+  "font.family": "Font Family",
+  "font.size": "Font Size",
+  "font.weight": "Font Weight",
+  "font.weight.normal": "Normal",
+  "font.weight.bold": "Bold",
+  "font.weight.lighter": "Lighter",
+  "font.style": "Font Style",
+  "font.style.normal": "Normal",
+  "font.style.italic": "Italic",
+  "font.style.oblique": "Oblique",
+  "font.decoration": "Text Decoration",
+  "font.decoration.none": "None",
+  "font.decoration.underline": "Underline",
+  "font.decoration.overline": "Overline",
+  "font.decoration.strikethrough": "Strikethrough",
+  "font.preview": "Preview",
+  "font.preview.text": "The quick brown fox jumps over the lazy dog"
+}

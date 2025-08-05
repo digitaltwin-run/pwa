@@ -202,6 +202,16 @@ export class ComponentManager {
                 console.error(`Błąd ładowania komponentu ${comp.svg}:`, error);
             }
         }
+        
+        // Emit components-loaded event to notify other managers
+        const componentsLoadedEvent = new CustomEvent('components-loaded', {
+            detail: {
+                componentsCount: components.length,
+                timestamp: new Date().toISOString()
+            }
+        });
+        document.dispatchEvent(componentsLoadedEvent);
+        console.log(`📋 Emitted components-loaded event: ${components.length} components`);
     }
 
     // Generuj nowe ID komponentu

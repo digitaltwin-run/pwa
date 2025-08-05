@@ -299,24 +299,43 @@ export class ComponentScaler {
     
     /**
      * Synchronize component scales to make all components have the same scale
+     * Only sync when multiple components are selected
      * @param {number} targetScale - Scale factor to apply to all components
      * @param {string} exceptComponentId - Component ID to exclude (usually the one that triggered sync)
      */
     syncComponentsScale(targetScale, exceptComponentId) {
-        // Get all components managed by the component manager
-        const components = this.componentManager.getAllComponents();
-        if (!components || components.length === 0) return;
+        // Check if multiple components are selected - only sync if so
+        const selectedComponents = this.getSelectedComponents();
+        if (!selectedComponents || selectedComponents.length <= 1) {
+            console.log('🔄 Skipping scale sync - only one or no components selected');
+            return;
+        }
         
-        console.log(`🔄 Synchronizing scale of all components to ${(targetScale * 100).toFixed(0)}% (${targetScale.toFixed(2)}x)`);
+        console.log(`🔄 Synchronizing scale of ${selectedComponents.length} selected components to ${(targetScale * 100).toFixed(0)}% (${targetScale.toFixed(2)}x)`);
         
-        // Apply the target scale to all other components
-        for (const component of components) {
+        // Apply the target scale only to selected components
+        for (const component of selectedComponents) {
             // Skip the component that initiated the sync to avoid infinite loop
             if (component.id === exceptComponentId) continue;
             
             // Apply scale without triggering another sync (set syncAllComponents to false)
             this.setComponentScale(component.id, targetScale, true, false);
         }
+    }
+
+    /**
+     * Get currently selected components from canvas selection manager
+     * @returns {Array} Array of selected components
+     */
+    getSelectedComponents() {
+        if (window.canvasSelectionManager) {
+            const selectedComponents = window.canvasSelectionManager.getSelectedComponents();
+            return selectedComponents.map(element => ({
+                id: element.getAttribute('data-id') || element.id,
+                element: element
+            }));
+        }
+        return [];
     }
     
     /**

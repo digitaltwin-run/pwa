@@ -330,7 +330,7 @@ export class CanvasPropertiesManager {
                     <div class="zoom-controls-canvas">
                         <div class="row g-2 mb-2">
                             <div class="col-4">
-                                <button class="btn btn-outline-secondary btn-sm w-100" 
+                                <button class="btn btn-outline-dark btn-sm w-100" 
                                         onclick="window.canvasZoomManager?.zoomOut()" title="Pomniejsz">
                                     <i class="bi bi-zoom-out"></i>
                                 </button>
@@ -342,7 +342,7 @@ export class CanvasPropertiesManager {
                                 </button>
                             </div>
                             <div class="col-4">
-                                <button class="btn btn-outline-secondary btn-sm w-100" 
+                                <button class="btn btn-outline-dark btn-sm w-100" 
                                         onclick="window.canvasZoomManager?.zoomIn()" title="Powiększ">
                                     <i class="bi bi-zoom-in"></i>
                                 </button>

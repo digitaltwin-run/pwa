@@ -54,9 +54,30 @@ export class ComponentsColumnManager {
      */
     getAllCanvasComponents() {
         const canvas = document.getElementById('svg-canvas');
-        if (!canvas) return [];
+        if (!canvas) {
+            console.warn('[ComponentsColumnManager] Canvas not found!');
+            return [];
+        }
 
         const components = canvas.querySelectorAll('.draggable-component[data-id]');
+        console.log(`[ComponentsColumnManager] Found ${components.length} components with .draggable-component[data-id]`);
+        
+        // Debug: Check all children elements
+        const allChildren = canvas.querySelectorAll('*');
+        console.log(`[ComponentsColumnManager] Total canvas children: ${allChildren.length}`);
+        
+        // Debug: Check for data-id elements
+        const dataIdElements = canvas.querySelectorAll('[data-id]');
+        console.log(`[ComponentsColumnManager] Elements with data-id: ${dataIdElements.length}`);
+        
+        // Debug: Check for draggable-component class
+        const draggableElements = canvas.querySelectorAll('.draggable-component');
+        console.log(`[ComponentsColumnManager] Elements with .draggable-component: ${draggableElements.length}`);
+        
+        if (dataIdElements.length > 0) {
+            console.log('[ComponentsColumnManager] Sample data-id element:', dataIdElements[0]);
+            console.log('[ComponentsColumnManager] Sample element classes:', dataIdElements[0].classList.toString());
+        }
         return Array.from(components).map(component => {
             const id = component.getAttribute('data-id');
             const type = component.getAttribute('data-type') || 'default';

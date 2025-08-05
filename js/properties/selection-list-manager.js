@@ -47,7 +47,7 @@ export class SelectionListManager {
                     <button class="btn btn-sm btn-outline-primary" onclick="window.selectionListManager?.selectAll()" data-i18n="properties.select_all">
                         Zaznacz wszystkie
                     </button>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="window.selectionListManager?.clearAll()" data-i18n="properties.clear_all">
+                    <button class="btn btn-sm btn-outline-dark" onclick="window.selectionListManager?.clearAll()" data-i18n="properties.clear_all">
                         Odznacz wszystkie
                     </button>
                 </div>

@@ -1,0 +1,16 @@
+{
+  "color.title": "Selektor Kolorów",
+  "color.current": "Aktualny Kolor",
+  "color.select": "Wybierz Kolor",
+  "color.palette": "Paleta Kolorów",
+  "color.basic": "Podstawowe",
+  "color.industrial": "Przemysłowe",
+  "color.custom": "Własne",
+  "color.add_custom": "+ Dodaj Aktualny",
+  "color.hsl": "Kontrola HSL",
+  "color.hue": "Odcień",
+  "color.saturation": "Nasycenie",
+  "color.lightness": "Jasność",
+  "color.rgb": "Kontrola RGB",
+  "color.opacity": "Przezroczystość"
+}

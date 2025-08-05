@@ -1,0 +1,16 @@
+{
+  "color.title": "Color Picker",
+  "color.current": "Current Color",
+  "color.select": "Select Color",
+  "color.palette": "Color Palette",
+  "color.basic": "Basic",
+  "color.industrial": "Industrial",
+  "color.custom": "Custom",
+  "color.add_custom": "+ Add Current",
+  "color.hsl": "HSL Controls",
+  "color.hue": "Hue",
+  "color.saturation": "Saturation",
+  "color.lightness": "Lightness",
+  "color.rgb": "RGB Controls",
+  "color.opacity": "Opacity"
+}

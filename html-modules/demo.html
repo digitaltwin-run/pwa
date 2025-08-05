@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Modules Demo - Digital Twin IDE PWA</title>
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-hover: #e9ecef;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --primary-color: #007bff;
+            --primary-color-dark: #0056b3;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .demo-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        .demo-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .demo-description {
+            max-width: 600px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .demo-section {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .demo-section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 8px;
+        }
+
+        .demo-controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .demo-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .demo-btn:hover {
+            background: var(--primary-color-dark);
+        }
+
+        .demo-btn.secondary {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+        }
+
+        .demo-btn.secondary:hover {
+            background: var(--bg-hover);
+        }
+
+        .demo-output {
+            background: #f8f9fa;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .demo-info {
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--primary-color);
+            padding: 16px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .demo-info h3 {
+            margin: 0 0 8px 0;
+            color: var(--primary-color);
+        }
+
+        .demo-info p {
+            margin: 0;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 5px;
+            z-index: 1000;
+        }
+
+        .lang-btn {
+            padding: 4px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .lang-btn:hover,
+        .lang-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* Dark theme support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #2d3748;
+                --bg-secondary: #1a202c;
+                --bg-hover: #4a5568;
+                --text-primary: #f7fafc;
+                --text-secondary: #a0aec0;
+                --border-color: #4a5568;
+                --primary-color: #3182ce;
+                --primary-color-dark: #2c5282;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="language-selector">
+        <button class="lang-btn active" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="pl">PL</button>
+    </div>
+
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1 class="demo-title">HTML Modules Demo</h1>
+            <p class="demo-subtitle">Digital Twin IDE PWA - Native HTML Components</p>
+            <div class="demo-description">
+                <p>
+                    This demo showcases the standardized HTML module system for the Digital Twin IDE. 
+                    Each module is a self-contained Web Component with HTML templates, CSS styles, 
+                    JavaScript logic, and i18n support - all in a single file without build requirements.
+                </p>
+            </div>
+        </div>
+
+        <div class="demo-info">
+            <h3>🧩 Module System Features</h3>
+            <p>
+                ✓ Self-contained HTML modules (template + style + script)<br>
+                ✓ Web Components API with Shadow DOM<br>
+                ✓ Multi-language support (i18n)<br>
+                ✓ Event-driven communication<br>
+                ✓ No frameworks, no build step<br>
+                ✓ CSS isolation and theming
+            </p>
+        </div>
+
+        <div class="demo-grid">
+            <!-- Font Editor Demo -->
+            <div class="demo-section">
+                <h2 class="demo-section-title">🔤 Font Editor Module</h2>
+                <div class="demo-controls">
+                    <button class="demo-btn" onclick="loadFontEditor()">Load Font Editor</button>
+                    <button class="demo-btn secondary" onclick="clearModule('font-editor-container')">Clear</button>
+                </div>
+                <div id="font-editor-container"></div>
+                <div id="font-editor-output" class="demo-output" style="display: none;"></div>
+            </div>
+
+            <!-- Color Picker Demo -->
+            <div class="demo-section">
+                <h2 class="demo-section-title">🎨 Color Picker Module</h2>
+                <div class="demo-controls">
+                    <button class="demo-btn" onclick="loadColorPicker()">Load Color Picker</button>
+                    <button class="demo-btn secondary" onclick="clearModule('color-picker-container')">Clear</button>
+                </div>
+                <div id="color-picker-container"></div>
+                <div id="color-picker-output" class="demo-output" style="display: none;"></div>
+            </div>
+
+            <!-- Scale Editor Demo -->
+            <div class="demo-section">
+                <h2 class="demo-section-title">📏 Scale Editor Module</h2>
+                <div class="demo-controls">
+                    <button class="demo-btn" onclick="loadScaleEditor()">Load Scale Editor</button>
+                    <button class="demo-btn secondary" onclick="clearModule('scale-editor-container')">Clear</button>
+                </div>
+                <div id="scale-editor-container"></div>
+                <div id="scale-editor-output" class="demo-output" style="display: none;"></div>
+            </div>
+
+            <!-- Property Group Demo -->
+            <div class="demo-section">
+                <h2 class="demo-section-title">📋 Property Group Module</h2>
+                <div class="demo-controls">
+                    <button class="demo-btn" onclick="loadPropertyGroup()">Load Property Group</button>
+                    <button class="demo-btn secondary" onclick="clearModule('property-group-container')">Clear</button>
+                </div>
+                <div id="property-group-container"></div>
+                <div id="property-group-output" class="demo-output" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="demo-info">
+            <h3>🔧 Integration with Digital Twin IDE</h3>
+            <p>
+                These modules can be directly integrated into the main IDE properties panel, 
+                replacing the current hardcoded HTML with reusable, maintainable components. 
+                Each module supports the existing event system and can communicate with 
+                other IDE components through custom events.
+            </p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { moduleLoader } from './utils/module-loader.js';
+
+        // Global demo functions
+        window.loadFontEditor = async function() {
+            try {
+                await moduleLoader.loadModule('font-editor', './components/font-editor.html');
+                const container = document.getElementById('font-editor-container');
+                container.innerHTML = '<font-editor></font-editor>';
+                
+                // Set up event listeners
+                const fontEditor = container.querySelector('font-editor');
+                fontEditor.addEventListener('font-changed', (e) => {
+                    showOutput('font-editor-output', `Font changed: ${e.detail.property} = ${e.detail.value}`);
+                });
+                fontEditor.addEventListener('font-apply', (e) => {
+                    showOutput('font-editor-output', `Font applied: ${JSON.stringify(e.detail.config, null, 2)}`);
+                });
+            } catch (error) {
+                console.error('Failed to load font editor:', error);
+                showOutput('font-editor-output', `Error: ${error.message}`);
+            }
+        };
+
+        window.loadColorPicker = async function() {
+            try {
+                await moduleLoader.loadModule('color-picker', './components/color-picker.html');
+                const container = document.getElementById('color-picker-container');
+                container.innerHTML = '<color-picker></color-picker>';
+                
+                // Set up event listeners
+                const colorPicker = container.querySelector('color-picker');
+                colorPicker.addEventListener('color-changed', (e) => {
+                    showOutput('color-picker-output', `Color changed: ${e.detail.color.hex}`);
+                });
+                colorPicker.addEventListener('color-apply', (e) => {
+                    showOutput('color-picker-output', `Color applied: ${JSON.stringify(e.detail.color, null, 2)}`);
+                });
+            } catch (error) {
+                console.error('Failed to load color picker:', error);
+                showOutput('color-picker-output', `Error: ${error.message}`);
+            }
+        };
+
+        window.loadScaleEditor = async function() {
+            try {
+                await moduleLoader.loadModule('scale-editor', './components/scale-editor.html');
+                const container = document.getElementById('scale-editor-container');
+                container.innerHTML = '<scale-editor></scale-editor>';
+                
+                // Set up event listeners
+                const scaleEditor = container.querySelector('scale-editor');
+                scaleEditor.addEventListener('transform-changed', (e) => {
+                    showOutput('scale-editor-output', `Transform changed: ${JSON.stringify(e.detail.transform)}`);
+                });
+                scaleEditor.addEventListener('transform-apply', (e) => {
+                    showOutput('scale-editor-output', `Transform applied: ${JSON.stringify(e.detail.transform, null, 2)}`);
+                });
+            } catch (error) {
+                console.error('Failed to load scale editor:', error);
+                showOutput('scale-editor-output', `Error: ${error.message}`);
+            }
+        };
+
+        window.loadPropertyGroup = async function() {
+            try {
+                await moduleLoader.loadModule('property-group', './components/property-group.html');
+                const container = document.getElementById('property-group-container');
+                container.innerHTML = '<property-group data-title="Demo Properties"></property-group>';
+                
+                // Set up event listeners
+                const propertyGroup = container.querySelector('property-group');
+                propertyGroup.addEventListener('property-added', (e) => {
+                    showOutput('property-group-output', `Property added: ${e.detail.property.name}`);
+                });
+                propertyGroup.addEventListener('property-changed', (e) => {
+                    showOutput('property-group-output', `Property changed: ${e.detail.property.name} = ${e.detail.value}`);
+                });
+                propertyGroup.addEventListener('group-toggled', (e) => {
+                    showOutput('property-group-output', `Group toggled: ${e.detail.collapsed ? 'collapsed' : 'expanded'}`);
+                });
+
+                // Add some demo properties
+                setTimeout(() => {
+                    propertyGroup.addProperty({ name: 'Width', value: '100', type: 'number' });
+                    propertyGroup.addProperty({ name: 'Height', value: '50', type: 'number' });
+                    propertyGroup.addProperty({ name: 'Color', value: '#007bff', type: 'color' });
+                }, 100);
+            } catch (error) {
+                console.error('Failed to load property group:', error);
+                showOutput('property-group-output', `Error: ${error.message}`);
+            }
+        };
+
+        window.clearModule = function(containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            const outputId = containerId.replace('-container', '-output');
+            const output = document.getElementById(outputId);
+            if (output) {
+                output.style.display = 'none';
+                output.textContent = '';
+            }
+        };
+
+        function showOutput(outputId, message) {
+            const output = document.getElementById(outputId);
+            if (output) {
+                output.style.display = 'block';
+                output.textContent += `[${new Date().toLocaleTimeString()}] ${message}\n`;
+                output.scrollTop = output.scrollHeight;
+            }
+        }
+
+        // Language switching
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const lang = btn.dataset.lang;
+                // This would integrate with the global i18n system
+                console.log(`Language switched to: ${lang}`);
+            });
+        });
+
+        // Demo initialization
+        console.log('🧩 HTML Modules Demo initialized');
+        console.log('📁 Module loader ready:', moduleLoader);
+    </script>
+</body>
+</html>

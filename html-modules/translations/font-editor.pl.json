@@ -1,0 +1,20 @@
+{
+  "font.title": "Ustawienia Czcionki",
+  "font.family": "Rodzina Czcionki",
+  "font.size": "Rozmiar Czcionki",
+  "font.weight": "Grubość Czcionki",
+  "font.weight.normal": "Normalna",
+  "font.weight.bold": "Pogrubiona",
+  "font.weight.lighter": "Lżejsza",
+  "font.style": "Styl Czcionki",
+  "font.style.normal": "Normalny",
+  "font.style.italic": "Kursywa",
+  "font.style.oblique": "Pochyły",
+  "font.decoration": "Dekoracja Tekstu",
+  "font.decoration.none": "Brak",
+  "font.decoration.underline": "Podkreślenie",
+  "font.decoration.overline": "Nadkreślenie",
+  "font.decoration.strikethrough": "Przekreślenie",
+  "font.preview": "Podgląd",
+  "font.preview.text": "Zażółć gęślą jaźń lub szybki brązowy lis"
+}
