@@ -57,44 +57,47 @@ export class DragManager {
             if (!originalPos) return;
 
             // Update component position based on its type
-            this.updateComponentPosition(component, deltaX, deltaY);
+            this.updateComponentPosition(component, deltaX, deltaY, originalPos);
         });
     }
 
     /**
      * Update individual component position
      */
-    updateComponentPosition(component, deltaX, deltaY) {
+    updateComponentPosition(component, deltaX, deltaY, originalPos) {
         if (component.tagName.toLowerCase() === 'g') {
-            // For group elements, update transform attribute
-            const currentTransform = component.getAttribute('transform') || '';
-            let currentX = 0, currentY = 0;
+            // For group elements, we need to calculate position in SVG coordinates
+            const canvasRect = this.canvasElement.getBoundingClientRect();
+            const ctm = this.canvasElement.getScreenCTM().inverse();
             
-            const match = currentTransform.match(/translate\(\s*([\d.-]+)(?:[,\s]+([\d.-]+))?\s*\)/);
-            if (match) {
-                currentX = parseFloat(match[1]) || 0;
-                currentY = parseFloat(match[2]) || 0;
-            }
+            // Calculate original position in SVG coordinates
+            let originalSvgX = (originalPos.x - canvasRect.left) * ctm.a + ctm.e;
+            let originalSvgY = (originalPos.y - canvasRect.top) * ctm.d + ctm.f;
             
-            const newX = currentX + deltaX;
-            const newY = currentY + deltaY;
+            // Calculate new position based on original position + delta
+            const newSvgX = originalSvgX + deltaX * ctm.a;
+            const newSvgY = originalSvgY + deltaY * ctm.d;
             
-            // Replace or add translate transform
-            let newTransform;
-            if (match) {
-                newTransform = currentTransform.replace(match[0], `translate(${newX}, ${newY})`);
-            } else {
-                newTransform = currentTransform + ` translate(${newX}, ${newY})`;
-            }
-            
-            component.setAttribute('transform', newTransform.trim());
+            // Apply transform directly without trying to merge with existing transforms
+            component.setAttribute('transform', `translate(${newSvgX}, ${newSvgY})`);
         } else {
-            // For regular elements, update x/y attributes
-            const currentX = parseInt(component.getAttribute('x')) || 0;
-            const currentY = parseInt(component.getAttribute('y')) || 0;
+            // For regular elements with x/y attributes
+            // Get position in SVG coordinates from original browser coordinates
+            const canvasRect = this.canvasElement.getBoundingClientRect();
+            const ctm = this.canvasElement.getScreenCTM().inverse();
             
-            component.setAttribute('x', currentX + deltaX);
-            component.setAttribute('y', currentY + deltaY);
+            // Calculate screen to SVG coordinate conversion
+            let originalSvgPt = {
+                x: (originalPos.x - canvasRect.left) * ctm.a + ctm.e,
+                y: (originalPos.y - canvasRect.top) * ctm.d + ctm.f
+            };
+            
+            // Add delta to the original SVG position
+            const newX = originalSvgPt.x + deltaX * ctm.a;
+            const newY = originalSvgPt.y + deltaY * ctm.d;
+            
+            component.setAttribute('x', newX);
+            component.setAttribute('y', newY);
         }
     }
 

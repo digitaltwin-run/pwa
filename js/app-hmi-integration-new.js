@@ -4,6 +4,7 @@
  */
 
 import { createHMI } from './simple-hmi.js';
+import { setupDigitalTwinGestures } from './digital-twin-gestures.js';
 
 /**
  * Integration function that connects the new Simple HMI system with the main app
@@ -48,236 +49,6 @@ export async function integrateHMIWithApp(appInstance) {
 }
 
 /**
- * Set up comprehensive gesture patterns for Digital Twin IDE
- */
-function setupDigitalTwinGestures(hmi, appInstance) {
-    // === BASIC OPERATIONS ===
-    
-    // Delete gesture - circle over selected components (HIGH PRIORITY)
-    hmi.gesture('delete')
-        .circle({ minRadius: 30, maxRadius: 100 })
-        .when(() => hasSelectedComponents(appInstance))
-        .on((data) => {
-            console.log('🗑️ Delete gesture detected');
-            executeDelete(appInstance);
-            hmi.voiceHMI.speak('Usunięto komponenty');
-        })
-        .priority(8)
-        .cooldown(500);
-
-    // Enhanced delete - double tap to delete (alternative method)
-    hmi.gesture('delete_doubletap')
-        .doubleTap({ maxDistance: 40, maxTime: 400 })
-        .when(() => hasSelectedComponents(appInstance))
-        .on((data) => {
-            console.log('🗑️ Double tap delete detected');
-            executeDelete(appInstance);
-            hmi.voiceHMI.speak('Usunięto przez podwójne dotknięcie');
-        })
-        .priority(7)
-        .cooldown(300);
-
-    // === FILE OPERATIONS ===
-    
-    // Save gesture - swipe right
-    hmi.gesture('save')
-        .swipeRight({ minDistance: 120 })
-        .on((data) => {
-            console.log('💾 Save gesture detected');
-            executeSave(appInstance);
-            hmi.voiceHMI.speak('Projekt zapisany');
-        })
-        .priority(6)
-        .cooldown(1000);
-
-    // Export gesture - swipe down
-    hmi.gesture('export')
-        .swipeDown({ minDistance: 100 })
-        .on((data) => {
-            console.log('📤 Export gesture detected');
-            executeExport(appInstance);
-            hmi.voiceHMI.speak('Eksport rozpoczęty');
-        })
-        .priority(5)
-        .cooldown(800);
-
-    // === HISTORY OPERATIONS ===
-    
-    // Undo gesture - swipe left
-    hmi.gesture('undo')
-        .swipeLeft({ minDistance: 100 })
-        .on((data) => {
-            console.log('↩️ Undo gesture detected');
-            executeUndo(appInstance);
-            hmi.voiceHMI.speak('Cofnięto akcję');
-        })
-        .priority(6)
-        .cooldown(400);
-
-    // Redo gesture - swipe up
-    hmi.gesture('redo')
-        .swipeUp({ minDistance: 100 })
-        .on((data) => {
-            console.log('↪️ Redo gesture detected');
-            executeRedo(appInstance);
-            hmi.voiceHMI.speak('Powtórzono akcję');
-        })
-        .priority(6)
-        .cooldown(400);
-
-    // === COMPONENT OPERATIONS ===
-    
-    // Properties gesture - zigzag
-    hmi.gesture('properties')
-        .zigzag({ minPoints: 3, amplitude: 40 })
-        .when(() => hasSelectedComponents(appInstance))
-        .on((data) => {
-            console.log('🔧 Properties gesture detected');
-            showProperties(appInstance);
-            hmi.voiceHMI.speak('Właściwości komponentu');
-        })
-        .priority(7)
-        .cooldown(600);
-
-    // Copy gesture - straight line horizontal
-    hmi.gesture('copy')
-        .line({ minLength: 80, straightness: 0.9, maxDeviation: 15 })
-        .when(() => hasSelectedComponents(appInstance))
-        .on((data) => {
-            const angle = Math.abs(data.result.angle);
-            if (angle < 15 || angle > 165) { // Horizontal line
-                console.log('📋 Copy gesture detected');
-                executeCopy(appInstance);
-                hmi.voiceHMI.speak('Skopiowano komponenty');
-            }
-        })
-        .priority(5)
-        .cooldown(300);
-
-    // Scale/Resize gesture - spiral
-    hmi.gesture('scale')
-        .spiral({ minTurns: 1.2 })
-        .when(() => hasSelectedComponents(appInstance))
-        .on((data) => {
-            console.log('🔄 Scale gesture detected');
-            executeScale(appInstance, data.result.turns > 2 ? 1.2 : 0.8);
-            hmi.voiceHMI.speak(data.result.turns > 2 ? 'Powiększono' : 'Zmniejszono');
-        })
-        .priority(4)
-        .cooldown(800);
-
-    // === SELECTION OPERATIONS ===
-    
-    // Select all gesture - large circle
-    hmi.gesture('select_all')
-        .circle({ minRadius: 150, maxRadius: 300 })
-        .on((data) => {
-            console.log('🎯 Select all gesture detected');
-            executeSelectAll(appInstance);
-            hmi.voiceHMI.speak('Zaznaczono wszystkie komponenty');
-        })
-        .priority(3)
-        .cooldown(1000);
-
-    // Clear selection - small circle in empty area
-    hmi.gesture('clear_selection')
-        .circle({ minRadius: 20, maxRadius: 50 })
-        .when(() => !hasSelectedComponents(appInstance))
-        .on((data) => {
-            console.log('🚫 Clear selection gesture detected');
-            executeClearSelection(appInstance);
-            hmi.voiceHMI.speak('Wyczyszczono zaznaczenie');
-        })
-        .priority(2)
-        .cooldown(300);
-
-    // === CANVAS OPERATIONS ===
-    
-    // Grid toggle gesture - cross pattern (custom)
-    hmi.gesture('toggle_grid')
-        .custom((points) => {
-            // Detect cross pattern
-            if (points.length < 6) return { detected: false };
-            
-            const start = points[0];
-            const mid = points[Math.floor(points.length / 2)];
-            const end = points[points.length - 1];
-            
-            // Check if it's roughly a cross (two perpendicular lines)
-            const angle1 = Math.atan2(mid.y - start.y, mid.x - start.x);
-            const angle2 = Math.atan2(end.y - mid.y, end.x - mid.x);
-            const angleDiff = Math.abs(angle1 - angle2);
-            
-            const isCross = Math.abs(angleDiff - Math.PI/2) < 0.3 || Math.abs(angleDiff - 3*Math.PI/2) < 0.3;
-            
-            return { detected: isCross, pattern: 'cross' };
-        })
-        .on((data) => {
-            console.log('⊞ Grid toggle gesture detected');
-            executeToggleGrid(appInstance);
-            hmi.voiceHMI.speak('Przełączono siatkę');
-        })
-        .priority(2)
-        .cooldown(800);
-
-    // === ZOOM OPERATIONS ===
-    
-    // Zoom in gesture - pinch out (for touch devices)
-    hmi.gesture('zoom_in')
-        .pinch({ threshold: 0.3 })
-        .on((data) => {
-            if (data.result.isZoomIn) {
-                console.log('🔍 Zoom in gesture detected');
-                executeZoom(appInstance, data.result.scale);
-                hmi.voiceHMI.speak('Powiększono widok');
-            }
-        })
-        .priority(4)
-        .cooldown(200);
-
-    // Zoom out gesture - pinch in (for touch devices)
-    hmi.gesture('zoom_out')
-        .pinch({ threshold: 0.3 })
-        .on((data) => {
-            if (data.result.isZoomOut) {
-                console.log('🔍 Zoom out gesture detected');
-                executeZoom(appInstance, data.result.scale);
-                hmi.voiceHMI.speak('Zmniejszono widok');
-            }
-        })
-        .priority(4)
-        .cooldown(200);
-
-    // === ADVANCED MULTI-MODAL GESTURES ===
-    
-    // Quick delete - spiral + circle combination
-    hmi.gesture('quick_delete')
-        .sequence('spiral', 'circle')
-        .when(() => hasSelectedComponents(appInstance))
-        .on((data) => {
-            console.log('⚡ Quick delete sequence detected');
-            executeDelete(appInstance, true); // Force delete without confirmation
-            hmi.voiceHMI.speak('Szybkie usunięcie wykonane');
-        })
-        .priority(9)
-        .cooldown(1000);
-
-    // === CONNECTION MODE GESTURES ===
-    
-    // Start connection mode - straight line between components
-    hmi.gesture('connect_components')
-        .line({ minLength: 100, straightness: 0.8 })
-        .when(() => hasSelectedComponents(appInstance))
-        .on((data) => {
-            const angle = Math.abs(data.result.angle);
-            if (angle > 30 && angle < 150) { // Diagonal or vertical line
-                console.log('🔗 Connection gesture detected');
-                executeStartConnection(appInstance, data.points);
-                hmi.voiceHMI.speak('Tryb połączeń aktywny');
-            }
-        })
-        .priority(6)
-        .cooldown(500);
 
     console.info('✅ Comprehensive gesture patterns configured:');
     console.info('   🗑️  Delete: Circle, Double-tap');
@@ -336,15 +107,16 @@ function setupVoiceCommands(hmi, appInstance) {
 /**
  * Helper functions for checking app state and executing actions
  */
-function hasSelectedComponents(appInstance) {
+export function hasSelectedComponents(appInstance) {
     // Check if any components are currently selected
     return appInstance && 
            appInstance.canvasSelectionManager && 
-           appInstance.canvasSelectionManager.selectedElements.size > 0;
+           appInstance.canvasSelectionManager.selectedComponents && 
+           appInstance.canvasSelectionManager.selectedComponents.size > 0;
 }
 
 // === DELETE OPERATIONS ===
-function executeDelete(appInstance, force = false) {
+export function executeDelete(appInstance, force = false) {
     if (!appInstance) return;
     
     try {
@@ -352,7 +124,7 @@ function executeDelete(appInstance, force = false) {
             appInstance.actionManager.executeAction('deleteSelected');
         } else if (appInstance.canvasSelectionManager) {
             // Fallback: direct deletion
-            const selected = Array.from(appInstance.canvasSelectionManager.selectedElements);
+            const selected = Array.from(appInstance.canvasSelectionManager.selectedComponents);
             selected.forEach(element => {
                 if (element && element.parentNode) {
                     element.parentNode.removeChild(element);
@@ -370,7 +142,7 @@ function executeDelete(appInstance, force = false) {
 }
 
 // === FILE OPERATIONS ===
-function executeSave(appInstance) {
+export function executeSave(appInstance) {
     if (!appInstance) return;
     
     try {
@@ -388,7 +160,7 @@ function executeSave(appInstance) {
     }
 }
 
-function executeUndo(appInstance) {
+export function executeUndo(appInstance) {
     if (!appInstance) return;
     
     try {
@@ -406,7 +178,7 @@ function executeUndo(appInstance) {
     }
 }
 
-function executeRedo(appInstance) {
+export function executeRedo(appInstance) {
     if (!appInstance) return;
     
     try {
@@ -424,7 +196,7 @@ function executeRedo(appInstance) {
     }
 }
 
-function executeExport(appInstance) {
+export function executeExport(appInstance) {
     if (!appInstance) return;
     
     try {
@@ -444,7 +216,7 @@ function executeExport(appInstance) {
     }
 }
 
-function executeCopy(appInstance) {
+export function executeCopy(appInstance) {
     if (!appInstance || !hasSelectedComponents(appInstance)) return;
     
     try {
@@ -452,7 +224,7 @@ function executeCopy(appInstance) {
             appInstance.actionManager.executeAction('copy');
         } else {
             // Fallback: copy selected elements
-            const selected = Array.from(appInstance.canvasSelectionManager.selectedElements);
+            const selected = Array.from(appInstance.canvasSelectionManager.selectedComponents);
             const copiedData = selected.map(el => el.outerHTML);
             window.copiedElements = copiedData;
         }
@@ -464,11 +236,11 @@ function executeCopy(appInstance) {
     }
 }
 
-function executeScale(appInstance, scaleFactor = 1.0) {
+export function executeScale(appInstance, scaleFactor = 1.0) {
     if (!appInstance || !hasSelectedComponents(appInstance)) return;
     
     try {
-        const selected = Array.from(appInstance.canvasSelectionManager.selectedElements);
+        const selected = Array.from(appInstance.canvasSelectionManager.selectedComponents);
         
         selected.forEach(element => {
             const currentTransform = element.getAttribute('transform') || '';
@@ -489,7 +261,7 @@ function executeScale(appInstance, scaleFactor = 1.0) {
     }
 }
 
-function executeSelectAll(appInstance) {
+export function executeSelectAll(appInstance) {
     if (!appInstance) return;
     
     try {
@@ -507,7 +279,7 @@ function executeSelectAll(appInstance) {
     }
 }
 
-function executeClearSelection(appInstance) {
+export function executeClearSelection(appInstance) {
     if (!appInstance) return;
     
     try {
@@ -522,7 +294,7 @@ function executeClearSelection(appInstance) {
     }
 }
 
-function executeToggleGrid(appInstance) {
+export function executeToggleGrid(appInstance) {
     if (!appInstance) return;
     
     try {
@@ -544,7 +316,7 @@ function executeToggleGrid(appInstance) {
     }
 }
 
-function executeZoom(appInstance, scaleFactor) {
+export function executeZoom(appInstance, scaleFactor) {
     if (!appInstance) return;
     
     try {
@@ -574,7 +346,7 @@ function executeZoom(appInstance, scaleFactor) {
     }
 }
 
-function executeStartConnection(appInstance, points) {
+export function executeStartConnection(appInstance, points) {
     if (!appInstance || !hasSelectedComponents(appInstance)) return;
     
     try {
@@ -595,7 +367,217 @@ function executeStartConnection(appInstance, points) {
     }
 }
 
-function showProperties(appInstance) {
+/**
+ * Execute component selection from a tap gesture
+ * @param {Object} appInstance - The Digital Twin app instance
+ * @param {Object} point - The tap point coordinates
+ */
+export function executeSelectComponent(appInstance, point) {
+    if (!appInstance) {
+        console.error('❌ App instance not available for component selection');
+        return;
+    }
+    
+    try {
+        const component = getElementAtPoint(appInstance, point);
+        if (!component) {
+            console.log('🔍 No component found at tap coordinates');
+            return;
+        }
+        
+        // Use canvas selection manager if available
+        if (appInstance.canvasSelectionManager) {
+            const ctrlKey = false; // Default to replacing selection, not adding to it
+            appInstance.canvasSelectionManager.selectComponent(component, ctrlKey);
+            showNotification(`🎯 Zaznaczono: ${getComponentName(component)}`, 'success');
+        } else {
+            // Fallback: toggle selection class manually
+            const isSelected = component.classList.contains('selected');
+            
+            // Clear other selections if not using multiselect
+            document.querySelectorAll('.selected').forEach(el => {
+                if (el !== component) el.classList.remove('selected');
+            });
+            
+            // Toggle selection on this component
+            if (isSelected) {
+                component.classList.remove('selected');
+            } else {
+                component.classList.add('selected');
+                showNotification(`🎯 Zaznaczono komponent`, 'success');
+            }
+            
+            // Dispatch event for other modules
+            document.dispatchEvent(new CustomEvent('component-selected', { 
+                detail: { component } 
+            }));
+        }
+    } catch (error) {
+        console.error('Component selection failed:', error);
+        showNotification('❌ Błąd zaznaczania komponentu', 'error');
+    }
+}
+
+/**
+ * Execute path selection of components
+ * @param {Object} appInstance - The Digital Twin app instance
+ * @param {Array} points - Array of points defining the path
+ */
+export function executePathSelection(appInstance, points) {
+    if (!appInstance || !points || points.length < 3) return;
+    
+    try {
+        const components = getAllComponents(appInstance);
+        const selectedComponents = [];
+        
+        // Create a buffer around the path (distance threshold for component to be considered along path)
+        const pathThreshold = 15; // pixels
+        
+        // Check each component's bounding box against the path
+        components.forEach(component => {
+            // Get component center point
+            const bbox = component.getBBox();
+            const centerX = bbox.x + bbox.width / 2;
+            const centerY = bbox.y + bbox.height / 2;
+            
+            // Check if component center is close to any path segment
+            for (let i = 1; i < points.length; i++) {
+                const p1 = points[i-1];
+                const p2 = points[i];
+                
+                // Distance from point to line segment
+                const distance = distanceToLineSegment(centerX, centerY, p1.x, p1.y, p2.x, p2.y);
+                if (distance <= pathThreshold) {
+                    selectedComponents.push(component);
+                    break;
+                }
+            }
+        });
+        
+        // Apply selection using canvas selection manager if available
+        if (appInstance.canvasSelectionManager && selectedComponents.length > 0) {
+            appInstance.canvasSelectionManager.selectComponents(selectedComponents, false);
+            showNotification(`🔍 Zaznaczono: ${selectedComponents.length} komponentów`, 'success');
+        } else {
+            // Fallback: add selected class manually
+            document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+            selectedComponents.forEach(component => component.classList.add('selected'));
+            
+            // Dispatch event
+            if (selectedComponents.length > 0) {
+                document.dispatchEvent(new CustomEvent('components-selected', { 
+                    detail: { components: selectedComponents } 
+                }));
+                showNotification(`🔍 Zaznaczono: ${selectedComponents.length} komponentów`, 'success');
+            }
+        }
+    } catch (error) {
+        console.error('Path selection failed:', error);
+        showNotification('❌ Błąd zaznaczania ścieżką', 'error');
+    }
+}
+
+/**
+ * Execute lasso selection of components
+ * @param {Object} appInstance - The Digital Twin app instance
+ * @param {Array} points - Array of points defining the lasso polygon
+ */
+export function executeLassoSelection(appInstance, points) {
+    if (!appInstance || !points || points.length < 5) return;
+    
+    try {
+        const components = getAllComponents(appInstance);
+        const selectedComponents = [];
+        
+        // Check each component's bounding box against the lasso polygon
+        components.forEach(component => {
+            // Get component center point
+            const bbox = component.getBBox();
+            const centerX = bbox.x + bbox.width / 2;
+            const centerY = bbox.y + bbox.height / 2;
+            
+            // Check if component center is inside the lasso polygon
+            const centerPoint = { x: centerX, y: centerY };
+            if (isPointInPolygon(centerPoint, points)) {
+                selectedComponents.push(component);
+            }
+        });
+        
+        // Apply selection using canvas selection manager if available
+        if (appInstance.canvasSelectionManager && selectedComponents.length > 0) {
+            appInstance.canvasSelectionManager.selectComponents(selectedComponents, false);
+            showNotification(`📌 Zaznaczono: ${selectedComponents.length} komponentów`, 'success');
+        } else {
+            // Fallback: add selected class manually
+            document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+            selectedComponents.forEach(component => component.classList.add('selected'));
+            
+            // Dispatch event
+            if (selectedComponents.length > 0) {
+                document.dispatchEvent(new CustomEvent('components-selected', { 
+                    detail: { components: selectedComponents } 
+                }));
+                showNotification(`📌 Zaznaczono: ${selectedComponents.length} komponentów`, 'success');
+            }
+        }
+    } catch (error) {
+        console.error('Lasso selection failed:', error);
+        showNotification('❌ Błąd zaznaczania lasso', 'error');
+    }
+}
+
+/**
+ * Calculate distance from a point to a line segment
+ */
+function distanceToLineSegment(px, py, x1, y1, x2, y2) {
+    const A = px - x1;
+    const B = py - y1;
+    const C = x2 - x1;
+    const D = y2 - y1;
+
+    const dot = A * C + B * D;
+    const len_sq = C * C + D * D;
+    let param = -1;
+    
+    if (len_sq !== 0) {
+        param = dot / len_sq;
+    }
+
+    let xx, yy;
+
+    if (param < 0) {
+        xx = x1;
+        yy = y1;
+    } else if (param > 1) {
+        xx = x2;
+        yy = y2;
+    } else {
+        xx = x1 + param * C;
+        yy = y1 + param * D;
+    }
+
+    const dx = px - xx;
+    const dy = py - yy;
+    
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+/**
+ * Get a friendly name for a component
+ */
+function getComponentName(component) {
+    if (!component) return 'Nieznany';
+    
+    // Try different attributes for a name
+    return component.getAttribute('data-label') || 
+           component.getAttribute('data-name') ||
+           component.getAttribute('aria-label') ||
+           component.getAttribute('title') ||
+           component.getAttribute('id') ||
+           'Komponent';
+}
+
+export function showProperties(appInstance) {
     if (appInstance.propertiesManager) {
         // Show properties panel
         const propertiesPanel = document.getElementById('properties-panel');
@@ -674,6 +656,110 @@ function getNotificationColor(type) {
         case 'warning': return '#ff9800';
         default: return '#2196F3';
     }
+}
+
+/**
+ * Gets SVG element at specific coordinates
+ * @param {Object} appInstance - The Digital Twin app instance
+ * @param {Object} point - The point with x,y coordinates
+ * @returns {Element|null} - The SVG component element or null if not found
+ */
+function getElementAtPoint(appInstance, point) {
+    if (!appInstance) {
+        console.error('❌ App instance not available');
+        return null;
+    }
+    
+    // Convert screen coordinates to SVG coordinates
+    const svgCanvas = document.getElementById('svgCanvas') || document.querySelector('svg.canvas');
+    if (!svgCanvas) {
+        console.error('❌ SVG canvas not found');
+        return null;
+    }
+    
+    // Get SVG point in canvas coordinate system
+    const svgPoint = svgCanvas.createSVGPoint();
+    svgPoint.x = point.x;
+    svgPoint.y = point.y;
+    
+    // Transform point to canvas coordinate space
+    const CTM = svgCanvas.getScreenCTM();
+    if (!CTM) {
+        console.error('❌ Cannot get canvas transform matrix');
+        return null;
+    }
+    const transformedPoint = svgPoint.matrixTransform(CTM.inverse());
+    
+    // Use elementFromPoint to find element at coordinates
+    const element = document.elementFromPoint(point.x, point.y);
+    if (!element) return null;
+    
+    // Check if the element itself is a component or find closest parent component
+    const isComponent = (el) => {
+        return el && (el.hasAttribute('data-component-id') || 
+                    el.hasAttribute('data-id') ||
+                    el.classList && (el.classList.contains('component') || 
+                                    el.classList.contains('dt-component')));
+    };
+    
+    let targetElement = element;
+    while (targetElement && !isComponent(targetElement) && targetElement !== svgCanvas) {
+        targetElement = targetElement.parentElement;
+    }
+    
+    if (isComponent(targetElement)) {
+        return targetElement;
+    }
+    
+    return null;
+}
+
+/**
+ * Checks if point is inside polygon
+ * @param {Object} point - Point with x,y coordinates
+ * @param {Array} polygon - Array of points forming a polygon
+ * @returns {boolean} - True if point is inside polygon
+ */
+function isPointInPolygon(point, polygon) {
+    const x = point.x;
+    const y = point.y;
+    let inside = false;
+    
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const xi = polygon[i].x;
+        const yi = polygon[i].y;
+        const xj = polygon[j].x;
+        const yj = polygon[j].y;
+        
+        const intersect = ((yi > y) !== (yj > y)) && 
+                          (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    
+    return inside;
+}
+
+/**
+ * Gets all components from the SVG canvas
+ * @param {Object} appInstance - The Digital Twin app instance
+ * @returns {Array} - Array of component elements
+ */
+function getAllComponents(appInstance) {
+    const svgCanvas = document.getElementById('svgCanvas') || document.querySelector('svg.canvas');
+    if (!svgCanvas) {
+        console.error('❌ SVG canvas not found');
+        return [];
+    }
+    
+    const components = [
+        ...svgCanvas.querySelectorAll('[data-component-id]'),
+        ...svgCanvas.querySelectorAll('[data-id]'),
+        ...svgCanvas.querySelectorAll('.component'),
+        ...svgCanvas.querySelectorAll('.dt-component')
+    ];
+    
+    // Remove duplicates (elements that match multiple selectors)
+    return [...new Set(components)];
 }
 
 // Export for legacy compatibility

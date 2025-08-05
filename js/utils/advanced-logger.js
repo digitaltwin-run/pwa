@@ -15,6 +15,7 @@ class AdvancedLogger {
         this.logServerUrl = 'http://localhost:5006';
         this.filename = `${this.sessionHash}.log.json`;
         this.filepath = null;
+        this.backendAvailable = true; // Assume backend is available until proven otherwise
         
         this.init();
     }
@@ -131,6 +132,11 @@ class AdvancedLogger {
      * Send log entry to Node.js backend in real-time
      */
     async sendLogToBackend(entry) {
+        // Skip if we know backend is not available
+        if (!this.backendAvailable) {
+            return;
+        }
+        
         try {
             const response = await fetch(`${this.logServerUrl}/log`, {
                 method: 'POST',
@@ -141,10 +147,13 @@ class AdvancedLogger {
             });
 
             if (!response.ok) {
-                console.warn('Failed to send log to backend');
+                console.warn('Failed to send log to backend, disabling further attempts');
+                this.backendAvailable = false;
             }
         } catch (error) {
-            // Silently fail - don't spam console if backend is down
+            // Disable further attempts to contact the backend
+            this.backendAvailable = false;
+            console.warn('Backend logging disabled: Could not connect to log server');
         }
     }
 
