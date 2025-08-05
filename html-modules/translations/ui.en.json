@@ -23,6 +23,10 @@
     "simulation": {
       "title": "📊 Data Simulation",
       "noComponents": "No components available for simulation"
+    },
+    "properties": {
+      "title": "Properties",
+      "selectComponent": "Select a component to edit its properties."
     }
   }
 }
