@@ -7,6 +7,7 @@ export class ComponentsColumnManager {
         this.canvasSelectionManager = null;
         this.componentsListElement = null;
         this.componentIcons = {
+            // Default icons as fallback
             'led': '💡',
             'pump': '🔧',
             'valve': '🔘',
@@ -14,8 +15,15 @@ export class ComponentsColumnManager {
             'display': '📺',
             'button': '🔲',
             'motor': '⚙️',
+            'tank': '🛢️',
+            'pipe': '🔷',
             'default': '📦'
         };
+        
+        // Load component icons from manifest
+        this.loadComponentIconsFromManifest().catch(error => {
+            console.warn('Failed to load component icons from manifest, using defaults:', error);
+        });
         
         this.init();
     }
@@ -38,6 +46,45 @@ export class ComponentsColumnManager {
         this.refreshComponentsList();
     }
 
+    /**
+     * Load component icons from the manifest file
+     * @returns {Promise} Promise that resolves when icons are loaded
+     */
+    async loadComponentIconsFromManifest() {
+        try {
+            const response = await fetch('/js/components/manifest.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const manifest = await response.json();
+            
+            // Update component icons from manifest
+            if (manifest.components && Array.isArray(manifest.components)) {
+                manifest.components.forEach(component => {
+                    if (component.icon && component.type) {
+                        this.componentIcons[component.type] = component.icon;
+                    } else if (component.type) {
+                        // If no icon is specified, use the first character of the type as an icon
+                        this.componentIcons[component.type] = component.type.charAt(0).toUpperCase();
+                    }
+                });
+                
+                console.log('[ComponentsColumnManager] Loaded component icons from manifest');
+                
+                // Refresh the components list if it's already been initialized
+                if (this.componentsListElement) {
+                    this.refreshComponentsList();
+                }
+                
+                return true;
+            }
+        } catch (error) {
+            console.error('[ComponentsColumnManager] Error loading component icons:', error);
+            throw error;
+        }
+    }
+    
     /**
      * Set references to other managers
      */

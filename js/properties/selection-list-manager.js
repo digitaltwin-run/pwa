@@ -128,37 +128,30 @@ export class SelectionListManager {
         const componentId = component.getAttribute('data-id');
         const componentType = component.getAttribute('data-component-type') || 'unknown';
         
-        // Try to get name from metadata
-        const metadata = component.getAttribute('data-metadata');
-        if (metadata) {
-            try {
-                const parsedMetadata = JSON.parse(metadata);
-                if (parsedMetadata.parameters?.label) {
-                    return parsedMetadata.parameters.label;
-                }
-                if (parsedMetadata.parameters?.name) {
-                    return parsedMetadata.parameters.name;
-                }
-            } catch (e) {
-                // Ignore parsing errors
-            }
-        }
+        // Try to get name from data-name attribute or text content
+        const name = component.getAttribute('data-name') || 
+                    component.querySelector('[data-name]')?.getAttribute('data-name');
         
-        // Try to get name from text content
-        const textElement = component.querySelector('text');
+        if (name) return name;
+        
+        // Try to get text from text elements
+        const textElement = component.querySelector('text, tspan, textPath');
         if (textElement && textElement.textContent.trim()) {
             return textElement.textContent.trim();
         }
         
-        // Fallback to component type
+        // Fallback to component type name
         return this.getComponentTypeName(componentType);
     }
 
     /**
      * Get component icon based on type
+     * @param {string} componentType - The type of the component
+     * @returns {string} Icon for the component type
      */
-    getComponentIcon(componentType) {
-        const icons = {
+    async getComponentIcon(componentType) {
+        // Default icons as fallback
+        const defaultIcons = {
             'led': '💡',
             'button': '🔘',
             'switch': '🎛️',
@@ -166,26 +159,69 @@ export class SelectionListManager {
             'display': '📺',
             'pump': '⚙️',
             'valve': '🚰',
+            'tank': '🛢️',
+            'pipe': '🔷',
             'unknown': '📦'
         };
-        return icons[componentType] || icons.unknown;
+        
+        try {
+            // Try to load icons from manifest
+            const response = await fetch('/js/components/manifest.json');
+            if (response.ok) {
+                const manifest = await response.json();
+                if (manifest.components) {
+                    const component = manifest.components.find(c => c.type === componentType);
+                    if (component?.icon) {
+                        return component.icon;
+                    }
+                }
+            }
+        } catch (error) {
+            console.warn(`[SelectionListManager] Error loading icon for ${componentType}:`, error);
+        }
+        
+        // Fall back to default icons
+        return defaultIcons[componentType] || defaultIcons.unknown;
     }
 
     /**
      * Get component type display name
+     * @param {string} componentType - The type of the component
+     * @returns {string} Display name for the component type
      */
-    getComponentTypeName(componentType) {
-        const names = {
-            'led': 'LED',
+    async getComponentTypeName(componentType) {
+        // Default names as fallback (in Polish)
+        const defaultNames = {
+            'led': 'Dioda LED',
             'button': 'Przycisk',
             'switch': 'Przełącznik', 
             'sensor': 'Czujnik',
             'display': 'Wyświetlacz',
             'pump': 'Pompa',
             'valve': 'Zawór',
+            'tank': 'Zbiornik',
+            'pipe': 'Rura',
             'unknown': 'Komponent'
         };
-        return names[componentType] || names.unknown;
+        
+        try {
+            // Try to load names from manifest
+            const response = await fetch('/js/components/manifest.json');
+            if (response.ok) {
+                const manifest = await response.json();
+                if (manifest.components) {
+                    const component = manifest.components.find(c => c.type === componentType);
+                    if (component?.name) {
+                        return component.name;
+                    }
+                }
+            }
+        } catch (error) {
+            console.warn(`[SelectionListManager] Error loading name for ${componentType}:`, error);
+        }
+        
+        // Fall back to default names
+        return defaultNames[componentType] || defaultNames.unknown;
     }
 
     /**

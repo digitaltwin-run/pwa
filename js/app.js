@@ -17,8 +17,9 @@ import { PWAManager } from './pwa-manager.js';
 import pwaConfig from '../config/pwa-config.js';
 import { CollaborationManager } from './collaboration-manager.js';
 import { I18nManager } from './i18n-manager.js';
+import './i18n/language-selector.js'; // Dynamic language selector UI component
 import { ComponentScaler } from './component-scaler.js';
-import { CanvasSelectionManager, canvasSelectionManager } from './canvas-selection-manager.js';
+import { canvasSelectionManager } from './hmi/index.js';
 import { CanvasZoomManager } from './canvas-zoom-manager.js';
 import { CanvasPropertiesManager } from './canvas-properties-manager.js';
 import { ComponentsColumnManager } from './components-column-manager.js';

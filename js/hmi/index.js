@@ -7,6 +7,8 @@ import { GestureDetector } from './gestures/GestureDetector.js';
 import { VoiceHMI } from './voice/VoiceHMI.js';
 import { PatternDetectors } from './gestures/PatternDetectors.js';
 import { inputManager } from './input/input-manager.js';
+import { canvasZoomManager } from './canvas-zoom.js';
+import { canvasSelectionManager } from './canvas-selection.js';
 
 /**
  * Main HMI Manager class that combines gesture and voice control
@@ -112,7 +114,13 @@ export const createHMI = (target = document, options = {}) => {
 };
 
 // Export everything for individual use
-export { GestureDetector, VoiceHMI, PatternDetectors };
+export { 
+  GestureDetector, 
+  VoiceHMI, 
+  PatternDetectors, 
+  canvasZoomManager, 
+  canvasSelectionManager 
+};
 
 // Global access for non-module usage
 if (typeof window !== 'undefined') {

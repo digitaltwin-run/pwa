@@ -1,20 +1,26 @@
 // Digital Twin IDE - Global Component Initializer
 // Provides global initialization functions for SVG components called via onload
 
-import { initPump } from './components/pump.js';
+// Import the component manifest
+import manifest from './components/manifest.json';
 
 /**
- * Global Component Initializer - Bridges SVG onload calls to ES6 modules
+ * Global Component Initializer - Dynamically loads and initializes components
+ * based on the manifest.json configuration.
  */
 class GlobalComponentInitializer {
     constructor() {
         this.initializers = new Map();
+        this.manifest = manifest;
+        this.componentTypes = [];
         this.setupGlobalFunctions();
-        this.registerDefaultInitializers();
+        this.loadComponentInitializers();
     }
 
     /**
      * Register an initializer function for a component type
+     * @param {string} type - The component type (e.g., 'pump', 'valve')
+     * @param {Function} initFunction - The initialization function for the component
      */
     register(type, initFunction) {
         this.initializers.set(type, initFunction);
@@ -22,13 +28,79 @@ class GlobalComponentInitializer {
     }
 
     /**
-     * Register default component initializers
+     * Load component initializers dynamically based on the manifest
      */
-    registerDefaultInitializers() {
-        this.register('pump', initPump);
-        // Add more as needed:
-        // this.register('valve', initValve);
-        // this.register('sensor', initSensor);
+    async loadComponentInitializers() {
+        try {
+            if (!this.manifest || !Array.isArray(this.manifest.components)) {
+                throw new Error('Invalid or missing component manifest');
+            }
+
+            // Get the list of components to preload from the manifest
+            const componentsToLoad = this.manifest.preload || [];
+            
+            // Create a mapping of component types to their module paths
+            const componentModules = this.manifest.components.reduce((acc, component) => {
+                if (component.type && component.modulePath) {
+                    acc[component.type] = component.modulePath;
+                    this.componentTypes.push(component.type);
+                }
+                return acc;
+            }, {});
+            
+            // Dynamically import and register each component initializer
+            for (const componentType of componentsToLoad) {
+                const modulePath = componentModules[componentType];
+                if (modulePath) {
+                    await this.registerDynamicComponent(componentType, modulePath);
+                } else {
+                    console.warn(`[GlobalComponentInitializer] No module path found for component type: ${componentType}`);
+                }
+            }
+            
+            // Dispatch event when all components are loaded
+            document.dispatchEvent(new CustomEvent('component-system-ready', {
+                detail: { componentTypes: this.componentTypes }
+            }));
+            
+            console.log(`[GlobalComponentInitializer] Loaded ${this.initializers.size} component initializers`);
+        } catch (error) {
+            console.error('[GlobalComponentInitializer] Error loading component initializers:', error);
+            throw error;
+        }
+    }
+    
+    /**
+     * Register a component type with dynamic import
+     * @param {string} type - The component type (e.g., 'pump')
+     * @param {string} modulePath - The path to the component module
+     */
+    async registerDynamicComponent(type, modulePath) {
+        try {
+            // Convert relative path to absolute if needed
+            const fullPath = modulePath.startsWith('/') ? 
+                `.${modulePath}` : 
+                `./components/${modulePath}`;
+            
+            // Remove file extension if present
+            const cleanPath = fullPath.replace(/\.js$/, '');
+            
+            // Dynamically import the component module
+            const module = await import(cleanPath);
+            
+            // The init function should be exported as 'init{ComponentType}' or as default
+            const initFnName = `init${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            const initFn = module[initFnName] || module.default || module.init;
+            
+            if (typeof initFn === 'function') {
+                this.register(type, initFn);
+            } else {
+                throw new Error(`No valid initializer function found for ${type}`);
+            }
+        } catch (error) {
+            console.error(`[GlobalComponentInitializer] Failed to load ${type} from ${modulePath}:`, error);
+            throw error;
+        }
     }
 
     /**
@@ -77,21 +149,84 @@ class GlobalComponentInitializer {
 
     /**
      * Setup global functions that SVG files can call
+     * This dynamically creates global init functions based on loaded components
      */
     setupGlobalFunctions() {
-        // Create global initialization functions for each component type
-        window.initPump = (evt) => this.initComponent(evt, 'pump');
-        window.initValve = (evt) => this.initComponent(evt, 'valve');
-        window.initSensor = (evt) => this.initComponent(evt, 'sensor');
-        window.initTank = (evt) => this.initComponent(evt, 'tank');
-        window.initDisplay = (evt) => this.initComponent(evt, 'display');
-        window.initMotor = (evt) => this.initComponent(evt, 'motor');
-        window.initButton = (evt) => this.initComponent(evt, 'button');
-        window.initLed = (evt) => this.initComponent(evt, 'led');
-        window.initGauge = (evt) => this.initComponent(evt, 'gauge');
+        // Set up the generic initializer that can be called directly
+        window.initComponent = (evt, type) => {
+            if (!type) {
+                console.error('[GlobalComponentInitializer] Component type not specified');
+                return;
+            }
+            return this.initComponent(evt, type);
+        };
         
-        // Generic initializer
-        window.initComponent = (evt, type) => this.initComponent(evt, type);
+        // Create a proxy to handle dynamic component initializers
+        const handler = {
+            get: (target, prop) => {
+                // Handle existing properties
+                if (prop in target) {
+                    return target[prop];
+                }
+                
+                // Handle dynamic initializers (initPump, initValve, etc.)
+                if (prop.startsWith('init') && prop.length > 4) {
+                    const type = prop.substring(4).toLowerCase();
+                    if (this.componentTypes.includes(type)) {
+                        return (evt) => this.initComponent(evt, type);
+                    }
+                    
+                    // If the component type exists in manifest but not yet loaded
+                    const componentInfo = this.manifest.components.find(c => c.type.toLowerCase() === type);
+                    if (componentInfo) {
+                        return async (evt) => {
+                            try {
+                                await this.registerDynamicComponent(componentInfo.type, componentInfo.modulePath);
+                                return this.initComponent(evt, type);
+                            } catch (error) {
+                                console.error(`[GlobalComponentInitializer] Failed to initialize ${type}:`, error);
+                            }
+                        };
+                    }
+                    
+                    // Return a function that will log an error
+                    return () => {
+                        console.error(`[GlobalComponentInitializer] Unknown component type: ${type}`);
+                    };
+                }
+                
+                // Default behavior
+                return target[prop];
+            },
+            set: (target, prop, value) => {
+                target[prop] = value;
+                return true;
+            }
+        };
+        
+        // Create a proxy for the window object
+        const windowProxy = new Proxy(window, handler);
+        
+        // Override the global window object with our proxy
+        global.window = windowProxy;
+        
+        // Register a method to add new component types at runtime
+        window.registerComponentType = async (type, modulePath) => {
+            try {
+                if (!this.componentTypes.includes(type)) {
+                    await this.registerDynamicComponent(type, modulePath);
+                    this.componentTypes.push(type);
+                    console.log(`[GlobalComponentInitializer] Registered new component type: ${type}`);
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error(`[GlobalComponentInitializer] Failed to register component type ${type}:`, error);
+                throw error;
+            }
+        };
+        
+        console.log('[GlobalComponentInitializer] Global functions initialized');
     }
 
     /**

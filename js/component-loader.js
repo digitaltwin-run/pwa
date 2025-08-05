@@ -75,22 +75,57 @@ export class ComponentLoader {
     }
 
     /**
-     * Make sure core components are loaded (pump, valve, etc.)
+     * Make sure core components are loaded from the manifest
      * @returns {Promise} Promise that resolves when core components are loaded
      */
     async ensureCoreComponentsLoaded() {
-        // List of core component types that should always be available
-        const coreComponents = ['pump', 'valve', 'sensor', 'tank', 'display'];
-        
-        const loadPromises = coreComponents.map(type => 
-            this.loadComponentModule(type).catch(err => {
-                console.warn(`[ComponentLoader] Non-critical: Core component not found: ${type}`);
-                return null;
-            })
-        );
-        
-        await Promise.all(loadPromises);
-        return true;
+        try {
+            // Try to load the component manifest
+            const manifestResponse = await fetch('/js/components/manifest.json');
+            if (!manifestResponse.ok) {
+                throw new Error(`Failed to load component manifest: ${manifestResponse.statusText}`);
+            }
+            
+            const manifest = await manifestResponse.json();
+            
+            // Get the list of components to preload from the manifest
+            const coreComponents = manifest.preload || [];
+            
+            if (coreComponents.length === 0) {
+                console.warn('[ComponentLoader] No core components found in manifest');
+                return false;
+            }
+            
+            console.log(`[ComponentLoader] Loading ${coreComponents.length} core components from manifest`);
+            
+            // Load all core components in parallel
+            const loadPromises = coreComponents.map(type => 
+                this.loadComponentModule(type).catch(err => {
+                    console.warn(`[ComponentLoader] Non-critical: Core component not found: ${type}`, err);
+                    return null;
+                })
+            );
+            
+            await Promise.all(loadPromises);
+            return true;
+            
+        } catch (error) {
+            console.error('[ComponentLoader] Error loading core components from manifest:', error);
+            
+            // Fallback to default components if manifest fails to load
+            console.warn('[ComponentLoader] Falling back to default core components');
+            const defaultComponents = ['pump', 'valve', 'sensor', 'tank', 'display'];
+            
+            const fallbackPromises = defaultComponents.map(type => 
+                this.loadComponentModule(type).catch(err => {
+                    console.warn(`[ComponentLoader] Non-critical: Fallback component not found: ${type}`);
+                    return null;
+                })
+            );
+            
+            await Promise.all(fallbackPromises);
+            return false; // Indicate that we fell back to defaults
+        }
     }
 
     /**

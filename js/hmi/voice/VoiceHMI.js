@@ -54,6 +54,7 @@ export class VoiceHMI {
     } catch (error) {
       console.error('Failed to initialize speech recognition:', error);
     }
+    */
   }
 
   handleRecognitionError(event) {
