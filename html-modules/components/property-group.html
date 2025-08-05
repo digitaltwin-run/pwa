@@ -233,7 +233,7 @@
             
             this.properties = [];
             this.isCollapsed = false;
-            this.groupTitle = 'Properties';
+            this.groupTitle = this.t('property.group.title', 'Properties');
         }
 
         async init() {
@@ -254,7 +254,11 @@
             // Set title
             const titleElement = this.$('.property-group-title');
             if (titleElement) {
-                titleElement.textContent = this.groupTitle;
+                // Use translation for default title if no custom title is provided
+                const title = this.groupTitle === 'Properties' ? 
+                    this.t('property.group.title', 'Properties') : 
+                    this.groupTitle;
+                titleElement.textContent = title;
             }
             
             // Set collapsed state
