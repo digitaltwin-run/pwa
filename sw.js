@@ -16,7 +16,7 @@ const CORE_ASSETS = [
     // Core JavaScript files
     '/js/app.js',
     '/js/components.js',
-    '/js/dragdrop.js',
+    '/js/hmi/input/dragdrop-manager.js',
     '/js/properties.js',
     '/js/properties-core.js',
     '/js/properties-mapper.js',
