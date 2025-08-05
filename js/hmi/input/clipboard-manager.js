@@ -1,9 +1,11 @@
-import { canvasPlacementHelper } from '../canvas-placement-helper.js';
-
 /**
- * Clipboard Manager - Copy-paste functionality
- * Extracted from canvas-selection-manager.js for better modularity
+ * HMI Clipboard Manager - Copy-paste functionality
+ * Migrated and enhanced from js/selection/clipboard-manager.js
+ * @module hmi/input/clipboard
  */
+
+import { canvasPlacementHelper } from '../../canvas-placement-helper.js';
+
 export class ClipboardManager {
     constructor() {
         this.clipboard = [];
@@ -22,6 +24,8 @@ export class ClipboardManager {
         if (canvasElement) {
             canvasPlacementHelper.setCanvas(canvasElement, 20);
         }
+        
+        console.log('📋 HMI Clipboard Manager initialized');
     }
 
     /**
@@ -123,11 +127,9 @@ export class ClipboardManager {
             // Add to canvas
             this.canvasElement.appendChild(newComponent);
 
-            console.log(`📋 Created component copy: ${newId} at (${newPosition.x}, ${newPosition.y})`);
             return newComponent;
-
         } catch (error) {
-            console.error('Error creating component copy:', error);
+            console.error('📋 Error creating component copy:', error);
             return null;
         }
     }
@@ -136,14 +138,15 @@ export class ClipboardManager {
      * Calculate smart position for pasted component using placement helper
      */
     calculateSmartPosition(originalPosition, index) {
-        const baseOffset = 20; // Base offset for copies
-        const indexOffset = index * 10; // Additional offset for multiple copies
+        // Base offset for multiple copies
+        const offsetX = (index % 5) * 30; // Grid pattern
+        const offsetY = Math.floor(index / 5) * 30;
         
-        let targetX = originalPosition.x + baseOffset + indexOffset;
-        let targetY = originalPosition.y + baseOffset + indexOffset;
+        const targetX = originalPosition.x + 20 + offsetX;
+        const targetY = originalPosition.y + 20 + offsetY;
 
-        // Use placement helper for smart positioning if available
-        if (canvasPlacementHelper && canvasPlacementHelper.canvas) {
+        // Use placement helper if available
+        if (canvasPlacementHelper && canvasPlacementHelper.findOptimalPosition) {
             const smartPosition = canvasPlacementHelper.findOptimalPosition(
                 targetX, 
                 targetY, 
@@ -229,31 +232,47 @@ export class ClipboardManager {
     }
 
     /**
-     * Show notification to user
+     * Show notification to user with HMI styling
      */
     showNotification(message) {
         console.log(`📢 ${message}`);
         
-        // Create temporary notification
+        // Create temporary notification with enhanced HMI styling
         const notification = document.createElement('div');
         notification.textContent = message;
         notification.style.cssText = `
             position: fixed;
             top: 20px;
             right: 20px;
-            background: #28a745;
+            background: linear-gradient(135deg, #28a745, #20c997);
             color: white;
-            padding: 10px 15px;
-            border-radius: 4px;
+            padding: 12px 18px;
+            border-radius: 6px;
             z-index: 10000;
             font-size: 14px;
-            font-family: Arial, sans-serif;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         `;
         document.body.appendChild(notification);
         
+        // Animate in
+        requestAnimationFrame(() => {
+            notification.style.transform = 'translateX(0)';
+            notification.style.opacity = '1';
+        });
+        
         setTimeout(() => {
-            notification.remove();
+            notification.style.transform = 'translateX(100%)';
+            notification.style.opacity = '0';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
         }, 3000);
     }
 
@@ -263,7 +282,8 @@ export class ClipboardManager {
     getClipboardInfo() {
         return {
             count: this.clipboard.length,
-            types: this.clipboard.map(item => item.type)
+            types: this.clipboard.map(item => item.type),
+            isEmpty: this.clipboard.length === 0
         };
     }
 
@@ -272,7 +292,25 @@ export class ClipboardManager {
      */
     clearClipboard() {
         this.clipboard = [];
-        console.log('📋 Clipboard cleared');
+        console.log('📋 HMI Clipboard cleared');
+    }
+
+    /**
+     * Check if clipboard has data
+     */
+    hasClipboardData() {
+        return this.clipboard.length > 0;
+    }
+
+    /**
+     * Get clipboard contents (for debugging)
+     */
+    getClipboardContents() {
+        return this.clipboard.map(item => ({
+            type: item.type,
+            id: item.dataId,
+            position: item.position
+        }));
     }
 }
 

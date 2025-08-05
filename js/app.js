@@ -6,7 +6,7 @@
  */
 
 import { ComponentManager } from './components.js';
-import { DragDropManager } from './dragdrop.js';
+import { dragDropManager as DragDropManager } from './hmi/input/dragdrop-manager.js';
 import { PropertiesManager } from './properties.js';
 import { PropertiesMapper } from './properties-mapper.js';
 import { SimulationManager } from './simulation.js';

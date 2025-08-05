@@ -59,29 +59,21 @@ export class ComponentsColumnManager {
             return [];
         }
 
-        const components = canvas.querySelectorAll('.draggable-component[data-id]');
-        console.log(`[ComponentsColumnManager] Found ${components.length} components with .draggable-component[data-id]`);
+        const components = Array.from(canvas.querySelectorAll('.draggable-component[data-id]'))
+            // Filter out any components that are marked as default placeholders
+            .filter(component => !component.hasAttribute('data-is-placeholder'));
+
+        console.log(`[ComponentsColumnManager] Found ${components.length} valid components`);
         
-        // Debug: Check all children elements
-        const allChildren = canvas.querySelectorAll('*');
-        console.log(`[ComponentsColumnManager] Total canvas children: ${allChildren.length}`);
-        
-        // Debug: Check for data-id elements
-        const dataIdElements = canvas.querySelectorAll('[data-id]');
-        console.log(`[ComponentsColumnManager] Elements with data-id: ${dataIdElements.length}`);
-        
-        // Debug: Check for draggable-component class
-        const draggableElements = canvas.querySelectorAll('.draggable-component');
-        console.log(`[ComponentsColumnManager] Elements with .draggable-component: ${draggableElements.length}`);
-        
-        if (dataIdElements.length > 0) {
-            console.log('[ComponentsColumnManager] Sample data-id element:', dataIdElements[0]);
-            console.log('[ComponentsColumnManager] Sample element classes:', dataIdElements[0].classList.toString());
-        }
-        return Array.from(components).map(component => {
+        return components.map(component => {
             const id = component.getAttribute('data-id');
             const type = component.getAttribute('data-type') || 'default';
             const svgUrl = component.getAttribute('data-svg-url') || '';
+            
+            // Skip components with default ID pattern if they don't have a proper type
+            if (type === 'default' && id && id.startsWith('comp-0')) {
+                return null;
+            }
             
             // Get component name from various sources
             let name = this.getComponentName(component, type);
@@ -95,7 +87,9 @@ export class ComponentsColumnManager {
                 selected: this.canvasSelectionManager ? 
                     this.canvasSelectionManager.selectedComponents.has(component) : false
             };
-        }).sort((a, b) => a.name.localeCompare(b.name));
+        })
+        .filter(component => component !== null) // Filter out any null components
+        .sort((a, b) => a.name.localeCompare(b.name));
     }
 
     /**

@@ -29,7 +29,10 @@ export class DragDropManager {
         let fixedCount = 0;
         potentialComponents.forEach(element => {
             // Skip if it's the main canvas or a non-component element
-            if (element === this.svgCanvas || element.closest('.grid-overlay')) {
+            if (element === this.svgCanvas || 
+                element.closest('.grid-overlay') || 
+                element.classList.contains('grid') ||
+                element.closest('.grid')) {
                 return;
             }
             

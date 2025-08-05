@@ -1,8 +1,8 @@
-import { selectionCore } from './selection/selection-core.js';
-import { marqueeSelection } from './selection/marquee-selection.js';
-import { dragManager } from './selection/drag-manager.js';
-import { keyboardShortcuts } from './selection/keyboard-shortcuts.js';
-import { clipboardManager } from './selection/clipboard-manager.js';
+import { selectionCore } from './hmi/input/selection/selection-core.js';
+import { marqueeSelection } from './hmi/input/selection/marquee-selection.js';
+import { dragDropManager } from './hmi/input/dragdrop-manager.js';
+import { keyboardHandler } from './hmi/input/keyboard-handler.js';
+import { clipboardManager } from './hmi/input/clipboard-manager.js';
 
 /**
  * Canvas Selection Manager - Refactored coordinator for selection functionality
@@ -17,8 +17,8 @@ export class CanvasSelectionManager {
         // Module references
         this.selectionCore = selectionCore;
         this.marqueeSelection = marqueeSelection;
-        this.dragManager = dragManager;
-        this.keyboardShortcuts = keyboardShortcuts;
+        this.dragDropManager = dragDropManager;
+        this.keyboardHandler = keyboardHandler;
         this.clipboardManager = clipboardManager;
         
         this.init();
@@ -30,9 +30,9 @@ export class CanvasSelectionManager {
     init() {
         if (this.isInitialized) return;
         
-        // Initialize keyboard shortcuts first
-        this.keyboardShortcuts.init();
-        this.keyboardShortcuts.setReferences(this.selectionCore, this.clipboardManager);
+        // Initialize keyboard handler first
+        this.keyboardHandler.init();
+        this.keyboardHandler.setReferences(this.selectionCore, this.clipboardManager);
         
         this.setupCanvasInteractions();
         this.isInitialized = true;
@@ -50,7 +50,7 @@ export class CanvasSelectionManager {
         // Set references for all modules
         this.selectionCore.setReferences(canvasElement, componentManager);
         this.marqueeSelection.setReferences(canvasElement, this.selectionCore);
-        this.dragManager.setReferences(canvasElement, componentManager, this.selectionCore);
+        this.dragDropManager.setReferences(canvasElement, componentManager, this.selectionCore);
         this.clipboardManager.setReferences(canvasElement, this.selectionCore);
         
         if (this.canvasElement) {
@@ -119,7 +119,7 @@ export class CanvasSelectionManager {
             
             // Start dragging if component is selected
             if (this.selectionCore.selectedComponents.has(clickedComponent)) {
-                this.dragManager.startDrag(e);
+                this.dragDropManager.startDrag(e);
             }
             
             // Prevent empty area selection logic
@@ -135,7 +135,7 @@ export class CanvasSelectionManager {
         this.marqueeSelection.handleMouseMove(e);
         
         // Handle dragging
-        this.dragManager.handleMouseMove(e);
+        this.dragDropManager.handleMouseMove(e);
     }
 
     /**
@@ -146,7 +146,7 @@ export class CanvasSelectionManager {
         this.marqueeSelection.handleMouseUp(e);
         
         // Handle dragging
-        this.dragManager.handleMouseUp(e);
+        this.dragDropManager.handleMouseUp(e);
     }
 
     /**
@@ -232,7 +232,7 @@ export class CanvasSelectionManager {
      * Delete selected components
      */
     deleteSelectedComponents() {
-        this.keyboardShortcuts.deleteSelectedComponents();
+        this.keyboardHandler.deleteSelectedComponents();
     }
 
     /**

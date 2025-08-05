@@ -159,6 +159,13 @@ export class SelectionCore {
     }
 
     /**
+     * Get selected components as array (for gesture integration API compatibility)
+     */
+    getSelectedComponents() {
+        return Array.from(this.selectedComponents);
+    }
+
+    /**
      * Get selection info
      */
     getSelectionInfo() {
