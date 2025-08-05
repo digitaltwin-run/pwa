@@ -181,6 +181,9 @@
             this.notifications = new Map();
             this.defaultDuration = 5000;
             this.maxNotifications = 5;
+            
+            // Load notification translations
+            this.loadTranslations('notifications');
         }
 
         connectedCallback() {
@@ -197,8 +200,8 @@
         success(message, options = {}) {
             return this.show({
                 type: 'success',
-                title: this.t('notification.success', 'Success'),
-                message,
+                title: this.t('notification.success'),
+                message: typeof message === 'string' ? message : JSON.stringify(message),
                 icon: this.getSuccessIcon(),
                 ...options
             });
@@ -207,8 +210,8 @@
         warning(message, options = {}) {
             return this.show({
                 type: 'warning',
-                title: this.t('notification.warning', 'Warning'),
-                message,
+                title: this.t('notification.warning'),
+                message: typeof message === 'string' ? message : JSON.stringify(message),
                 icon: this.getWarningIcon(),
                 ...options
             });
@@ -217,8 +220,10 @@
         error(message, options = {}) {
             return this.show({
                 type: 'error',
-                title: this.t('notification.error', 'Error'),
-                message,
+                title: this.t('notification.error'),
+                message: typeof message === 'string' ? message : 
+                         message instanceof Error ? message.message : 
+                         JSON.stringify(message),
                 icon: this.getErrorIcon(),
                 duration: 0, // Don't auto-dismiss errors
                 ...options
@@ -228,8 +233,8 @@
         info(message, options = {}) {
             return this.show({
                 type: 'info',
-                title: this.t('notification.info', 'Information'),
-                message,
+                title: this.t('notification.info'),
+                message: typeof message === 'string' ? message : JSON.stringify(message),
                 icon: this.getInfoIcon(),
                 ...options
             });

@@ -158,12 +158,32 @@ class DigitalTwinApp {
             window.propertiesManager = this.propertiesManager;
             window.propertiesMapper = this.propertiesMapper;
             window.exportManager = this.exportManager;
-            console.log('✅ Managers exposed globally:', {
+            
+            // Verify global exposure with detailed debugging
+            const globalManagersStatus = {
                 componentManager: !!window.componentManager,
                 propertiesManager: !!window.propertiesManager,
                 propertiesMapper: !!window.propertiesMapper,
                 exportManager: !!window.exportManager
-            });
+            };
+            console.log('✅ Managers exposed globally:', globalManagersStatus);
+            
+            // Additional verification to ensure they persist
+            setTimeout(() => {
+                const persistenceCheck = {
+                    componentManager: !!window.componentManager,
+                    propertiesManager: !!window.propertiesManager,
+                    propertiesMapper: !!window.propertiesMapper,
+                    exportManager: !!window.exportManager
+                };
+                console.log('🔍 Global managers persistence check (500ms later):', persistenceCheck);
+                
+                // Set flag to indicate managers are ready
+                window.globalManagersReady = true;
+                document.dispatchEvent(new CustomEvent('globalManagersReady', {
+                    detail: persistenceCheck
+                }));
+            }, 500);
             window.simulationManager = this.simulationManager;
             window.connectionManager = this.connectionManager;
             // window.interactionsManager moved to ../interactions project
