@@ -284,12 +284,120 @@ export class SelectionListManager {
     }
 
     /**
+     * Generate the HTML for a single component list item
+     * @param {Element} component - The component element
+     * @param {Array} selectedComponents - Array of selected component IDs
+     * @returns {Promise<string>} HTML string for the component list item
+     */
+    async generateComponentListItem(component, selectedComponents) {
+        const componentId = component.getAttribute('data-id');
+        const componentType = component.getAttribute('data-component-type') || 'unknown';
+        const isSelected = selectedComponents.includes(component);
+        
+        try {
+            // Get component display name and icon in parallel
+            const [displayName, icon] = await Promise.all([
+                this.getComponentDisplayName(component),
+                this.getComponentIcon(componentType)
+            ]);
+            
+            return `
+                <div class="component-list-item" data-id="${componentId}">
+                    <label class="component-selector">
+                        <input type="checkbox" 
+                               ${isSelected ? 'checked' : ''} 
+                               onchange="window.selectionListManager.toggleComponentSelection('${componentId}', this.checked)">
+                        <span class="component-icon">${icon}</span>
+                        <span class="component-name">${displayName}</span>
+                        <span class="component-type">${componentType}</span>
+                    </label>
+                    <button class="btn btn-sm btn-outline-secondary focus-btn" 
+                            onclick="window.selectionListManager.focusComponent('${componentId}')"
+                            title="Focus on component">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            `;
+        } catch (error) {
+            console.error(`[SelectionListManager] Error generating list item for ${componentId}:`, error);
+            return `
+                <div class="component-list-item error" data-id="${componentId}">
+                    <span class="text-danger">Error loading component: ${componentId}</span>
+                </div>
+            `;
+        }
+    }
+
+    /**
      * Refresh the selection list in properties panel
      */
-    refreshSelectionList() {
+    async refreshSelectionList() {
         const selectionListContainer = document.getElementById('selection-list-container');
-        if (selectionListContainer) {
-            selectionListContainer.innerHTML = this.generateSelectionListSection();
+        if (!selectionListContainer) return;
+        
+        // Show loading state
+        selectionListContainer.innerHTML = `
+            <div class="text-center p-3">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading components...</span>
+                </div>
+                <p>Loading components...</p>
+            </div>
+        `;
+        
+        try {
+            // Get all components and selected components
+            const allComponents = this.getAllComponents();
+            const selectedComponents = this.getSelectedComponents();
+            
+            if (allComponents.length === 0) {
+                selectionListContainer.innerHTML = `
+                    <div class="text-muted p-3">
+                        No components found on the canvas.
+                    </div>
+                `;
+                return;
+            }
+            
+            // Generate list items for all components
+            const listItems = await Promise.all(
+                allComponents.map(comp => this.generateComponentListItem(comp, selectedComponents))
+            );
+            
+            // Create the final HTML
+            const html = `
+                <div class="selection-list-header">
+                    <h6>Canvas Components (${allComponents.length})</h6>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary" 
+                                onclick="window.selectionListManager.selectAll()">
+                            Select All
+                        </button>
+                        <button class="btn btn-outline-secondary" 
+                                onclick="window.selectionListManager.clearAll()">
+                            Clear All
+                        </button>
+                    </div>
+                </div>
+                <div class="component-list">
+                    ${listItems.join('\n')}
+                </div>
+                <div class="selection-list-footer text-muted small">
+                    ${selectedComponents.length} of ${allComponents.length} selected
+                </div>
+            `;
+            
+            // Update the container
+            selectionListContainer.innerHTML = html;
+            
+        } catch (error) {
+            console.error('[SelectionListManager] Error refreshing selection list:', error);
+            selectionListContainer.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Error loading component list. Please try refreshing the page.
+                </div>
+            `;
         }
     }
 }
