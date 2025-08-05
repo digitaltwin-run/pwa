@@ -1,0 +1,723 @@
+<!-- Canvas Properties HTML Module for Digital Twin IDE PWA -->
+<template>
+    <div class="canvas-properties">
+        <div class="properties-header">
+            <h3 class="properties-title" data-i18n="canvas.properties.title">Canvas Properties</h3>
+            <button class="properties-reset" data-i18n="canvas.properties.reset" title="Reset to defaults">
+                <svg width="16" height="16" viewBox="0 0 16 16">
+                    <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                    <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="properties-content">
+            <!-- Canvas Size Section -->
+            <div class="property-section">
+                <h4 class="section-title" data-i18n="canvas.size.title">Canvas Size</h4>
+                
+                <div class="property-row">
+                    <label class="property-label" data-i18n="canvas.size.width">Width:</label>
+                    <div class="property-input-group">
+                        <input type="number" 
+                               class="property-input" 
+                               id="canvas-width" 
+                               min="100" 
+                               max="4000" 
+                               step="50">
+                        <span class="property-unit">px</span>
+                    </div>
+                </div>
+
+                <div class="property-row">
+                    <label class="property-label" data-i18n="canvas.size.height">Height:</label>
+                    <div class="property-input-group">
+                        <input type="number" 
+                               class="property-input" 
+                               id="canvas-height" 
+                               min="100" 
+                               max="4000" 
+                               step="50">
+                        <span class="property-unit">px</span>
+                    </div>
+                </div>
+
+                <div class="property-row">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="maintain-aspect-ratio" checked>
+                        <span class="checkmark"></span>
+                        <span data-i18n="canvas.size.aspect_ratio">Maintain aspect ratio</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Background Section -->
+            <div class="property-section">
+                <h4 class="section-title" data-i18n="canvas.background.title">Background</h4>
+                
+                <div class="property-row">
+                    <label class="property-label" data-i18n="canvas.background.color">Background Color:</label>
+                    <div class="color-input-group">
+                        <input type="color" id="canvas-background-color" class="color-input">
+                        <input type="text" id="canvas-background-hex" class="hex-input" placeholder="#ffffff">
+                    </div>
+                </div>
+
+                <div class="property-row">
+                    <label class="property-label" data-i18n="canvas.background.opacity">Opacity:</label>
+                    <div class="range-input-group">
+                        <input type="range" 
+                               id="canvas-background-opacity" 
+                               class="range-input" 
+                               min="0" 
+                               max="100" 
+                               value="100">
+                        <span class="range-value">100%</span>
+                    </div>
+                </div>
+
+                <div class="property-row">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="canvas-transparent">
+                        <span class="checkmark"></span>
+                        <span data-i18n="canvas.background.transparent">Transparent background</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Grid Section -->
+            <div class="property-section">
+                <h4 class="section-title" data-i18n="canvas.grid.title">Grid Settings</h4>
+                
+                <div class="property-row">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="canvas-grid-enabled">
+                        <span class="checkmark"></span>
+                        <span data-i18n="canvas.grid.enabled">Show grid</span>
+                    </label>
+                </div>
+
+                <div class="property-row">
+                    <label class="property-label" data-i18n="canvas.grid.size">Grid Size:</label>
+                    <div class="property-input-group">
+                        <input type="number" 
+                               class="property-input" 
+                               id="canvas-grid-size" 
+                               min="5" 
+                               max="100" 
+                               value="20">
+                        <span class="property-unit">px</span>
+                    </div>
+                </div>
+
+                <div class="property-row">
+                    <label class="property-label" data-i18n="canvas.grid.color">Grid Color:</label>
+                    <div class="color-input-group">
+                        <input type="color" id="canvas-grid-color" class="color-input" value="#e0e0e0">
+                        <input type="text" id="canvas-grid-hex" class="hex-input" placeholder="#e0e0e0">
+                    </div>
+                </div>
+
+                <div class="property-row">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="canvas-snap-to-grid">
+                        <span class="checkmark"></span>
+                        <span data-i18n="canvas.grid.snap">Snap to grid</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Export Section -->
+            <div class="property-section">
+                <h4 class="section-title" data-i18n="canvas.export.title">Export Settings</h4>
+                
+                <div class="property-row">
+                    <label class="property-label" data-i18n="canvas.export.format">Format:</label>
+                    <select class="property-select" id="canvas-export-format">
+                        <option value="svg">SVG</option>
+                        <option value="png">PNG</option>
+                        <option value="jpg">JPEG</option>
+                        <option value="pdf">PDF</option>
+                    </select>
+                </div>
+
+                <div class="property-row">
+                    <label class="property-label" data-i18n="canvas.export.quality">Quality:</label>
+                    <div class="range-input-group">
+                        <input type="range" 
+                               id="canvas-export-quality" 
+                               class="range-input" 
+                               min="1" 
+                               max="100" 
+                               value="90">
+                        <span class="range-value">90%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="properties-actions">
+            <button class="btn btn-primary" id="apply-canvas-changes" data-i18n="canvas.actions.apply">Apply Changes</button>
+            <button class="btn btn-secondary" id="reset-canvas-defaults" data-i18n="canvas.actions.reset">Reset Defaults</button>
+        </div>
+    </div>
+</template>
+
+<style>
+    .canvas-properties {
+        background: var(--bg-primary, #ffffff);
+        border: 1px solid var(--border-color, #dee2e6);
+        border-radius: 8px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        overflow: hidden;
+    }
+
+    .properties-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        background: var(--bg-secondary, #f8f9fa);
+        border-bottom: 1px solid var(--border-color, #dee2e6);
+    }
+
+    .properties-title {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary, #212529);
+    }
+
+    .properties-reset {
+        background: none;
+        border: none;
+        padding: 6px;
+        cursor: pointer;
+        border-radius: 4px;
+        color: var(--text-secondary, #6c757d);
+        transition: all 0.2s ease;
+    }
+
+    .properties-reset:hover {
+        background: var(--bg-hover, #e9ecef);
+        color: var(--text-primary, #212529);
+    }
+
+    .properties-content {
+        padding: 16px;
+        max-height: 600px;
+        overflow-y: auto;
+    }
+
+    .property-section {
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border-light, #f1f3f4);
+    }
+
+    .property-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .section-title {
+        margin: 0 0 12px 0;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-primary, #212529);
+    }
+
+    .property-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        gap: 12px;
+    }
+
+    .property-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .property-label {
+        font-size: 13px;
+        color: var(--text-secondary, #6c757d);
+        min-width: 80px;
+        flex-shrink: 0;
+    }
+
+    .property-input-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+        max-width: 120px;
+    }
+
+    .property-input {
+        flex: 1;
+        padding: 6px 8px;
+        border: 1px solid var(--border-color, #ced4da);
+        border-radius: 4px;
+        font-size: 13px;
+        background: var(--bg-primary, #ffffff);
+        color: var(--text-primary, #212529);
+    }
+
+    .property-input:focus {
+        outline: none;
+        border-color: var(--primary-color, #007bff);
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+
+    .property-unit {
+        font-size: 12px;
+        color: var(--text-secondary, #6c757d);
+    }
+
+    .color-input-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+        max-width: 120px;
+    }
+
+    .color-input {
+        width: 32px;
+        height: 32px;
+        border: 1px solid var(--border-color, #ced4da);
+        border-radius: 4px;
+        cursor: pointer;
+        background: var(--bg-primary, #ffffff);
+    }
+
+    .hex-input {
+        flex: 1;
+        padding: 6px 8px;
+        border: 1px solid var(--border-color, #ced4da);
+        border-radius: 4px;
+        font-size: 12px;
+        font-family: monospace;
+        background: var(--bg-primary, #ffffff);
+        color: var(--text-primary, #212529);
+    }
+
+    .range-input-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        max-width: 140px;
+    }
+
+    .range-input {
+        flex: 1;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--border-color, #ced4da);
+        outline: none;
+        cursor: pointer;
+    }
+
+    .range-value {
+        font-size: 12px;
+        color: var(--text-secondary, #6c757d);
+        min-width: 36px;
+        text-align: right;
+    }
+
+    .property-select {
+        flex: 1;
+        max-width: 120px;
+        padding: 6px 8px;
+        border: 1px solid var(--border-color, #ced4da);
+        border-radius: 4px;
+        font-size: 13px;
+        background: var(--bg-primary, #ffffff);
+        color: var(--text-primary, #212529);
+        cursor: pointer;
+    }
+
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        color: var(--text-primary, #212529);
+    }
+
+    .checkbox-container input[type="checkbox"] {
+        margin: 0;
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+    .checkmark {
+        display: none;
+    }
+
+    .properties-actions {
+        display: flex;
+        gap: 8px;
+        padding: 16px;
+        background: var(--bg-secondary, #f8f9fa);
+        border-top: 1px solid var(--border-color, #dee2e6);
+    }
+
+    .btn {
+        flex: 1;
+        padding: 8px 16px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background: var(--primary-color, #007bff);
+        color: white;
+        border-color: var(--primary-color, #007bff);
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-color-dark, #0056b3);
+        border-color: var(--primary-color-dark, #0056b3);
+    }
+
+    .btn-secondary {
+        background: var(--bg-primary, #ffffff);
+        color: var(--text-secondary, #6c757d);
+        border-color: var(--border-color, #ced4da);
+    }
+
+    .btn-secondary:hover {
+        background: var(--bg-hover, #e9ecef);
+        color: var(--text-primary, #212529);
+    }
+
+    /* Dark theme support */
+    @media (prefers-color-scheme: dark) {
+        .canvas-properties {
+            --bg-primary: #2d3748;
+            --bg-secondary: #1a202c;
+            --bg-hover: #4a5568;
+            --text-primary: #f7fafc;
+            --text-secondary: #a0aec0;
+            --border-color: #4a5568;
+            --border-light: #2d3748;
+            --primary-color: #3182ce;
+            --primary-color-dark: #2c5282;
+        }
+    }
+</style>
+
+<script type="module">
+    import { ModuleBase, registerModule } from '../base/module-base.js';
+    import { I18nMixin } from '../base/i18n-mixin.js';
+
+    class CanvasProperties extends I18nMixin(ModuleBase) {
+        constructor() {
+            super();
+            
+            this.canvasElement = null;
+            this.defaultValues = {
+                width: 800,
+                height: 600,
+                backgroundColor: '#ffffff',
+                backgroundOpacity: 100,
+                transparent: false,
+                gridEnabled: false,
+                gridSize: 20,
+                gridColor: '#e0e0e0',
+                snapToGrid: false,
+                exportFormat: 'svg',
+                exportQuality: 90
+            };
+            
+            this.currentValues = { ...this.defaultValues };
+        }
+
+        connectedCallback() {
+            super.connectedCallback();
+            this.bindEvents();
+            this.loadCanvasValues();
+            this.applyTranslations();
+        }
+
+        bindEvents() {
+            // Canvas size inputs
+            this.$('#canvas-width')?.addEventListener('input', (e) => {
+                this.updateCanvasSize('width', parseInt(e.target.value));
+            });
+
+            this.$('#canvas-height')?.addEventListener('input', (e) => {
+                this.updateCanvasSize('height', parseInt(e.target.value));
+            });
+
+            // Background controls
+            this.$('#canvas-background-color')?.addEventListener('change', (e) => {
+                this.updateBackgroundColor(e.target.value);
+            });
+
+            this.$('#canvas-background-hex')?.addEventListener('change', (e) => {
+                this.updateBackgroundColor(e.target.value);
+            });
+
+            this.$('#canvas-background-opacity')?.addEventListener('input', (e) => {
+                this.updateBackgroundOpacity(parseInt(e.target.value));
+            });
+
+            this.$('#canvas-transparent')?.addEventListener('change', (e) => {
+                this.updateTransparency(e.target.checked);
+            });
+
+            // Grid controls
+            this.$('#canvas-grid-enabled')?.addEventListener('change', (e) => {
+                this.updateGridEnabled(e.target.checked);
+            });
+
+            this.$('#canvas-grid-size')?.addEventListener('input', (e) => {
+                this.updateGridSize(parseInt(e.target.value));
+            });
+
+            this.$('#canvas-grid-color')?.addEventListener('change', (e) => {
+                this.updateGridColor(e.target.value);
+            });
+
+            this.$('#canvas-snap-to-grid')?.addEventListener('change', (e) => {
+                this.updateSnapToGrid(e.target.checked);
+            });
+
+            // Export controls
+            this.$('#canvas-export-format')?.addEventListener('change', (e) => {
+                this.updateExportFormat(e.target.value);
+            });
+
+            this.$('#canvas-export-quality')?.addEventListener('input', (e) => {
+                this.updateExportQuality(parseInt(e.target.value));
+            });
+
+            // Action buttons
+            this.$('#apply-canvas-changes')?.addEventListener('click', () => {
+                this.applyChanges();
+            });
+
+            this.$('#reset-canvas-defaults')?.addEventListener('click', () => {
+                this.resetToDefaults();
+            });
+
+            this.$('.properties-reset')?.addEventListener('click', () => {
+                this.resetToDefaults();
+            });
+
+            // Range input value display
+            this.$$('input[type="range"]').forEach(range => {
+                range.addEventListener('input', (e) => {
+                    const valueSpan = e.target.parentElement.querySelector('.range-value');
+                    if (valueSpan) {
+                        const suffix = e.target.id.includes('opacity') || e.target.id.includes('quality') ? '%' : '';
+                        valueSpan.textContent = e.target.value + suffix;
+                    }
+                });
+            });
+        }
+
+        loadCanvasValues() {
+            this.canvasElement = document.getElementById('svg-canvas');
+            if (!this.canvasElement) return;
+
+            // Load current canvas values
+            this.currentValues.width = parseInt(this.canvasElement.getAttribute('width')) || this.defaultValues.width;
+            this.currentValues.height = parseInt(this.canvasElement.getAttribute('height')) || this.defaultValues.height;
+
+            // Update UI with current values
+            this.updateUI();
+        }
+
+        updateUI() {
+            const elements = {
+                '#canvas-width': this.currentValues.width,
+                '#canvas-height': this.currentValues.height,
+                '#canvas-background-color': this.currentValues.backgroundColor,
+                '#canvas-background-hex': this.currentValues.backgroundColor,
+                '#canvas-background-opacity': this.currentValues.backgroundOpacity,
+                '#canvas-grid-size': this.currentValues.gridSize,
+                '#canvas-grid-color': this.currentValues.gridColor,
+                '#canvas-grid-hex': this.currentValues.gridColor,
+                '#canvas-export-quality': this.currentValues.exportQuality
+            };
+
+            Object.entries(elements).forEach(([selector, value]) => {
+                const element = this.$(selector);
+                if (element) {
+                    element.value = value;
+                }
+            });
+
+            // Update checkboxes
+            this.$('#canvas-transparent').checked = this.currentValues.transparent;
+            this.$('#canvas-grid-enabled').checked = this.currentValues.gridEnabled;
+            this.$('#canvas-snap-to-grid').checked = this.currentValues.snapToGrid;
+
+            // Update select
+            this.$('#canvas-export-format').value = this.currentValues.exportFormat;
+
+            // Update range displays
+            this.$('.range-value').forEach(span => {
+                const range = span.parentElement.querySelector('input[type="range"]');
+                if (range) {
+                    const suffix = range.id.includes('opacity') || range.id.includes('quality') ? '%' : '';
+                    span.textContent = range.value + suffix;
+                }
+            });
+        }
+
+        updateCanvasSize(dimension, value) {
+            this.currentValues[dimension] = value;
+            
+            this.emit('canvas-size-changed', {
+                width: this.currentValues.width,
+                height: this.currentValues.height,
+                dimension,
+                value
+            });
+        }
+
+        updateBackgroundColor(color) {
+            this.currentValues.backgroundColor = color;
+            
+            // Update both color and hex inputs
+            this.$('#canvas-background-color').value = color;
+            this.$('#canvas-background-hex').value = color;
+            
+            this.emit('canvas-background-changed', {
+                color,
+                opacity: this.currentValues.backgroundOpacity,
+                transparent: this.currentValues.transparent
+            });
+        }
+
+        updateBackgroundOpacity(opacity) {
+            this.currentValues.backgroundOpacity = opacity;
+            
+            this.emit('canvas-background-changed', {
+                color: this.currentValues.backgroundColor,
+                opacity,
+                transparent: this.currentValues.transparent
+            });
+        }
+
+        updateTransparency(transparent) {
+            this.currentValues.transparent = transparent;
+            
+            this.emit('canvas-background-changed', {
+                color: this.currentValues.backgroundColor,
+                opacity: this.currentValues.backgroundOpacity,
+                transparent
+            });
+        }
+
+        updateGridEnabled(enabled) {
+            this.currentValues.gridEnabled = enabled;
+            
+            this.emit('canvas-grid-changed', {
+                enabled,
+                size: this.currentValues.gridSize,
+                color: this.currentValues.gridColor,
+                snapToGrid: this.currentValues.snapToGrid
+            });
+        }
+
+        updateGridSize(size) {
+            this.currentValues.gridSize = size;
+            
+            this.emit('canvas-grid-changed', {
+                enabled: this.currentValues.gridEnabled,
+                size,
+                color: this.currentValues.gridColor,
+                snapToGrid: this.currentValues.snapToGrid
+            });
+        }
+
+        updateGridColor(color) {
+            this.currentValues.gridColor = color;
+            
+            // Update both color and hex inputs
+            this.$('#canvas-grid-color').value = color;
+            this.$('#canvas-grid-hex').value = color;
+            
+            this.emit('canvas-grid-changed', {
+                enabled: this.currentValues.gridEnabled,
+                size: this.currentValues.gridSize,
+                color,
+                snapToGrid: this.currentValues.snapToGrid
+            });
+        }
+
+        updateSnapToGrid(snapToGrid) {
+            this.currentValues.snapToGrid = snapToGrid;
+            
+            this.emit('canvas-grid-changed', {
+                enabled: this.currentValues.gridEnabled,
+                size: this.currentValues.gridSize,
+                color: this.currentValues.gridColor,
+                snapToGrid
+            });
+        }
+
+        updateExportFormat(format) {
+            this.currentValues.exportFormat = format;
+            
+            this.emit('canvas-export-changed', {
+                format,
+                quality: this.currentValues.exportQuality
+            });
+        }
+
+        updateExportQuality(quality) {
+            this.currentValues.exportQuality = quality;
+            
+            this.emit('canvas-export-changed', {
+                format: this.currentValues.exportFormat,
+                quality
+            });
+        }
+
+        applyChanges() {
+            this.emit('canvas-properties-apply', {
+                values: { ...this.currentValues }
+            });
+        }
+
+        resetToDefaults() {
+            this.currentValues = { ...this.defaultValues };
+            this.updateUI();
+            
+            this.emit('canvas-properties-reset', {
+                values: { ...this.currentValues }
+            });
+        }
+
+        // Public API
+        setCanvas(canvasElement) {
+            this.canvasElement = canvasElement;
+            this.loadCanvasValues();
+        }
+
+        getValues() {
+            return { ...this.currentValues };
+        }
+
+        setValues(values) {
+            this.currentValues = { ...this.currentValues, ...values };
+            this.updateUI();
+        }
+    }
+
+    registerModule('canvas-properties', CanvasProperties);
+</script>

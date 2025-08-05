@@ -261,62 +261,81 @@ export class GestureDetector {
     
     const self = this;
     
-    return {
+    // Create fluent API object
+    const fluentApi = {
       // Set gesture type
-      circle: (options = {}) => this.registerGesture(name, 'circle', options),
+      circle: (options = {}) => {
+        self.registerGestureOnly(name, 'circle', options);
+        return fluentApi;
+      },
       swipe: (direction, options = {}) => {
         if (typeof direction === 'object') {
           options = direction;
           direction = null;
         }
-        return this.registerGesture(name, 'swipe', { ...options, direction });
+        self.registerGestureOnly(name, 'swipe', { ...options, direction });
+        return fluentApi;
       },
       
       // Configuration methods
       withTouches: (count) => {
-        this.gestures.get(name).touchCount = Math.max(1, parseInt(count, 10) || 1);
-        return this;
+        if (self.gestures.has(name)) {
+          self.gestures.get(name).touchCount = Math.max(1, parseInt(count, 10) || 1);
+        }
+        return fluentApi;
       },
       
       inArea: (bounds) => {
-        this.gestures.get(name).areaBounds = bounds;
-        return this;
+        if (self.gestures.has(name)) {
+          self.gestures.get(name).areaBounds = bounds;
+        }
+        return fluentApi;
       },
       
       when: (condition) => {
-        if (typeof condition === 'function') {
-          this.gestures.get(name).condition = condition;
+        if (typeof condition === 'function' && self.gestures.has(name)) {
+          self.gestures.get(name).condition = condition;
         }
-        return this;
+        return fluentApi;
       },
       
       on: (callback) => {
-        if (typeof callback === 'function') {
-          this.gestures.get(name).callback = callback;
+        if (typeof callback === 'function' && self.gestures.has(name)) {
+          self.gestures.get(name).callback = callback;
         }
-        return this;
+        return fluentApi;
       },
       
       cooldown: (ms) => {
-        this.gestures.get(name).cooldown = Math.max(0, parseInt(ms, 10) || 0);
-        return this;
+        if (self.gestures.has(name)) {
+          self.gestures.get(name).cooldown = Math.max(0, parseInt(ms, 10) || 0);
+        }
+        return fluentApi;
       },
       
       priority: (level) => {
-        this.gestures.get(name).priority = parseInt(level, 10) || 0;
-        return this;
+        if (self.gestures.has(name)) {
+          self.gestures.get(name).priority = parseInt(level, 10) || 0;
+        }
+        return fluentApi;
       },
       
       enable: () => {
-        this.gestures.get(name).enabled = true;
-        return this;
+        if (self.gestures.has(name)) {
+          self.gestures.get(name).enabled = true;
+        }
+        return fluentApi;
       },
       
       disable: () => {
-        this.gestures.get(name).enabled = false;
-        return this;
+        if (self.gestures.has(name)) {
+          self.gestures.get(name).enabled = false;
+        }
+        return fluentApi;
       }
     };
+    
+    return fluentApi;
   }
 
   /**
@@ -329,6 +348,15 @@ export class GestureDetector {
     
     // Return the gesture instance for method chaining
     return this.gesture(name);
+  }
+
+  /**
+   * Register a gesture without returning fluent API (used internally)
+   * @private
+   */
+  registerGestureOnly(name, type, options = {}) {
+    const config = { ...DEFAULT_CONFIG, ...options, type };
+    this.gestures.set(name, config);
   }
 
   /**
