@@ -103,28 +103,28 @@ class HMIEventTracker {
 
         trackableSelectors.forEach(selector => {
             document.addEventListener('mouseenter', (event) => {
-                if (event.target.matches(selector)) {
+                if (event.target && event.target.matches && event.target.matches(selector)) {
                     this.logHMIEvent('mouse_enter', {
                         element: {
                             selector: selector,
                             tag: event.target.tagName,
                             id: event.target.id,
                             class: event.target.className,
-                            dataId: event.target.dataset.id
+                            dataId: event.target.dataset?.id
                         }
                     });
                 }
             }, true);
 
             document.addEventListener('mouseleave', (event) => {
-                if (event.target.matches(selector)) {
+                if (event.target && event.target.matches && event.target.matches(selector)) {
                     this.logHMIEvent('mouse_leave', {
                         element: {
                             selector: selector,
                             tag: event.target.tagName,
                             id: event.target.id,
                             class: event.target.className,
-                            dataId: event.target.dataset.id
+                            dataId: event.target.dataset?.id
                         }
                     });
                 }

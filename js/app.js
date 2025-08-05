@@ -20,7 +20,9 @@ import { ComponentScaler } from './component-scaler.js';
 import { CanvasSelectionManager } from './canvas-selection-manager.js';
 import { CanvasZoomManager } from './canvas-zoom-manager.js';
 import { CanvasPropertiesManager } from './canvas-properties-manager.js';
-import { ComponentsColumnManager } from './components-column-manager.js';
+import { ComponentsColumnManager } from './managers/components-column-manager.js';
+import { loadHTMLModules } from './utils/html-module-loader.js';
+import { integrateHMIWithApp } from '../hmi/integration/app-hmi-integration.js';
 import { SelectionListManager } from './properties/selection-list-manager.js';
 import { canvasSelectionManager } from './canvas-selection-manager.js';
 import './utils/advanced-logger.js'; // Advanced JSON logging & error analysis
@@ -168,8 +170,8 @@ class DigitalTwinApp {
 
             // Component interactions now handled by interactions project
         
-            // Set up event listeners
-            this.setupEventListeners();
+            // Set up advanced HMI system (replaces traditional event listeners)
+            await this.setupHMISystem();
 
             console.log('🚀 Digital Twin IDE initialized successfully!');
             console.log('📚 Documentation available at: /docs/');
@@ -228,7 +230,36 @@ class DigitalTwinApp {
     }
 
     /**
-     * Set up application event listeners
+     * Set up advanced HMI system with multi-modal gesture detection
+     * Replaces traditional event listeners with context-aware gesture patterns
+     */
+    async setupHMISystem() {
+        console.info('🎮 Initializing advanced HMI system...');
+        
+        try {
+            // Initialize multi-modal HMI integration
+            this.hmiIntegration = await integrateHMIWithApp(this);
+            
+            // Expose HMI globally for debugging
+            window.hmiIntegration = this.hmiIntegration;
+            
+            console.info('✅ Advanced HMI system initialized successfully!');
+            console.info('🎯 Multi-modal gestures active:');
+            console.info('  • Ctrl + Circle = Enhanced delete');
+            console.info('  • Shift + Drag = Multi-select');
+            console.info('  • Alt + Circle = Advanced properties');
+            console.info('  • Ctrl+S → Circle → Tap = Save workflow');
+            
+        } catch (error) {
+            console.error('❌ Failed to initialize HMI system:', error);
+            // Fallback to traditional event listeners
+            this.setupEventListeners();
+        }
+    }
+
+    /**
+     * LEGACY: Traditional event listeners (fallback only)
+     * Most functionality is now handled by the advanced HMI system
      */
     setupEventListeners() {
         // Listen for language changes

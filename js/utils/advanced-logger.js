@@ -284,42 +284,21 @@ class AdvancedLogger {
     }
 
     /**
-     * Display error suggestion to user
+     * Display error suggestion to user (DISABLED - working silently)
      */
     displayErrorSuggestion(errorType, suggestion) {
-        if (!this.autoFixEnabled) return;
-
-        // Create floating notification
-        const notification = document.createElement('div');
-        notification.className = 'advanced-logger-notification';
-        notification.innerHTML = `
-            <div class="notification-header">
-                🤖 Auto-Fix Suggestion
-                <button class="close-btn" onclick="this.parentElement.parentElement.remove()">✕</button>
-            </div>
-            <div class="notification-body">
-                <strong>Error Type:</strong> ${errorType}<br>
-                <strong>Suggestion:</strong> ${suggestion}
-            </div>
-            <div class="notification-actions">
-                <button class="btn-accept" onclick="window.advancedLogger.acceptSuggestion('${errorType}')">Apply Fix</button>
-                <button class="btn-dismiss" onclick="this.parentElement.parentElement.remove()">Dismiss</button>
-            </div>
-        `;
-
-        // Add CSS if not exists
-        if (!document.getElementById('advanced-logger-styles')) {
-            this.addNotificationStyles();
-        }
-
-        document.body.appendChild(notification);
-
-        // Auto-remove after 10 seconds
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.remove();
-            }
-        }, 10000);
+        // Silent mode - only log to console, no UI notifications
+        console.info(`🤖 Auto-Fix Suggestion [${errorType}]: ${suggestion}`);
+        
+        // Log suggestion for analysis but don't show popup
+        this.logs.push({
+            timestamp: Date.now(),
+            sessionTime: Date.now() - this.startTime,
+            level: 'suggestion',
+            message: `Auto-Fix Suggestion: ${errorType}`,
+            suggestion: suggestion,
+            sessionHash: this.sessionHash
+        });
     }
 
     /**
