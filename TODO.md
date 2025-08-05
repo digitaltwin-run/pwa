@@ -28,6 +28,48 @@ Standardized Digital Twin IDE PWA for modular SVG canvas design with native HTML
 
 ---
 
+## 🎮 HMI (HUMAN-MACHINE INTERFACE) SYSTEM
+
+### Completed HMI Features ✅
+- [x] **Advanced Gesture Recognition System** - 15+ gesture patterns implemented
+  - Circle detection (delete, select all, clear selection)
+  - Swipe detection (save right, export down, undo left, redo up)
+  - Zigzag detection (properties panel)
+  - Line detection (copy horizontal, connect components diagonal)
+  - Double tap detection (alternative delete method)
+  - Pinch detection (zoom in/out for touch devices)
+  - Spiral detection (scale/resize components)
+  - Custom pattern detection (grid toggle with cross pattern)
+  - Sequence detection (advanced multi-modal gestures)
+- [x] **Voice Control Integration** - Speech recognition and text-to-speech
+- [x] **Multi-Modal Gesture System** - Combined voice + gesture interactions
+- [x] **Priority-Based Processing** - Prevents gesture conflicts
+- [x] **Area Bounds Constraints** - Gesture recognition within defined areas
+- [x] **Polish Language Voice Feedback** - Integrated with i18n system
+- [x] **Debug System** - Comprehensive logging with emoji indicators
+- [x] **Fluent API Design** - Chainable gesture registration system
+
+### HMI Integration Tasks
+- [ ] **Main IDE Integration** - Integrate HMI system with main Digital Twin IDE
+  - Import HMIManager into app.js
+  - Configure gesture targets for canvas and components
+  - Set up voice command patterns for IDE operations
+- [ ] **Gesture-Canvas Integration** - Connect gestures to canvas operations
+  - Delete gestures → component removal
+  - Swipe gestures → file operations (save, export, undo, redo)
+  - Selection gestures → component selection/deselection
+- [ ] **Voice-Properties Integration** - Connect voice commands to properties panel
+  - "Show properties" → open properties panel
+  - "Change color to [color]" → update component colors
+  - "Set position [x] [y]" → update component position
+- [ ] **HMI Settings Panel** - User configuration for HMI system
+  - Enable/disable specific gestures
+  - Voice recognition language selection
+  - Gesture sensitivity adjustments
+  - Debug mode toggle
+
+---
+
 ## 🧩 HTML MODULES SYSTEM EXPANSION
 
 ### Core Infrastructure

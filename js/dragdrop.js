@@ -8,12 +8,51 @@ export class DragDropManager {
         this.svgCanvas = svgCanvas;
         this.workspace = workspace;
         this.init();
+        
+        // Fix any existing components that might be missing data-id attributes
+        this.fixExistingComponents();
     }
 
     init() {
         this.setupDragListeners();
         this.updateSvgSize();
         window.addEventListener('resize', () => this.updateSvgSize());
+    }
+    
+    // Fix existing components that might be missing data-id attributes
+    fixExistingComponents() {
+        console.log('🔧 Checking for components missing data-id attributes...');
+        
+        // Find all SVG elements that look like components but lack data-id
+        const potentialComponents = this.svgCanvas.querySelectorAll('svg:not([data-id]), g:not([data-id])');
+        
+        let fixedCount = 0;
+        potentialComponents.forEach(element => {
+            // Skip if it's the main canvas or a non-component element
+            if (element === this.svgCanvas || element.closest('.grid-overlay')) {
+                return;
+            }
+            
+            // Add missing data-id attribute
+            const componentId = this.componentManager.generateComponentId();
+            element.setAttribute('data-id', componentId);
+            element.setAttribute('class', 'draggable-component');
+            
+            // Make it draggable if it isn't already
+            this.makeDraggable(element);
+            
+            // Store in component manager
+            this.componentManager.storeComponent(componentId, element, 'unknown');
+            
+            fixedCount++;
+            console.log(`✅ Fixed component ID: ${componentId}`, element);
+        });
+        
+        if (fixedCount > 0) {
+            console.log(`🎯 Fixed ${fixedCount} components missing data-id attributes`);
+        } else {
+            console.log('✅ All components already have data-id attributes');
+        }
     }
 
     // Inicjalizacja rozmiarów SVG

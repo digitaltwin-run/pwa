@@ -1,9 +1,9 @@
 /**
- * NEW SIMPLIFIED HMI INTEGRATION
- * Uses the new simple-hmi.js system instead of the complex one
+ * COMPREHENSIVE HMI INTEGRATION
+ * Uses the advanced HMI system from js/hmi/ folder with 15+ gesture patterns
  */
 
-import { createHMI } from './simple-hmi.js';
+import { createHMI } from './hmi/index.js';
 import { setupDigitalTwinGestures } from './digital-twin-gestures.js';
 
 /**
