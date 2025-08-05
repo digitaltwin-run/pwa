@@ -240,7 +240,23 @@ class DigitalTwinApp {
                 console.log('📝 Docs: /docs/TESTING_GUIDE.md');
             }
         } catch (error) {
-            console.error('Error initializing application:', error);
+            console.error('🚨 CRITICAL: Application initialization failed:', error);
+            console.error('🚨 Stack trace:', error.stack);
+            console.error('🚨 Error details:', {
+                name: error.name,
+                message: error.message,
+                fileName: error.fileName,
+                lineNumber: error.lineNumber
+            });
+            
+            // Set flag to indicate initialization failed
+            window.appInitializationFailed = true;
+            window.appInitializationError = error;
+            
+            // Dispatch error event for debugging
+            document.dispatchEvent(new CustomEvent('appInitializationError', {
+                detail: { error, timestamp: new Date().toISOString() }
+            }));
         }
     }
 
