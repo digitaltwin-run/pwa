@@ -15,25 +15,29 @@ export function setupDigitalTwinGestures(hmi, appInstance) {
     // === BASIC OPERATIONS ===
     
     // Delete gesture - circle over selected components (HIGH PRIORITY)
-    hmi.gesture('delete')
+    hmi.gestureDetector.gesture('delete')
         .circle({ minRadius: 30, maxRadius: 100 })
         .when(() => hasSelectedComponents(appInstance))
         .on((data) => {
             console.log('🗑️ Delete gesture detected');
             executeDelete(appInstance);
-            hmi.voiceHMI.speak('Usunięto komponenty');
+            if (hmi.voiceHMI && hmi.voiceHMI.speak) {
+                hmi.voiceHMI.speak('Usunięto komponenty');
+            }
         })
         .priority(8)
         .cooldown(500);
 
     // Enhanced delete - double tap to delete (alternative method)
-    hmi.gesture('delete_doubletap')
-        .doubleTap({ maxDistance: 40, maxTime: 400 })
+    hmi.gestureDetector.gesture('delete_doubletap')
+        .circle({ minRadius: 10, maxRadius: 40 }) // Use small circle for double tap
         .when(() => hasSelectedComponents(appInstance))
         .on((data) => {
             console.log('🗑️ Double tap delete detected');
             executeDelete(appInstance);
-            hmi.voiceHMI.speak('Usunięto przez podwójne dotknięcie');
+            if (hmi.voiceHMI && hmi.voiceHMI.speak) {
+                hmi.voiceHMI.speak('Usunięto przez podwójne dotknięcie');
+            }
         })
         .priority(7)
         .cooldown(300);
@@ -41,23 +45,27 @@ export function setupDigitalTwinGestures(hmi, appInstance) {
     // === FILE OPERATIONS ===
     
     // Save gesture - swipe right
-    hmi.gesture('save')
-        .swipeRight({ minDistance: 120 })
+    hmi.gestureDetector.gesture('save')
+        .swipe('right', { minDistance: 120 })
         .on((data) => {
             console.log('💾 Save gesture detected');
             executeSave(appInstance);
-            hmi.voiceHMI.speak('Projekt zapisany');
+            if (hmi.voiceHMI && hmi.voiceHMI.speak) {
+                hmi.voiceHMI.speak('Projekt zapisany');
+            }
         })
         .priority(6)
         .cooldown(1000);
 
     // Export gesture - swipe down
-    hmi.gesture('export')
-        .swipeDown({ minDistance: 100 })
+    hmi.gestureDetector.gesture('export')
+        .swipe('down', { minDistance: 100 })
         .on((data) => {
             console.log('📤 Export gesture detected');
             executeExport(appInstance);
-            hmi.voiceHMI.speak('Eksport rozpoczęty');
+            if (hmi.voiceHMI && hmi.voiceHMI.speak) {
+                hmi.voiceHMI.speak('Eksport rozpoczęty');
+            }
         })
         .priority(5)
         .cooldown(800);
@@ -65,61 +73,71 @@ export function setupDigitalTwinGestures(hmi, appInstance) {
     // === HISTORY OPERATIONS ===
     
     // Undo gesture - swipe left
-    hmi.gesture('undo')
-        .swipeLeft({ minDistance: 100 })
+    hmi.gestureDetector.gesture('undo')
+        .swipe('left', { minDistance: 100 })
         .on((data) => {
             console.log('↩️ Undo gesture detected');
             executeUndo(appInstance);
-            hmi.voiceHMI.speak('Cofnięto akcję');
+            if (hmi.voiceHMI && hmi.voiceHMI.speak) {
+                hmi.voiceHMI.speak('Cofnięto akcję');
+            }
         })
         .priority(6)
         .cooldown(400);
 
     // Redo gesture - swipe up
-    hmi.gesture('redo')
-        .swipeUp({ minDistance: 100 })
+    hmi.gestureDetector.gesture('redo')
+        .swipe('up', { minDistance: 100 })
         .on((data) => {
             console.log('🔄 Redo gesture detected');
             executeRedo(appInstance);
-            hmi.voiceHMI.speak('Przywrócono akcję');
+            if (hmi.voiceHMI && hmi.voiceHMI.speak) {
+                hmi.voiceHMI.speak('Przywrócono akcję');
+            }
         })
         .priority(5)
         .cooldown(400);
 
     // === COMPONENT OPERATIONS ===
     
-    // Component properties - zigzag gesture
-    hmi.gesture('properties')
-        .zigzag({ minZigs: 2, maxZigs: 4 })
+    // Component properties - small circle gesture (alternative to zigzag)
+    hmi.gestureDetector.gesture('properties')
+        .circle({ minRadius: 20, maxRadius: 50 })
         .when(() => hasSelectedComponents(appInstance))
         .on((data) => {
             console.log('🔧 Properties gesture detected');
             showProperties(appInstance);
-            hmi.voiceHMI.speak('Otwarto panel właściwości');
+            if (hmi.voiceHMI && hmi.voiceHMI.speak) {
+                hmi.voiceHMI.speak('Otwarto panel właściwości');
+            }
         })
         .priority(4)
         .cooldown(600);
 
-    // Copy component - horizontal line gesture
-    hmi.gesture('copy')
-        .line({ minLength: 80, maxLength: 200, allowedAngles: [0], angleTolerance: 15 })
+    // Copy component - swipe right (alternative to horizontal line)
+    hmi.gestureDetector.gesture('copy')
+        .swipe('right', { minDistance: 80 })
         .when(() => hasSelectedComponents(appInstance))
         .on((data) => {
             console.log('📋 Copy gesture detected');
             executeCopy(appInstance);
-            hmi.voiceHMI.speak('Skopiowano komponenty');
+            if (hmi.voiceHMI && hmi.voiceHMI.speak) {
+                hmi.voiceHMI.speak('Skopiowano komponenty');
+            }
         })
         .priority(3)
         .cooldown(500);
 
-    // Scale component - spiral gesture
-    hmi.gesture('scale')
-        .spiral({ minRadius: 50, maxRadius: 150 })
+    // Scale component - large circle gesture (alternative to spiral)
+    hmi.gestureDetector.gesture('scale')
+        .circle({ minRadius: 80, maxRadius: 120 })
         .when(() => hasSelectedComponents(appInstance))
         .on((data) => {
             console.log('🔄 Scale gesture detected');
-            executeScale(appInstance, data.scaleFactor || 1.2);
-            hmi.voiceHMI.speak('Zmieniono rozmiar komponentów');
+            executeScale(appInstance, 1.2);
+            if (hmi.voiceHMI && hmi.voiceHMI.speak) {
+                hmi.voiceHMI.speak('Zmieniono rozmiar komponentów');
+            }
         })
         .priority(4)
         .cooldown(600);
