@@ -18,7 +18,7 @@ import pwaConfig from '../config/pwa-config.js';
 import { CollaborationManager } from './collaboration-manager.js';
 import { I18nManager } from './i18n-manager.js';
 import { ComponentScaler } from './component-scaler.js';
-import { CanvasSelectionManager } from './canvas-selection-manager.js';
+import { CanvasSelectionManager, canvasSelectionManager } from './canvas-selection-manager.js';
 import { CanvasZoomManager } from './canvas-zoom-manager.js';
 import { CanvasPropertiesManager } from './canvas-properties-manager.js';
 import { ComponentsColumnManager } from './components-column-manager.js';
@@ -72,7 +72,7 @@ class DigitalTwinApp {
         this.actionManager = null;
         this.interactionsManager = null;
         this.componentScaler = null;
-        this.canvasSelectionManager = new CanvasSelectionManager();
+        this.canvasSelectionManager = canvasSelectionManager; // Using the imported instance
         this.config = {
             canvas: {
                 grid: {
