@@ -9,31 +9,75 @@ import { gesturePatterns } from './digital-twin-gestures.js';
 import { inputManager } from './hmi/input/input-manager.js';
 
 /**
- * Integration function that connects the new Simple HMI system with the main app
+ * Setup unified input system with app references
+ */
+async function setupUnifiedInputSystem(hmi, appInstance, svgCanvas) {
+    try {
+        // Set canvas and component manager references
+        inputManager.setReferences(svgCanvas, appInstance.componentManager);
+        
+        // Dispatch canvas-ready event for other systems
+        const canvasReadyEvent = new CustomEvent('canvas-ready', {
+            detail: {
+                canvas: svgCanvas,
+                componentManager: appInstance.componentManager
+            }
+        });
+        document.dispatchEvent(canvasReadyEvent);
+        
+        console.log('🎮 Unified input system setup complete');
+    } catch (error) {
+        console.error('❌ Failed to setup unified input system:', error);
+    }
+}
+
+/**
+ * Integration function that connects the comprehensive HMI system with the main app
  */
 export async function integrateHMIWithApp(appInstance) {
     console.info('🎮 Integrating comprehensive HMI system with unified input...');
     
-    // Get the SVG canvas element
-    const svgCanvas = document.getElementById('svg-canvas');
-    if (!svgCanvas) {
-        throw new Error('SVG canvas not found');
+    try {
+        // Get the SVG canvas element
+        const svgCanvas = document.getElementById('svg-canvas');
+        if (!svgCanvas) {
+            throw new Error('SVG canvas not found');
+        }
 
-        // Expose globally for debugging
+        // Create HMI instance with debug enabled
+        const hmi = new HMIManager(svgCanvas, { 
+            debug: true, 
+            voice: true,
+            priority: 'gesture' // Prioritize gesture detection
+        });
+
+        // Initialize unified input system with app references
+        await setupUnifiedInputSystem(hmi, appInstance, svgCanvas);
+
+        // Setup gesture patterns for Digital Twin IDE
+        setupDigitalTwinGestures(hmi, appInstance);
+
+        // Setup voice commands if supported
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            setupVoiceCommands(hmi, appInstance);
+        } else {
+            console.warn('🎤 Speech recognition not supported in this browser');
+        }
+
+        // Enable debug mode
+        hmi.enableDebug();
+
+        // Make HMI globally accessible for debugging
         window.hmi = hmi;
-        
-        console.info('✅ NEW simplified HMI integration complete!');
-        console.info('🎮 Available gestures:');
-        console.info('  • Circle = Delete selected components');
-        console.info('  • Swipe Right = Save project');
-        console.info('  • Swipe Left = Undo action');
-        console.info('  • Zigzag = Show component properties');
-        console.info('🎤 Voice commands (if enabled):');
-        console.info('  • "zapisz" / "save" = Save project');
-        console.info('  • "usuń" / "delete" = Delete selection');
-        console.info('  • "właściwości" / "properties" = Show properties');
+        window.hmiGestures = gesturePatterns;
+        window.inputManager = inputManager;
+
+        console.info('✅ Advanced HMI system with unified input integrated successfully!');
+        console.info(`🎮 Active gestures: ${Object.keys(gesturePatterns).length}`);
+        console.info('🎮 Input systems status:', inputManager.getStatus());
         
         return hmi;
+        
     } catch (error) {
         console.error('❌ Failed to integrate HMI system:', error);
         throw error;
@@ -41,6 +85,21 @@ export async function integrateHMIWithApp(appInstance) {
 }
 
 /**
+ * Setup Digital Twin gesture patterns for the IDE
+ */
+function setupDigitalTwinGestures(hmi, appInstance) {
+    // Import gesture patterns from digital-twin-gestures.js
+    Object.entries(gesturePatterns).forEach(([patternName, patternConfig]) => {
+        hmi.gesture(patternName, patternConfig.detector)
+            .on((gestureData) => {
+                console.log(`🎮 Gesture detected: ${patternName}`, gestureData);
+                
+                // Execute the corresponding action
+                if (patternConfig.action && typeof patternConfig.action === 'function') {
+                    patternConfig.action(appInstance, gestureData);
+                }
+            });
+    });
 
     console.info('✅ Comprehensive gesture patterns configured:');
     console.info('   🗑️  Delete: Circle, Double-tap');

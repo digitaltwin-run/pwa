@@ -336,8 +336,27 @@ export class I18nManager {
     }
 }
 
-// Global i18n manager instance
-window.i18nManager = new I18nManager();
+// Global i18n manager instance with safe initialization
+let i18nManager;
+try {
+    i18nManager = new I18nManager();
+    window.i18nManager = i18nManager; // Expose to window
+    
+    // Auto-initialize but don't block the app if it fails
+    i18nManager.init().catch(error => {
+        console.error('Failed to initialize i18n manager:', error);
+    });
+} catch (error) {
+    console.error('Failed to create i18n manager:', error);
+    // Create a minimal fallback
+    window.i18nManager = {
+        t: (key) => key,
+        isInitialized: false,
+        currentLanguage: 'en',
+        defaultLanguage: 'en',
+        init: () => Promise.resolve(false)
+    };
+}
 
 // Global translation function for convenience
 window.t = (key, params) => window.i18nManager.t(key, params);
