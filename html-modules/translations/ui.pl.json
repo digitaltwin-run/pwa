@@ -1,0 +1,28 @@
+{
+  "ui": {
+    "menu": {
+      "file": "Plik",
+      "tools": "Narzędzia",
+      "view": "Widok",
+      "help": "Pomoc"
+    },
+    "buttons": {
+      "export": "Eksportuj (.dtwin)",
+      "import": "Importuj (.dtwin)",
+      "exportPng": "Zapisz jako PNG",
+      "exportSvg": "Zapisz jako SVG",
+      "connectComponents": "Łącz komponenty",
+      "start": "Start",
+      "stop": "Stop",
+      "close": "Zamknij"
+    },
+    "components": {
+      "title": "🔧 Komponenty",
+      "loading": "Ładowanie komponentów..."
+    },
+    "simulation": {
+      "title": "📊 Symulacja danych",
+      "noComponents": "Brak komponentów do symulacji"
+    }
+  }
+}

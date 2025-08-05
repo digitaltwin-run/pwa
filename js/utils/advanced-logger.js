@@ -61,7 +61,7 @@ class AdvancedLogger {
     async initializeHMITracking() {
         try {
             // Dynamic import to avoid circular dependencies
-            const { default: HMIEventTracker } = await import('./hmi-event-tracker.js');
+            const { default: HMIEventTracker } = await import('../hmi/utils/hmi-event-tracker.js');
             this.hmiTracker = new HMIEventTracker(this);
             console.info('🎯 HMI Event Tracker initialized');
         } catch (error) {

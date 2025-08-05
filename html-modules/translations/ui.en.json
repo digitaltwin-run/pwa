@@ -1,0 +1,28 @@
+{
+  "ui": {
+    "menu": {
+      "file": "File",
+      "tools": "Tools",
+      "view": "View",
+      "help": "Help"
+    },
+    "buttons": {
+      "export": "Export",
+      "import": "Import",
+      "exportPng": "Export as PNG",
+      "exportSvg": "Export as SVG",
+      "connectComponents": "Connect Components",
+      "start": "Start",
+      "stop": "Stop",
+      "close": "Close"
+    },
+    "components": {
+      "title": "🔧 Components",
+      "loading": "Loading components..."
+    },
+    "simulation": {
+      "title": "📊 Data Simulation",
+      "noComponents": "No components available for simulation"
+    }
+  }
+}

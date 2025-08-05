@@ -4,7 +4,7 @@
  * @deprecated Use js/hmi/integration.js directly
  */
 
-import { integrateHMIWithApp as newIntegrateHMI } from './hmi/integration.js';
+import { integrateHMIWithApp as newIntegrateHMI } from './integration.js';
 
 /**
  * Legacy integration function - wraps new HMI integration

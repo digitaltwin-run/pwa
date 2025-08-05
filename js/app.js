@@ -23,7 +23,7 @@ import { CanvasZoomManager } from './canvas-zoom-manager.js';
 import { CanvasPropertiesManager } from './canvas-properties-manager.js';
 import { ComponentsColumnManager } from './components-column-manager.js';
 // loadHTMLModules - removed as file doesn't exist
-import { integrateHMIWithApp } from './app-hmi-integration-new.js';
+import { integrateHMIWithApp } from './hmi/app-hmi-integration-new.js';
 import { SelectionListManager } from './properties/selection-list-manager.js';
 import './utils/advanced-logger.js'; // Advanced JSON logging & error analysis
 // Conditional imports for development tools
