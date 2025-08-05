@@ -102,8 +102,21 @@ class DigitalTwinApp {
         try {
             // Initialize i18n first
             console.log('🌐 Initializing i18n...');
-            window.i18nManager = new I18nManager();
-            await window.i18nManager.init();
+            // Use existing global i18n manager (auto-initialized in i18n-manager.js)
+            if (!window.i18nManager || !window.i18nManager.isInitialized) {
+                console.log('🌐 Waiting for i18n manager to initialize...');
+                // Wait for auto-initialization to complete
+                await new Promise(resolve => {
+                    const checkInit = () => {
+                        if (window.i18nManager && window.i18nManager.isInitialized) {
+                            resolve();
+                        } else {
+                            setTimeout(checkInit, 50);
+                        }
+                    };
+                    checkInit();
+                });
+            }
             console.log('✅ i18n initialized');
             
             // Load configuration
