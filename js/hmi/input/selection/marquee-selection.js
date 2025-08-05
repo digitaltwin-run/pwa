@@ -1,7 +1,9 @@
 /**
- * Marquee Selection - Rectangle selection functionality
- * Extracted from canvas-selection-manager.js for better modularity
+ * HMI Marquee Selection - Rectangle selection functionality
+ * Migrated and enhanced from js/selection/marquee-selection.js
+ * @module hmi/input/selection
  */
+
 export class MarqueeSelection {
     constructor() {
         this.selectionBox = null;
@@ -17,6 +19,7 @@ export class MarqueeSelection {
     setReferences(canvasElement, selectionCore) {
         this.canvasElement = canvasElement;
         this.selectionCore = selectionCore;
+        console.log('🟦 HMI Marquee Selection initialized');
     }
 
     /**
@@ -42,7 +45,7 @@ export class MarqueeSelection {
 
         this.isSelecting = true;
         this.createSelectionBox();
-        console.log('🟦 Started marquee selection at', this.selectionStart);
+        console.log('🟦 Started HMI marquee selection at', this.selectionStart);
         
         // Add visual feedback
         document.body.style.cursor = 'crosshair';
@@ -61,7 +64,7 @@ export class MarqueeSelection {
         this.removeSelectionBox();
 
         this.selectionBox = document.createElement('div');
-        this.selectionBox.className = 'marquee-selection-box';
+        this.selectionBox.className = 'hmi-marquee-selection-box';
         this.selectionBox.style.cssText = `
             position: absolute;
             border: 2px dashed #007bff;
@@ -74,6 +77,7 @@ export class MarqueeSelection {
             top: ${this.selectionStart.y}px;
             width: 0px;
             height: 0px;
+            transition: all 0.05s ease-out;
         `;
 
         // Add to canvas container or create wrapper if needed
@@ -83,7 +87,7 @@ export class MarqueeSelection {
         }
         canvasContainer.appendChild(this.selectionBox);
         
-        console.log('🟦 Created selection box element');
+        console.log('🟦 Created HMI selection box element');
     }
 
     /**
@@ -124,7 +128,7 @@ export class MarqueeSelection {
         this.selectionCore.selectComponentsInRect(rect);
 
         this.endSelectionBox();
-        console.log('🎯 Finalized selection box', rect);
+        console.log('🟦 Finalized HMI marquee selection', rect);
     }
 
     /**
@@ -136,7 +140,7 @@ export class MarqueeSelection {
         
         // Reset cursor
         document.body.style.cursor = '';
-        console.log('🟦 Ended marquee selection');
+        console.log('🟦 Ended HMI marquee selection');
     }
 
     /**
@@ -180,7 +184,7 @@ export class MarqueeSelection {
     cancelSelection() {
         if (this.isSelecting) {
             this.endSelectionBox();
-            console.log('🎯 Cancelled marquee selection');
+            console.log('🟦 Cancelled HMI marquee selection');
         }
     }
 }

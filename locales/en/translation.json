@@ -12,11 +12,112 @@
       "import": "Import",
       "connect": "Connect Components",
       "start": "Start",
-      "stop": "Stop"
+      "stop": "Stop",
+      "save": "Save",
+      "cancel": "Cancel",
+      "apply": "Apply",
+      "reset": "Reset",
+      "add": "Add",
+      "remove": "Remove",
+      "edit": "Edit",
+      "delete": "Delete"
     },
     "simulation": {
       "title": "📊 Data Simulation",
       "noComponents": "No components to simulate"
     }
+  },
+  "ui": {
+    "buttons": {
+      "start": "Start",
+      "stop": "Stop"
+    }
+  },
+  "properties": {
+    "addParameter": "Add Parameter",
+    "texts": "Texts",
+    "position_x": "Position X",
+    "position_y": "Position Y",
+    "font_family": "Font Family",
+    "font_size": "Font Size",
+    "removeComponent": "Remove Component",
+    "canvasBackground": "Canvas Background",
+    "backgroundColor": "Background Color",
+    "canvasGrid": "Canvas Grid",
+    "gridVisible": "Grid Visible",
+    "gridSize": "Grid Size",
+    "smallGridSize": "Small Grid Size",
+    "mainGridColor": "Main Grid Color",
+    "smallGridColor": "Small Grid Color",
+    "multi_selection": "Multi-Selection",
+    "selected_components": "components selected",
+    "scale": "Scale",
+    "zoom_level": "Zoom Level",
+    "colors": "Colors",
+    "color": "Color",
+    "position": "Position",
+    "batch_actions": "Batch Actions",
+    "copy_all": "Copy All",
+    "delete_all": "Delete All",
+    "confirm_delete_multiple": "Are you sure you want to delete",
+    "components": "components"
+  },
+  "components": {
+    "led": "LED",
+    "valve": "Valve",
+    "sensor": "Sensor",
+    "pump": "Pump",
+    "container": "Container"
+  },
+  "errors": {
+    "loading_failed": "Failed to load resource",
+    "connection_failed": "Connection failed",
+    "save_failed": "Failed to save changes",
+    "load_failed": "Failed to load data"
+  },
+  "tabs": {
+    "properties": "Properties",
+    "appearance": "Appearance",
+    "behavior": "Behavior",
+    "events": "Events",
+    "data": "Data"
+  },
+  "common": {
+    "name": "Name",
+    "type": "Type",
+    "value": "Value",
+    "description": "Description",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "default": "Default",
+    "custom": "Custom",
+    "none": "None",
+    "apply": "Apply",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "finish": "Finish"
+  },
+  "tooltips": {
+    "add_component": "Add a new component",
+    "delete_component": "Delete selected component",
+    "duplicate_component": "Duplicate selected component",
+    "align_left": "Align left",
+    "align_center": "Align center",
+    "align_right": "Align right",
+    "align_top": "Align top",
+    "align_middle": "Align middle",
+    "align_bottom": "Align bottom"
+  },
+  "status": {
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "connecting": "Connecting...",
+    "saving": "Saving...",
+    "loading": "Loading...",
+    "ready": "Ready"
   }
 }
