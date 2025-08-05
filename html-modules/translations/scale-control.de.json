@@ -1,0 +1,13 @@
+{
+  "scale": {
+    "title": "Komponenten-Skalierung/Zoom",
+    "currentScale": "Aktuelle Skalierung:",
+    "dimensions": "Abmessungen:",
+    "scalePercent": "Skalierung (% der Originalgröße)",
+    "placeholder": "100%",
+    "reset": "Auf 100% zurücksetzen",
+    "aspectRatio": "Seitenverhältnis beibehalten",
+    "svgTransform": "SVG-Transformation:",
+    "originalSize": "Original"
+  }
+}

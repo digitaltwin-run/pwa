@@ -1,0 +1,13 @@
+{
+  "scale": {
+    "title": "Skalowanie komponentu",
+    "currentScale": "Bieżąca skala:",
+    "dimensions": "Wymiary:",
+    "scalePercent": "Skala (% oryginalnego rozmiaru)",
+    "placeholder": "100%",
+    "reset": "Resetuj 100%",
+    "aspectRatio": "Zachowane proporcje |",
+    "svgTransform": "Przekształcenie SVG:",
+    "originalSize": "Oryginalny"
+  }
+}

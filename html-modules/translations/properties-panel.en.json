@@ -1,0 +1,10 @@
+{
+  "properties": {
+    "componentId": "Component ID",
+    "position": "Position",
+    "removeComponent": "Remove Component"
+  },
+  "common": {
+    "copy": "Copy"
+  }
+}

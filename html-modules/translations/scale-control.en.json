@@ -1,0 +1,13 @@
+{
+  "scale": {
+    "title": "Component Scale/Zoom",
+    "currentScale": "Current Scale:",
+    "dimensions": "Dimensions:",
+    "scalePercent": "Scale (% of original size)",
+    "placeholder": "100%",
+    "reset": "Reset 100%",
+    "aspectRatio": "Aspect ratio preserved",
+    "svgTransform": "SVG transform:",
+    "originalSize": "Original"
+  }
+}

@@ -685,29 +685,12 @@ class VoiceHMI {
     }
     
     setupSpeechRecognition() {
-        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-            console.warn('Speech Recognition not supported');
-            return;
-        }
+        // Disabled: Use VoiceHMI singleton instead to prevent conflicts
+        console.log('🎤 Speech recognition setup disabled in simple-hmi.js - using VoiceHMI singleton');
         
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        this.recognition = new SpeechRecognition();
-        
-        this.recognition.continuous = true;
-        this.recognition.interimResults = true;
-        this.recognition.lang = 'pl-PL';
-        
-        this.recognition.onresult = (event) => {
-            const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
-            
-            if (event.results[event.results.length - 1].isFinal) {
-                this.processVoiceCommand(transcript);
-            }
-        };
-        
-        this.recognition.onerror = (event) => {
-            console.warn('Speech recognition error:', event.error);
-        };
+        // Speech recognition is now handled by the VoiceHMI singleton
+        // to prevent multiple instances from conflicting
+        this.recognition = null;
     }
     
     processVoiceCommand(transcript) {

@@ -15,16 +15,29 @@ const DEFAULT_VOICE_CONFIG = {
 
 export class VoiceHMI {
   constructor() {
+    // Singleton pattern to prevent multiple speech recognition instances
+    if (VoiceHMI.instance) {
+      console.warn('🎤 VoiceHMI singleton already exists, returning existing instance');
+      return VoiceHMI.instance;
+    }
+    
     this.recognition = null;
     this.synthesis = window.speechSynthesis;
     this.isListening = false;
     this.voiceCommands = new Map();
     this.debug = false;
     
+    VoiceHMI.instance = this;
     this.setupSpeechRecognition();
   }
 
   setupSpeechRecognition() {
+    // COMPLETELY DISABLED FOR DEBUGGING - preventing console flooding and initialization issues
+    console.log('🎤 Speech recognition completely disabled for debugging');
+    this.recognition = null;
+    return;
+    
+    /* DISABLED
     try {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) throw new Error('Speech recognition not supported');

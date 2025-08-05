@@ -7,7 +7,6 @@ import { PropertiesMapper } from './properties-mapper.js';
 import { getComponentProperties } from './component-properties.js';
 
 // Import new modular components
-import { ColorsManager } from './properties/colors-manager.js';
 import { ScalingManager } from './properties/scaling-manager.js';
 import { SVGTextManager } from './properties/svg-text-manager.js';
 import { PropertyUIGenerator } from './properties/property-ui-generator.js';
@@ -18,7 +17,7 @@ export class PropertiesManager {
         this.componentManager = componentManager;
 
         // Initialize sub-managers
-        this.colorManager = new ColorManager(componentManager);
+        this.colorManager = new ColorsManager(componentManager);
         this.metadataManager = new MetadataManager(componentManager);
         // interactionsManager moved to ../interactions project
         this.propertiesMapper = new PropertiesMapper(componentManager);

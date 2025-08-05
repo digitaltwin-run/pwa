@@ -1,0 +1,13 @@
+{
+  "scale": {
+    "title": "Escala/Zoom del componente",
+    "currentScale": "Escala actual:",
+    "dimensions": "Dimensiones:",
+    "scalePercent": "Escala (% del tamaño original)",
+    "placeholder": "100%",
+    "reset": "Restablecer 100%",
+    "aspectRatio": "Relación de aspecto conservada",
+    "svgTransform": "Transformación SVG:",
+    "originalSize": "Original"
+  }
+}

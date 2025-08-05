@@ -63,11 +63,15 @@ export async function integrateHMIWithApp(appInstance) {
         setupDigitalTwinGestures(hmi, appInstance);
 
         // Setup voice commands if supported
+        // TEMPORARILY DISABLED FOR DEBUGGING - speech recognition errors preventing initialization
+        console.warn('🎤 Voice commands temporarily disabled for debugging purposes');
+        /*
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             setupVoiceCommands(hmi, appInstance);
         } else {
             console.warn('🎤 Speech recognition not supported in this browser');
         }
+        */
 
         // Enable debug mode
         hmi.enableDebug();
