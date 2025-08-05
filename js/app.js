@@ -8,6 +8,7 @@
 import { ComponentManager } from './components.js';
 import { DragDropManager } from './dragdrop.js';
 import { PropertiesManager } from './properties.js';
+import { PropertiesMapper } from './properties-mapper.js';
 import { SimulationManager } from './simulation.js';
 import { ConnectionManager } from './connections.js';
 import { ExportManager } from './export.js';
@@ -20,11 +21,10 @@ import { ComponentScaler } from './component-scaler.js';
 import { CanvasSelectionManager } from './canvas-selection-manager.js';
 import { CanvasZoomManager } from './canvas-zoom-manager.js';
 import { CanvasPropertiesManager } from './canvas-properties-manager.js';
-import { ComponentsColumnManager } from './managers/components-column-manager.js';
-import { loadHTMLModules } from './utils/html-module-loader.js';
-import { integrateHMIWithApp } from '../hmi/integration/app-hmi-integration.js';
+import { ComponentsColumnManager } from './components-column-manager.js';
+// loadHTMLModules - removed as file doesn't exist
+import { integrateHMIWithApp } from './app-hmi-integration-simplified.js';
 import { SelectionListManager } from './properties/selection-list-manager.js';
-import { canvasSelectionManager } from './canvas-selection-manager.js';
 import './utils/advanced-logger.js'; // Advanced JSON logging & error analysis
 // Conditional imports for development tools
 let TestingSystem, FunctionalTests, ErrorDetector;
@@ -119,6 +119,7 @@ class DigitalTwinApp {
             
             this.dragDropManager = new DragDropManager(this.componentManager, svgCanvas, workspace);
             this.propertiesManager = new PropertiesManager(this.componentManager);
+            this.propertiesMapper = new PropertiesMapper();
             this.exportManager = new ExportManager(this.componentManager, svgCanvas);
             this.simulationManager = new SimulationManager(this.componentManager);
             this.connectionManager = new ConnectionManager(this.componentManager, svgCanvas);
@@ -128,6 +129,7 @@ class DigitalTwinApp {
             // Expose managers globally for HTML calls
             window.componentManager = this.componentManager;
             window.propertiesManager = this.propertiesManager;
+            window.propertiesMapper = this.propertiesMapper;
             window.exportManager = this.exportManager;
             window.simulationManager = this.simulationManager;
             window.connectionManager = this.connectionManager;
