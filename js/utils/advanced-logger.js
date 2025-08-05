@@ -46,6 +46,7 @@ class AdvancedLogger {
         this.captureConsole();
         this.setupErrorPatterns();
         await this.initializeSession();
+        await this.initializeHMITracking();
         this.setupPageUnloadHandler();
         
         console.info('🚀 Advanced Logger initialized with session:', this.sessionHash);
@@ -54,17 +55,35 @@ class AdvancedLogger {
     }
 
     /**
-     * Capture all console methods (log, warn, error, info, debug, trace)
+     * Initialize HMI event tracking
+     */
+    async initializeHMITracking() {
+        try {
+            // Dynamic import to avoid circular dependencies
+            const { default: HMIEventTracker } = await import('./hmi-event-tracker.js');
+            this.hmiTracker = new HMIEventTracker(this);
+            console.info('🎯 HMI Event Tracker initialized');
+        } catch (error) {
+            console.warn('⚠️ Failed to initialize HMI tracking:', error.message);
+        }
+    }
+
+    /**
+     * Capture all console methods (log, warn, error, info, debug, trace, hmi)
      */
     captureConsole() {
-        const methods = ['log', 'warn', 'error', 'info', 'debug', 'trace'];
+        const methods = ['log', 'warn', 'error', 'info', 'debug', 'trace', 'hmi'];
         
         methods.forEach(method => {
-            this.originalConsole[method] = console[method];
+            this.originalConsole[method] = console[method] || console.log;
             
             console[method] = (...args) => {
-                // Call original console method
-                this.originalConsole[method].apply(console, args);
+                // Call original console method (use log for hmi if not exists)
+                if (method === 'hmi') {
+                    this.originalConsole.log.apply(console, ['🎯 HMI:', ...args]);
+                } else {
+                    this.originalConsole[method].apply(console, args);
+                }
                 
                 // Capture for JSON log
                 this.captureLogEntry(method, args);
@@ -93,8 +112,13 @@ class AdvancedLogger {
             if (response.ok) {
                 const result = await response.json();
                 this.filepath = result.filepath;
+                
+                // Update URL hash to show current session
+                this.updateUrlHash();
+                
                 console.info('✅ Session initialized on backend:', result.filename);
                 console.info('📁 File path:', result.filepath);
+                console.info('🔗 URL updated with session hash:', window.location.href);
             } else {
                 console.warn('⚠️ Failed to initialize session on backend');
             }
@@ -382,76 +406,53 @@ class AdvancedLogger {
     }
 
     /**
-     * Save logs to file
+     * Update URL hash to show current session
      */
-    async saveLogs() {
-        const logData = {
-            sessionHash: this.sessionHash,
-            startTime: this.startTime,
-            endTime: Date.now(),
-            duration: Date.now() - this.startTime,
-            url: window.location.href,
-            userAgent: navigator.userAgent,
-            totalLogs: this.logs.length,
-            errorCount: this.logs.filter(log => log.level === 'error').length,
-            warnCount: this.logs.filter(log => log.level === 'warn').length,
-            logs: this.logs
-        };
-
+    updateUrlHash() {
         try {
-            // Save to localStorage as backup
-            localStorage.setItem(`advancedLogger_${this.sessionHash}`, JSON.stringify(logData));
-
-            // Download as file
-            this.downloadLogFile(logData);
+            // Update URL hash without triggering page reload
+            const newUrl = `${window.location.origin}${window.location.pathname}#${this.sessionHash}`;
+            window.history.replaceState(null, '', newUrl);
             
-            console.info(`📁 Logs saved: ${this.getLogFilename()}`);
+            console.info(`🔗 URL updated with session hash: ${newUrl}`);
         } catch (error) {
-            this.originalConsole.error('Failed to save logs:', error);
+            console.warn('Failed to update URL hash:', error);
         }
     }
 
     /**
-     * Download log file
+     * Get session hash from URL if available
      */
-    downloadLogFile(logData) {
-        const blob = new Blob([JSON.stringify(logData, null, 2)], {
-            type: 'application/json'
-        });
-        
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = this.getLogFilename();
-        
-        // Auto-download
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+    getHashFromUrl() {
+        const hash = window.location.hash;
+        if (hash && hash.length > 1) {
+            return hash.substring(1); // Remove the # character
+        }
+        return null;
     }
 
     /**
-     * Setup periodic save every 30 seconds
+     * Get backend server status
      */
-    startPeriodicSave() {
-        setInterval(() => {
-            if (this.logs.length > 0) {
-                this.saveLogs();
+    async getBackendStatus() {
+        try {
+            const response = await fetch(`${this.logServerUrl}/status`);
+            if (response.ok) {
+                return await response.json();
             }
-        }, 30000); // 30 seconds
+        } catch (error) {
+            return null;
+        }
+        return null;
     }
 
     /**
-     * Setup page unload handler to save logs
+     * Setup page unload handler for backend notification
      */
     setupPageUnloadHandler() {
         window.addEventListener('beforeunload', () => {
-            this.saveLogs();
-        });
-
-        window.addEventListener('unload', () => {
-            this.saveLogs();
+            // Backend automatically saves on each log entry, no action needed
+            console.info('🔄 Page unloading, logs are saved in real-time to backend');
         });
     }
 
