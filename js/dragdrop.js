@@ -143,6 +143,34 @@ export class DragDropManager {
 
         // Dodaj do canvas
         this.svgCanvas.appendChild(svgElement);
+        
+        // 🔍 DIAGNOSTIC: Log DOM structure after placement
+        console.log(`🏗️ Component placed - ID: ${componentId}`);
+        console.log('📋 SVG Element:', svgElement);
+        console.log('📋 SVG Element data-id:', svgElement.getAttribute('data-id'));
+        console.log('📋 SVG Element class:', svgElement.getAttribute('class'));
+        console.log('📋 SVG Element tagName:', svgElement.tagName);
+        console.log('📋 SVG Element outerHTML (first 200 chars):', svgElement.outerHTML.substring(0, 200));
+        
+        // Check if element is queryable by data-id
+        const queryTest = this.svgCanvas.querySelector(`[data-id="${componentId}"]`);
+        console.log('🔍 Query test - found by data-id:', !!queryTest);
+        
+        // Check all elements with data-id on canvas
+        const allDataIdElements = this.svgCanvas.querySelectorAll('[data-id]');
+        console.log('📊 Total elements with data-id on canvas:', allDataIdElements.length);
+        
+        // Test elementsFromPoint at component center
+        const centerX = finalX + width / 2;
+        const centerY = finalY + height / 2;
+        console.log(`🎯 Testing elementsFromPoint at component center: (${centerX}, ${centerY})`);
+        const elementsAtCenter = document.elementsFromPoint(centerX, centerY);
+        console.log('🔍 Elements at component center:', elementsAtCenter.map(el => ({
+            tag: el.tagName,
+            id: el.id,
+            dataId: el.getAttribute('data-id'),
+            className: el.className instanceof SVGAnimatedString ? el.className.baseVal : el.className
+        })));
 
         // Zarejestruj komponent w menedżerze
         this.componentManager.storeComponent(componentId, svgElement, svgUrl);
@@ -150,7 +178,21 @@ export class DragDropManager {
         // Dodaj funkcjonalność przeciągania
         this.makeDraggable(svgElement);
 
+        // Emit component-added event to notify other managers
+        const componentAddedEvent = new CustomEvent('component-added', {
+            detail: {
+                componentId: componentId,
+                element: svgElement,
+                position: { x: finalX, y: finalY },
+                type: metadata.type || 'unknown',
+                svgUrl: svgUrl,
+                timestamp: new Date().toISOString()
+            }
+        });
+        document.dispatchEvent(componentAddedEvent);
+
         console.log(`Dodano komponent ${componentId} na pozycji (${x}, ${y})`);
+        console.log(`📋 Emitted component-added event for ${componentId}`);
     }
 
     /**

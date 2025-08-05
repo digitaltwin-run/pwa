@@ -157,18 +157,38 @@ export class SelectionCore {
     }
 
     /**
-     * Get component element at specific point
+     * Get component element from event target (simplified approach)
+     */
+    getComponentFromEvent(event) {
+        console.log('🎯 getComponentFromEvent called');
+        
+        let target = event.target;
+        console.log('📍 Event target:', {
+            tagName: target.tagName,
+            id: target.id,
+            className: target.className instanceof SVGAnimatedString ? target.className.baseVal : target.className,
+            hasDataId: target.hasAttribute('data-id'),
+            dataId: target.getAttribute('data-id')
+        });
+        
+        // Walk up the DOM tree to find element with data-id
+        while (target && target !== this.canvasElement) {
+            if (target.hasAttribute && target.hasAttribute('data-id')) {
+                console.log('✅ Found component:', target.getAttribute('data-id'));
+                return target;
+            }
+            target = target.parentElement;
+        }
+        
+        console.log('❌ No component found in event path');
+        return null;
+    }
+
+    /**
+     * Legacy method for backward compatibility
      */
     getComponentAtPoint(x, y) {
-        if (!this.canvasElement) return null;
-        
-        const elements = document.elementsFromPoint(x, y);
-        
-        for (const element of elements) {
-            if (element.hasAttribute('data-id') && element !== this.canvasElement) {
-                return element;
-            }
-        }
+        console.log('⚠️ getComponentAtPoint is deprecated, use getComponentFromEvent instead');
         return null;
     }
 

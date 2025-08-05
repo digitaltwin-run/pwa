@@ -22,9 +22,8 @@ import { CanvasZoomManager } from './canvas-zoom-manager.js';
 import { CanvasPropertiesManager } from './canvas-properties-manager.js';
 import { ComponentsColumnManager } from './components-column-manager.js';
 import { SelectionListManager } from './properties/selection-list-manager.js';
-import './svg-text-editor.js'; // Enable in-place SVG text editing
-import './global-component-initializer.js'; // Enable global SVG component initialization
-import { canvasSelectionManager } from './canvas-selection-manager.js'; // Enable canvas selection and copy-paste
+import { canvasSelectionManager } from './canvas-selection-manager.js';
+import './utils/advanced-logger.js'; // Advanced JSON logging & error analysis
 // Conditional imports for development tools
 let TestingSystem, FunctionalTests, ErrorDetector;
 try {

@@ -197,9 +197,24 @@ export class ComponentsColumnManager {
         } else {
             this.canvasSelectionManager.deselectComponent(component);
         }
+    }
 
-        // Update UI
-        this.updateComponentItemUI(componentId, selected);
+    /**
+     * Update selection state for all components in the UI
+     * Called when canvas selection changes
+     */
+    updateSelectionState() {
+        if (!this.canvasSelectionManager) return;
+
+        const selectedComponents = this.canvasSelectionManager.getSelectedComponents();
+        const selectedIds = selectedComponents.map(comp => comp.dataset.id);
+
+        // Update checkboxes to reflect current selection
+        const checkboxes = this.componentsListElement.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            const componentId = checkbox.dataset.componentId;
+            checkbox.checked = selectedIds.includes(componentId);
+        });
     }
 
     /**

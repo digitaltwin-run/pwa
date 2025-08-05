@@ -98,40 +98,75 @@ export class CanvasPropertiesManager {
     /**
      * Update grid pattern
      */
-    updateGrid(width, height, gridSize = null) {
+    updateGrid(width, height, gridSize = null, smallGridSize = null, mainGridColor = null, smallGridColor = null) {
         if (!this.canvasElement) return;
 
         const grid = this.canvasElement.querySelector('.grid');
         if (!grid) return;
 
-        const currentGridSize = gridSize || this.getCanvasProperties().gridSize;
+        const props = this.getCanvasProperties();
+        const currentGridSize = gridSize || props.gridSize;
+        const currentMainGridColor = mainGridColor || props.mainGridColor || '#cccccc';
+        const currentSmallGridColor = smallGridColor || props.smallGridColor || '#e0e0e0';
+        const currentSmallGridSize = smallGridSize || props.smallGridSize || Math.floor(currentGridSize/5);
         
         // Clear existing grid lines
         grid.innerHTML = '';
 
-        // Create vertical lines
+        // Create small grid lines (finer grid)
+        if (currentSmallGridSize && currentSmallGridSize < currentGridSize) {
+            for (let x = 0; x <= width; x += currentSmallGridSize) {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x);
+                line.setAttribute('y1', 0);
+                line.setAttribute('x2', x);
+                line.setAttribute('y2', height);
+                line.setAttribute('stroke', currentSmallGridColor);
+                line.setAttribute('stroke-width', '0.5');
+                line.classList.add('small-grid-line');
+                grid.appendChild(line);
+            }
+            
+            for (let y = 0; y <= height; y += currentSmallGridSize) {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', 0);
+                line.setAttribute('y1', y);
+                line.setAttribute('x2', width);
+                line.setAttribute('y2', y);
+                line.setAttribute('stroke', currentSmallGridColor);
+                line.setAttribute('stroke-width', '0.5');
+                line.classList.add('small-grid-line');
+                grid.appendChild(line);
+            }
+        }
+
+        // Create main grid lines (thicker, more visible)
         for (let x = 0; x <= width; x += currentGridSize) {
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
             line.setAttribute('x1', x);
             line.setAttribute('y1', 0);
             line.setAttribute('x2', x);
             line.setAttribute('y2', height);
-            line.setAttribute('stroke', '#e0e0e0');
+            line.setAttribute('stroke', currentMainGridColor);
             line.setAttribute('stroke-width', '1');
+            line.classList.add('main-grid-line');
             grid.appendChild(line);
         }
 
-        // Create horizontal lines
+        // Create main horizontal lines
         for (let y = 0; y <= height; y += currentGridSize) {
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
             line.setAttribute('x1', 0);
             line.setAttribute('y1', y);
             line.setAttribute('x2', width);
             line.setAttribute('y2', y);
-            line.setAttribute('stroke', '#e0e0e0');
+            line.setAttribute('stroke', currentMainGridColor);
             line.setAttribute('stroke-width', '1');
+            line.classList.add('main-grid-line');
             grid.appendChild(line);
         }
+        
+        console.log(`🔳 Grid updated: ${currentGridSize}px main (${currentMainGridColor}), ${currentSmallGridSize}px small (${currentSmallGridColor})`);
     }
 
     /**

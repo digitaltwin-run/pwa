@@ -79,7 +79,11 @@ export class CanvasSelectionManager {
      * Handle mouse down on canvas
      */
     handleCanvasMouseDown(e) {
-        console.log('🎯 Mouse down on canvas', e.target === this.canvasElement, e.target.tagName, e.target.className);
+        // Get className properly for SVG elements
+        const className = e.target.className instanceof SVGAnimatedString ? 
+            e.target.className.baseVal : e.target.className;
+        
+        console.log('🎯 Mouse down on canvas', e.target === this.canvasElement, e.target.tagName, className);
         
         // Check if clicked on empty canvas area
         const isEmptyArea = e.target === this.canvasElement || 
@@ -98,9 +102,11 @@ export class CanvasSelectionManager {
             return;
         }
 
-        // Check if clicked on a component
-        const clickedComponent = this.selectionCore.getComponentAtPoint(e.clientX, e.clientY);
+        // Check if clicked on a component using simplified event-based approach
+        const clickedComponent = this.selectionCore.getComponentFromEvent(e);
         if (clickedComponent) {
+            console.log(`🎯 Component clicked: ${clickedComponent.getAttribute('data-id')}`);
+            
             // Handle component selection
             if (e.ctrlKey || e.metaKey) {
                 this.selectionCore.toggleComponentSelection(clickedComponent);
@@ -115,6 +121,9 @@ export class CanvasSelectionManager {
             if (this.selectionCore.selectedComponents.has(clickedComponent)) {
                 this.dragManager.startDrag(e);
             }
+            
+            // Prevent empty area selection logic
+            return;
         }
     }
 
