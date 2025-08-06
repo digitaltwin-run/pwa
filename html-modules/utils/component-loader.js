@@ -1,6 +1,7 @@
 /**
  * Component Loader Utility
  * Handles dynamic loading and initialization of HTML components
+ * Using Web Components pattern with Shadow DOM
  */
 
 import { ComponentIconLoader } from '../../js/utils/component-icon-loader.js';
@@ -20,11 +21,19 @@ export class ComponentLoader {
     }
   }
   
+  /**
+   * Load a component by name and register it as a custom element
+   * @param {string} componentName - Name of the component (without extension)
+   * @returns {Promise<boolean>} Success status
+   */
   static async loadComponent(componentName) {
     try {
-      // Check if component is already loaded
-      if (customElements.get(componentName)) {
-        console.log(`[ComponentLoader] ${componentName} already loaded`);
+      // Create the element tag name (convert to kebab case if needed)
+      const tagName = componentName.includes('-') ? componentName : `app-${componentName}`;
+      
+      // Check if component is already registered
+      if (customElements.get(tagName)) {
+        console.log(`[ComponentLoader] Component ${tagName} already registered`);
         return true;
       }
 
@@ -38,21 +47,70 @@ export class ComponentLoader {
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
       
-      // Import the template
+      // Get template, style and script from the document
       const template = doc.querySelector('template');
+      const style = doc.querySelector('style');
+      const script = doc.querySelector('script');
+      
       if (!template) {
         throw new Error(`No template found in ${componentName}.html`);
       }
       
-      // Add the template to the main document
-      document.body.appendChild(template.content.cloneNode(true));
+      // Execute the component's script
+      if (script) {
+        // Create a new script element to ensure proper execution
+        const newScript = document.createElement('script');
+        newScript.textContent = script.textContent;
+        document.head.appendChild(newScript);
+      } else {
+        // If no script is found, create a default Web Component class
+        this._createDefaultComponent(tagName, template, style);
+      }
       
-      console.log(`[ComponentLoader] ${componentName} loaded successfully`);
+      console.log(`[ComponentLoader] ${componentName} (${tagName}) loaded successfully`);
       return true;
     } catch (error) {
       console.error(`[ComponentLoader] Error loading ${componentName}:`, error);
       return false;
     }
+  }
+  
+  /**
+   * Create a default component class if none is provided in the HTML
+   * @private
+   */
+  static _createDefaultComponent(tagName, template, style) {
+    if (customElements.get(tagName)) return;
+    
+    class DefaultComponent extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+      }
+      
+      connectedCallback() {
+        // Clone the template content
+        if (template) {
+          this.shadowRoot.appendChild(template.content.cloneNode(true));
+        }
+        
+        // Add the style if provided
+        if (style) {
+          const styleEl = document.createElement('style');
+          styleEl.textContent = style.textContent;
+          this.shadowRoot.appendChild(styleEl);
+        }
+        
+        // Dispatch ready event
+        this.dispatchEvent(new CustomEvent(`${tagName}-ready`, { 
+          bubbles: true, 
+          composed: true 
+        }));
+      }
+    }
+    
+    customElements.define(tagName, DefaultComponent);
+    console.log(`[ComponentLoader] Default class registered for ${tagName}`);
   }
 
   static async loadComponents(componentNames) {
@@ -65,9 +123,10 @@ export class ComponentLoader {
   static async initializeHMI() {
     // This would be called from the main HMI initialization
     const requiredComponents = [
-      'components-library-sidebar',
-      'properties-panel',
-      'simulation-panel',
+      'header',                      // Navbar and controls
+      'components-library-sidebar',  // Component library sidebar
+      'properties-panel',           // Properties panel for editing
+      'simulation-panel',           // Simulation controls
       // Add other core components here
     ];
     

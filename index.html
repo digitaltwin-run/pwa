@@ -20,7 +20,31 @@
     <meta name="mobile-web-app-capable" content="yes"/>
     <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
     
-    <!-- Component templates will be added here by the ComponentLoader -->
+    <!-- HTML Component Modules -->
+    <script type="module">
+        // Dynamic component loader for HTML modules
+        import { ComponentLoader } from './html-modules/utils/component-loader.js';
+        
+        // Load core UI components
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Load header component
+                await ComponentLoader.loadComponent('header');
+                console.log('Header component loaded');
+                
+                // Listen for header events
+                document.addEventListener('language-change', (e) => {
+                    console.log('Language changed to:', e.detail.language);
+                    // Trigger language change event for the application
+                    window.dispatchEvent(new CustomEvent('app:language-change', { 
+                        detail: e.detail 
+                    }));
+                });
+            } catch (error) {
+                console.error('Error loading component modules:', error);
+            }
+        });
+    </script>
     
     <!-- Inline styles for critical loading states -->
     <style>
@@ -89,37 +113,8 @@
 
     <!-- Main App Container -->
     <div id="app" class="app-container">
-        <!-- Header with Top Menu and Toolbar -->
-        <header class="header-container">
-            <!-- Language Selector -->
-            <div id="language-switcher" class="language-switcher">
-                <select id="language-select" aria-label="Select language">
-                    <option value="en">🇺🇸 English</option>
-                    <option value="pl">🇵🇱 Polski</option>
-                    <option value="de">🇩🇪 Deutsch</option>
-                    <option value="es">🇪🇸 Español</option>
-                </select>
-            </div>
-            
-            <!-- Top Menu -->
-            <nav class="top-menu">
-                <ul>
-                    <li><a href="#" class="menu-item" data-i18n="ui.menu.file">File</a></li>
-                    <li><a href="#" class="menu-item" id="simulation-menu" data-i18n="ui.menu.tools">Tools</a></li>
-                    <li><a href="#" class="menu-item" data-i18n="ui.menu.view">View</a></li>
-                    <li><a href="#" class="menu-item" data-i18n="ui.menu.help">Help</a></li>
-                </ul>
-            </nav>
-
-            <!-- Toolbar -->
-            <div class="toolbar">
-                <button id="export-btn" class="btn btn-success" data-i18n="ui.buttons.export">Export (.dtwin)</button>
-                <button id="import-btn" class="btn btn-primary" data-i18n="ui.buttons.import">Import (.dtwin)</button>
-                <button id="export-png-btn" class="btn btn-warning" data-i18n="ui.buttons.exportPng">Export PNG</button>
-                <button id="export-svg-btn" class="btn btn-primary" data-i18n="ui.buttons.exportSvg">Export SVG</button>
-                <button id="connection-mode-btn" class="btn btn-purple" data-i18n="ui.buttons.connect">Connect Components</button>
-            </div>
-        </header>
+        <!-- Header with Top Menu and Toolbar (modular component) -->
+        <app-header id="app-header"></app-header>
 
         <!-- Main Content Area -->
         <main class="main-content">

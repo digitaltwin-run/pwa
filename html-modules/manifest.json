@@ -1,0 +1,75 @@
+{
+  "version": "1.0.0",
+  "components": {
+    "components-library-sidebar": {
+      "name": "ComponentsLibrarySidebar",
+      "path": "/html-modules/components/components-library-sidebar.html",
+      "dependencies": [],
+      "category": "core",
+      "description": "Sidebar for browsing and adding components to the canvas"
+    },
+    "properties-panel": {
+      "name": "PropertiesPanel",
+      "path": "/html-modules/components/properties-panel.html",
+      "dependencies": [],
+      "category": "core",
+      "description": "Panel for editing component properties"
+    },
+    "simulation-panel": {
+      "name": "SimulationPanel",
+      "path": "/html-modules/components/simulation-panel.html",
+      "dependencies": [],
+      "category": "simulation",
+      "description": "Panel for controlling simulations"
+    },
+    "color-picker": {
+      "name": "ColorPicker",
+      "path": "/html-modules/components/color-picker.html",
+      "dependencies": [],
+      "category": "ui",
+      "description": "Color picker component"
+    },
+    "font-editor": {
+      "name": "FontEditor",
+      "path": "/html-modules/components/font-editor.html",
+      "dependencies": [],
+      "category": "ui",
+      "description": "Font selection and styling component"
+    },
+    "scale-control": {
+      "name": "ScaleControl",
+      "path": "/html-modules/components/scale-control.html",
+      "dependencies": [],
+      "category": "ui",
+      "description": "Canvas zoom/scale control component"
+    }
+  },
+  "categories": {
+    "core": {
+      "name": "Core Components",
+      "description": "Essential UI components required for the application to function"
+    },
+    "ui": {
+      "name": "UI Components",
+      "description": "Reusable UI components used throughout the application"
+    },
+    "simulation": {
+      "name": "Simulation",
+      "description": "Components related to simulation functionality"
+    }
+  },
+  "dependencies": {
+    "core": ["ui"],
+    "simulation": ["core"]
+  },
+  "i18n": {
+    "enabled": true,
+    "defaultLanguage": "en",
+    "languages": ["en", "pl", "de", "es"]
+  },
+  "versionControl": {
+    "type": "git",
+    "branch": "feature/modular-architecture"
+  },
+  "lastUpdated": "2025-08-06T12:00:00Z"
+}
