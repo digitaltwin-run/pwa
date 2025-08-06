@@ -1,0 +1,595 @@
+<!-- Collaboration Canvas Sync Module - Real-time canvas synchronization -->
+<template id="collaboration-canvas-sync-template">
+    <div class="collaboration-canvas-sync">
+        <!-- Canvas sync logic - no visible UI -->
+    </div>
+
+    <style scoped>
+        .collaboration-canvas-sync {
+            display: none; /* Core module - no visible UI */
+        }
+
+        .remote-cursor {
+            position: absolute;
+            pointer-events: none;
+            z-index: 1000;
+            transition: all 0.1s ease-out;
+        }
+
+        .cursor-pointer {
+            width: 20px;
+            height: 20px;
+            transform: translate(-2px, -2px);
+        }
+
+        .cursor-label {
+            background: var(--user-color, #007bff);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            margin-left: 20px;
+            margin-top: -2px;
+        }
+
+        .remote-selection {
+            stroke-width: 2px;
+            stroke-dasharray: 4, 4;
+            fill: none;
+            pointer-events: none;
+            animation: selection-pulse 2s infinite;
+        }
+
+        @keyframes selection-pulse {
+            0%, 100% {
+                opacity: 0.7;
+            }
+            50% {
+                opacity: 0.3;
+            }
+        }
+    </style>
+
+    <script>
+        class CollaborationCanvasSync extends ModuleBase {
+            constructor() {
+                super();
+                this.collaborationCore = null;
+                this.canvasElement = null;
+                this.mutationObserver = null;
+                this.cursors = new Map();
+                this.remoteSelections = new Map();
+                this.isApplyingRemoteUpdate = false;
+                this.throttleDelay = 100; // ms
+                this.lastBroadcast = 0;
+
+                console.log('🎨 Collaboration Canvas Sync initialized');
+            }
+
+            async init() {
+                await super.init();
+
+                // Wait for collaboration core to be available
+                this.waitForModule('collaboration-core').then(core => {
+                    this.collaborationCore = core;
+                    this.setupEventListeners();
+                    this.initializeCanvas();
+                    console.log('✅ Collaboration Canvas Sync ready');
+                });
+            }
+
+            setupEventListeners() {
+                if (!this.collaborationCore) return;
+
+                // Listen to collaboration core events
+                this.collaborationCore.addEventListener('canvas-update', (event) => {
+                    this.handleCanvasUpdate(event.detail);
+                });
+
+                this.collaborationCore.addEventListener('cursor-move', (event) => {
+                    this.handleCursorMove(event.detail);
+                });
+
+                this.collaborationCore.addEventListener('component-select', (event) => {
+                    this.handleComponentSelect(event.detail);
+                });
+
+                this.collaborationCore.addEventListener('room-joined', () => {
+                    this.setupCanvasListeners();
+                });
+
+                this.collaborationCore.addEventListener('room-left', () => {
+                    this.cleanup();
+                });
+
+                this.collaborationCore.addEventListener('user-left', (event) => {
+                    this.removeUserCursor(event.detail.userId);
+                    this.removeUserSelection(event.detail.userId);
+                });
+            }
+
+            /**
+             * Initialize canvas element
+             */
+            initializeCanvas() {
+                this.canvasElement = document.getElementById('svg-canvas');
+                if (!this.canvasElement) {
+                    console.warn('❌ Canvas element not found, retrying in 1s...');
+                    setTimeout(() => this.initializeCanvas(), 1000);
+                    return;
+                }
+
+                console.log('🎨 Canvas element found and initialized');
+            }
+
+            /**
+             * Setup canvas event listeners for collaboration
+             */
+            setupCanvasListeners() {
+                if (!this.canvasElement || !this.collaborationCore) return;
+
+                console.log('🎨 Setting up canvas collaboration listeners...');
+
+                // Mouse move tracking for cursor sharing
+                this.canvasElement.addEventListener('mousemove', (e) => {
+                    this.throttledCursorBroadcast(e);
+                });
+
+                // Component selection tracking
+                document.addEventListener('component-selected', (e) => {
+                    this.broadcastComponentSelection(e.detail);
+                });
+
+                // Canvas mutation observer for real-time updates
+                this.setupMutationObserver();
+
+                console.log('✅ Canvas collaboration listeners setup complete');
+            }
+
+            /**
+             * Setup mutation observer for canvas changes
+             */
+            setupMutationObserver() {
+                if (this.mutationObserver) {
+                    this.mutationObserver.disconnect();
+                }
+
+                this.mutationObserver = new MutationObserver((mutations) => {
+                    // Don't broadcast if we're applying a remote update
+                    if (this.isApplyingRemoteUpdate) return;
+
+                    mutations.forEach((mutation) => {
+                        if (this.shouldBroadcastMutation(mutation)) {
+                            this.throttledCanvasBroadcast(mutation);
+                        }
+                    });
+                });
+
+                this.mutationObserver.observe(this.canvasElement, {
+                    childList: true,
+                    attributes: true,
+                    attributeOldValue: true,
+                    subtree: true
+                });
+
+                console.log('🔍 Canvas mutation observer setup complete');
+            }
+
+            /**
+             * Check if mutation should be broadcast
+             */
+            shouldBroadcastMutation(mutation) {
+                // Skip mutations on collaboration elements
+                if (mutation.target.classList?.contains('remote-cursor') ||
+                    mutation.target.classList?.contains('remote-selection')) {
+                    return false;
+                }
+
+                // Skip attribute changes that are not relevant
+                const ignoredAttributes = ['class', 'style', 'data-collaboration-cursor'];
+                if (mutation.type === 'attributes' &&
+                    ignoredAttributes.includes(mutation.attributeName)) {
+                    return false;
+                }
+
+                return true;
+            }
+
+            /**
+             * Throttled cursor broadcast
+             */
+            throttledCursorBroadcast(event) {
+                const now = Date.now();
+                if (now - this.lastBroadcast < 50) return; // 50ms throttle for cursor
+
+                this.lastBroadcast = now;
+                this.broadcastCursorMove(event);
+            }
+
+            /**
+             * Throttled canvas broadcast
+             */
+            throttledCanvasBroadcast(mutation) {
+                const now = Date.now();
+                if (now - this.lastBroadcast < this.throttleDelay) return;
+
+                this.lastBroadcast = now;
+                this.broadcastCanvasUpdate(mutation);
+            }
+
+            /**
+             * Broadcast cursor movement
+             */
+            broadcastCursorMove(event) {
+                if (!this.collaborationCore || !this.collaborationCore.isConnected()) return;
+
+                const rect = this.canvasElement.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+
+                this.collaborationCore.sendMessage({
+                    type: 'cursor-move',
+                    x: x,
+                    y: y,
+                    target: event.target?.id || null
+                });
+            }
+
+            /**
+             * Broadcast canvas updates
+             */
+            broadcastCanvasUpdate(mutation) {
+                if (!this.collaborationCore || !this.collaborationCore.isConnected()) return;
+
+                const updateData = {
+                    type: 'canvas-update',
+                    mutationType: mutation.type,
+                    targetId: mutation.target.id || null,
+                    targetTagName: mutation.target.tagName,
+                    targetClass: mutation.target.className || null
+                };
+
+                if (mutation.type === 'attributes') {
+                    updateData.attributeName = mutation.attributeName;
+                    updateData.attributeValue = mutation.target.getAttribute(mutation.attributeName);
+                    updateData.oldValue = mutation.oldValue;
+                } else if (mutation.type === 'childList') {
+                    updateData.addedNodes = Array.from(mutation.addedNodes).map(node =>
+                        this.serializeNode(node)
+                    ).filter(Boolean);
+                    updateData.removedNodes = Array.from(mutation.removedNodes).map(node => ({
+                        id: node.id,
+                        tagName: node.tagName,
+                        className: node.className
+                    })).filter(n => n.id);
+                }
+
+                this.collaborationCore.sendMessage(updateData);
+                console.log('📤 Canvas update broadcast:', mutation.type);
+            }
+
+            /**
+             * Broadcast component selection
+             */
+            broadcastComponentSelection(selection) {
+                if (!this.collaborationCore || !this.collaborationCore.isConnected()) return;
+
+                this.collaborationCore.sendMessage({
+                    type: 'component-select',
+                    componentId: selection.componentId,
+                    isSelected: selection.isSelected,
+                    bounds: selection.bounds
+                });
+            }
+
+            /**
+             * Handle canvas update from remote user
+             */
+            handleCanvasUpdate(update) {
+                if (!this.canvasElement) return;
+
+                console.log('📥 Applying remote canvas update:', update.mutationType);
+
+                this.isApplyingRemoteUpdate = true;
+
+                try {
+                    if (update.mutationType === 'attributes') {
+                        this.applyAttributeUpdate(update);
+                    } else if (update.mutationType === 'childList') {
+                        this.applyChildListUpdate(update);
+                    }
+
+                    // Emit event for other modules
+                    this.emit('remote-canvas-update', update);
+
+                } catch (error) {
+                    console.error('❌ Error applying canvas update:', error);
+                } finally {
+                    this.isApplyingRemoteUpdate = false;
+                }
+            }
+
+            /**
+             * Apply attribute update
+             */
+            applyAttributeUpdate(update) {
+                const element = update.targetId ?
+                    document.getElementById(update.targetId) :
+                    this.canvasElement.querySelector(update.targetTagName);
+
+                if (element) {
+                    if (update.attributeValue !== null) {
+                        element.setAttribute(update.attributeName, update.attributeValue);
+                    } else {
+                        element.removeAttribute(update.attributeName);
+                    }
+                    console.log('✅ Applied attribute update:', update.attributeName);
+                }
+            }
+
+            /**
+             * Apply child list update
+             */
+            applyChildListUpdate(update) {
+                const parentElement = update.targetId ?
+                    document.getElementById(update.targetId) : this.canvasElement;
+
+                if (!parentElement) return;
+
+                // Handle removed nodes
+                if (update.removedNodes && update.removedNodes.length > 0) {
+                    update.removedNodes.forEach(nodeInfo => {
+                        if (nodeInfo.id) {
+                            const element = document.getElementById(nodeInfo.id);
+                            if (element) {
+                                element.remove();
+                                console.log('🗑️ Removed element:', nodeInfo.id);
+                            }
+                        }
+                    });
+                }
+
+                // Handle added nodes
+                if (update.addedNodes && update.addedNodes.length > 0) {
+                    update.addedNodes.forEach(nodeData => {
+                        const element = this.deserializeNode(nodeData);
+                        if (element) {
+                            parentElement.appendChild(element);
+                            console.log('➕ Added element:', element.id || element.tagName);
+                        }
+                    });
+                }
+            }
+
+            /**
+             * Handle cursor movement from remote user
+             */
+            handleCursorMove(cursorData) {
+                this.updateRemoteCursor(cursorData.userId, cursorData.x, cursorData.y, cursorData.target);
+            }
+
+            /**
+             * Handle component selection from remote user
+             */
+            handleComponentSelect(selectionData) {
+                this.updateRemoteSelection(selectionData.userId, selectionData.componentId,
+                    selectionData.isSelected, selectionData.bounds);
+            }
+
+            /**
+             * Update remote cursor position
+             */
+            updateRemoteCursor(userId, x, y, targetId) {
+                let cursor = this.cursors.get(userId);
+
+                if (!cursor) {
+                    cursor = this.createRemoteCursor(userId);
+                    this.cursors.set(userId, cursor);
+                    document.body.appendChild(cursor);
+                }
+
+                // Update cursor position
+                const rect = this.canvasElement.getBoundingClientRect();
+                cursor.style.left = (rect.left + x) + 'px';
+                cursor.style.top = (rect.top + y) + 'px';
+
+                // Show cursor
+                cursor.style.display = 'block';
+
+                // Hide cursor after 3 seconds of inactivity
+                clearTimeout(cursor.hideTimeout);
+                cursor.hideTimeout = setTimeout(() => {
+                    cursor.style.display = 'none';
+                }, 3000);
+            }
+
+            /**
+             * Create remote cursor element
+             */
+            createRemoteCursor(userId) {
+                // Get user info from collaboration users module
+                const userColor = this.getUserColor(userId);
+                const userName = this.getUserName(userId);
+
+                const cursor = document.createElement('div');
+                cursor.className = 'remote-cursor';
+                cursor.style.cssText = `--user-color: ${userColor}`;
+                cursor.innerHTML = `
+                  <svg class="cursor-pointer" viewBox="0 0 24 24" fill="${userColor}">
+                      <path d="M13.64,21.97C13.14,22.21 12.54,22 12.31,21.5L10.13,16.76L7.62,18.78C7.45,18.92 7.24,19 7,19A1,1 0 0,1 6,18V3A1,1 0 0,1 7,2C7.24,2 7.45,2.08 7.62,2.22L19.61,11.71C20.05,12.05 20.05,12.68 19.61,13.02L15.83,16.26L18.01,21C18.24,21.5 18.03,22.1 17.53,22.33L13.64,21.97Z"/>
+                  </svg>
+                  <div class="cursor-label">${userName}</div>
+              `;
+
+                return cursor;
+            }
+
+            /**
+             * Update remote selection
+             */
+            updateRemoteSelection(userId, componentId, isSelected, bounds) {
+                if (!isSelected) {
+                    this.removeUserSelection(userId);
+                    return;
+                }
+
+                const component = document.getElementById(componentId);
+                if (!component) return;
+
+                let selection = this.remoteSelections.get(userId);
+                if (!selection) {
+                    selection = this.createRemoteSelection(userId);
+                    this.remoteSelections.set(userId, selection);
+                    this.canvasElement.appendChild(selection);
+                }
+
+                // Update selection bounds
+                if (bounds) {
+                    selection.setAttribute('x', bounds.x);
+                    selection.setAttribute('y', bounds.y);
+                    selection.setAttribute('width', bounds.width);
+                    selection.setAttribute('height', bounds.height);
+                }
+            }
+
+            /**
+             * Create remote selection element
+             */
+            createRemoteSelection(userId) {
+                const userColor = this.getUserColor(userId);
+
+                const selection = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                selection.className = 'remote-selection';
+                selection.style.stroke = userColor;
+
+                return selection;
+            }
+
+            /**
+             * Remove user cursor
+             */
+            removeUserCursor(userId) {
+                const cursor = this.cursors.get(userId);
+                if (cursor) {
+                    cursor.remove();
+                    this.cursors.delete(userId);
+                }
+            }
+
+            /**
+             * Remove user selection
+             */
+            removeUserSelection(userId) {
+                const selection = this.remoteSelections.get(userId);
+                if (selection) {
+                    selection.remove();
+                    this.remoteSelections.delete(userId);
+                }
+            }
+
+            /**
+             * Serialize DOM node for transmission
+             */
+            serializeNode(node) {
+                if (node.nodeType !== Node.ELEMENT_NODE) return null;
+
+                return {
+                    tagName: node.tagName,
+                    id: node.id,
+                    className: node.className,
+                    attributes: Array.from(node.attributes).map(attr => ({
+                        name: attr.name,
+                        value: attr.value
+                    })),
+                    innerHTML: node.innerHTML
+                };
+            }
+
+            /**
+             * Deserialize node data back to DOM element
+             */
+            deserializeNode(nodeData) {
+                const element = document.createElementNS('http://www.w3.org/2000/svg', nodeData.tagName);
+
+                if (nodeData.id) element.id = nodeData.id;
+                if (nodeData.className) element.className = nodeData.className;
+
+                if (nodeData.attributes) {
+                    nodeData.attributes.forEach(attr => {
+                        element.setAttribute(attr.name, attr.value);
+                    });
+                }
+
+                if (nodeData.innerHTML) {
+                    element.innerHTML = nodeData.innerHTML;
+                }
+
+                return element;
+            }
+
+            /**
+             * Get user color from collaboration users module
+             */
+            getUserColor(userId) {
+                const usersModule = window.moduleRegistry?.get('collaboration-users');
+                if (usersModule) {
+                    const user = usersModule.getUser(userId);
+                    return user?.color || '#007bff';
+                }
+                return '#007bff';
+            }
+
+            /**
+             * Get user name from collaboration users module
+             */
+            getUserName(userId) {
+                const usersModule = window.moduleRegistry?.get('collaboration-users');
+                if (usersModule) {
+                    const user = usersModule.getUser(userId);
+                    return user?.name || 'Użytkownik';
+                }
+                return 'Użytkownik';
+            }
+
+            /**
+             * Cleanup function
+             */
+            cleanup() {
+                if (this.mutationObserver) {
+                    this.mutationObserver.disconnect();
+                }
+
+                // Remove all remote cursors
+                this.cursors.forEach(cursor => cursor.remove());
+                this.cursors.clear();
+
+                // Remove all remote selections
+                this.remoteSelections.forEach(selection => selection.remove());
+                this.remoteSelections.clear();
+
+                console.log('🧹 Canvas sync cleanup complete');
+            }
+
+            /**
+             * Wait for module to be available
+             */
+            async waitForModule(moduleName) {
+                return new Promise((resolve) => {
+                    const checkModule = () => {
+                        const moduleInstance = window.moduleRegistry?.get(moduleName);
+                        if (moduleInstance) {
+                            resolve(moduleInstance);
+                        } else {
+                            setTimeout(checkModule, 100);
+                        }
+                    };
+                    checkModule();
+                });
+            }
+        }
+
+        registerModule('collaboration-canvas-sync', CollaborationCanvasSync);
+    </script>
+</template>

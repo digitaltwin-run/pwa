@@ -1,5 +1,7 @@
 # Digital Twin IDE - Architecture
 
++ serwer powinien byc uruchamiany zgodnie z danymi w pliku .env
+
 ## Overview
 
 This document outlines the architecture of the Digital Twin IDE frontend, focusing on the modular component-based architecture, strict separation of concerns, and standardized development practices. The architecture emphasizes encapsulation, reusability, and minimal coupling between components.

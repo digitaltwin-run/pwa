@@ -1,16 +1,175 @@
 <template id="simulation-panel-template">
-    <!-- Simulation Panel (initially hidden) -->
-    <div class="simulation-panel" id="simulation-panel" style="display: none;">
-        <div class="simulation-header">
-            <h3 data-i18n="ui.simulation.title">📊 Data Simulation</h3>
-            <button id="close-sim-panel" class="btn btn-text" aria-label="Close" data-i18n="ui.buttons.close">×</button>
-        </div>
-        <div class="simulation-controls">
-            <button id="start-sim-btn" class="btn btn-success" data-i18n="ui.buttons.start">▶️ Start</button>
-            <button id="stop-sim-btn" class="btn btn-danger" data-i18n="ui.buttons.stop">⏸️ Stop</button>
-        </div>
-        <div id="simulation-list" class="simulation-list">
-            <p><i data-i18n="ui.simulation.noComponents">No components available for simulation</i></p>
-        </div>
+  <!-- Simulation Panel (initially hidden) -->
+  <div class="simulation-panel" id="simulation-panel" style="display: none;">
+    <div class="simulation-header">
+      <h3 data-i18n="ui.simulation.title">📊 Data Simulation</h3>
+      <button id="close-sim-panel" class="btn btn-text" aria-label="Close" data-i18n="ui.buttons.close">×</button>
     </div>
+    <div class="simulation-controls">
+      <button id="start-sim-btn" class="btn btn-success" data-action="start-simulation" data-i18n="ui.buttons.start">▶️ Start</button>
+      <button id="stop-sim-btn" class="btn btn-danger" data-action="stop-simulation" data-i18n="ui.buttons.stop">⏸️ Stop</button>
+    </div>
+    <div id="simulation-list" class="simulation-list">
+      <p><i data-i18n="ui.simulation.noComponents">No components available for simulation</i></p>
+    </div>
+  </div>
+
+  <style>
+    .simulation-panel {
+      position: fixed;
+      right: 0;
+      top: 0;
+      width: 300px;
+      height: 100vh;
+      background: var(--bg-primary, #ffffff);
+      box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease-in-out;
+    }
+    
+    .simulation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-color, #dee2e6);
+    }
+    
+    .simulation-controls {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .simulation-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+    
+    #close-sim-panel {
+      font-size: 1.5rem;
+      line-height: 1;
+      padding: 0.25rem 0.5rem;
+    }
+  </style>
+
+  <script type="module">
+    import { ModuleBase, registerModule } from '../base/module-base.js';
+    
+    class SimulationPanel extends ModuleBase {
+      constructor() {
+        super();
+        this.template = document.currentScript.parentElement;
+        this.isSimulating = false;
+        this.initialize();
+      }
+      
+      async initialize() {
+        this.bindElements();
+        this.bindEvents();
+        this.setupEventListeners();
+      }
+      
+      bindElements() {
+        this.elements = {
+          panel: this.template.querySelector('.simulation-panel'),
+          startBtn: this.template.querySelector('#start-sim-btn'),
+          stopBtn: this.template.querySelector('#stop-sim-btn'),
+          closeBtn: this.template.querySelector('#close-sim-panel'),
+          simulationList: this.template.querySelector('#simulation-list')
+        };
+      }
+      
+      bindEvents() {
+        // Listen for component changes on the canvas
+        document.addEventListener('components-updated', () => this.updateSimulationList());
+      }
+      
+      setupEventListeners() {
+        this.on('click', '[data-action="start-simulation"]', () => this.startSimulation());
+        this.on('click', '[data-action="stop-simulation"]', () => this.stopSimulation());
+        this.on('click', '#close-sim-panel', () => this.hide());
+      }
+      
+      show() {
+        this.elements.panel.style.display = 'flex';
+        this.updateSimulationList();
+      }
+      
+      hide() {
+        this.elements.panel.style.display = 'none';
+        this.stopSimulation();
+      }
+      
+      toggle() {
+        if (this.elements.panel.style.display === 'none') {
+          this.show();
+        } else {
+          this.hide();
+        }
+      }
+      
+      async startSimulation() {
+        if (this.isSimulating) return;
+        
+        this.isSimulating = true;
+        this.elements.startBtn.disabled = true;
+        this.elements.stopBtn.disabled = false;
+        
+        // Notify other components that simulation has started
+        this.emit('simulation-started');
+      }
+      
+      async stopSimulation() {
+        if (!this.isSimulating) return;
+        
+        this.isSimulating = false;
+        this.elements.startBtn.disabled = false;
+        this.elements.stopBtn.disabled = true;
+        
+        // Notify other components that simulation has stopped
+        this.emit('simulation-stopped');
+      }
+      
+      updateSimulationList() {
+        // Implementation to update the simulation list
+        // This would typically query the canvas for components that can be simulated
+        const components = []; // Get components from canvas
+        
+        if (components.length === 0) {
+          this.elements.simulationList.innerHTML = `
+            <p><i data-i18n="ui.simulation.noComponents">No components available for simulation</i></p>
+          `;
+        } else {
+          // Render list of components that can be simulated
+          const list = document.createElement('div');
+          components.forEach(component => {
+            const item = document.createElement('div');
+            item.className = 'simulation-item';
+            item.innerHTML = `
+              <label>
+                <input type="checkbox" data-component-id="${component.id}">
+                ${component.name || component.type}
+              </label>
+            `;
+            list.appendChild(item);
+          });
+          this.elements.simulationList.innerHTML = '';
+          this.elements.simulationList.appendChild(list);
+        }
+      }
+    }
+    
+    // Register the component
+    registerModule('simulation-panel', SimulationPanel);
+    
+    // Make it globally available for other components to interact with
+    document.addEventListener('DOMContentLoaded', () => {
+      window.simulationPanel = document.querySelector('simulation-panel');
+    });
+  </script>
 </template>

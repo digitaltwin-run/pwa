@@ -157,567 +157,854 @@
         </div>
 
         <div class="properties-actions">
-            <button class="btn btn-primary" id="apply-canvas-changes" data-i18n="canvas.actions.apply">Apply Changes</button>
-            <button class="btn btn-secondary" id="reset-canvas-defaults" data-i18n="canvas.actions.reset">Reset Defaults</button>
+            <button class="btn btn-primary" id="apply-canvas-changes" data-i18n="canvas.actions.apply">Apply Changes
+            </button>
+            <button class="btn btn-secondary" id="reset-canvas-defaults" data-i18n="canvas.actions.reset">Reset
+                Defaults
+            </button>
         </div>
     </div>
-</template>
 
-<style>
-    .canvas-properties {
-        background: var(--bg-primary, #ffffff);
-        border: 1px solid var(--border-color, #dee2e6);
-        border-radius: 8px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        overflow: hidden;
-    }
-
-    .properties-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px;
-        background: var(--bg-secondary, #f8f9fa);
-        border-bottom: 1px solid var(--border-color, #dee2e6);
-    }
-
-    .properties-title {
-        margin: 0;
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--text-primary, #212529);
-    }
-
-    .properties-reset {
-        background: none;
-        border: none;
-        padding: 6px;
-        cursor: pointer;
-        border-radius: 4px;
-        color: var(--text-secondary, #6c757d);
-        transition: all 0.2s ease;
-    }
-
-    .properties-reset:hover {
-        background: var(--bg-hover, #e9ecef);
-        color: var(--text-primary, #212529);
-    }
-
-    .properties-content {
-        padding: 16px;
-        max-height: 600px;
-        overflow-y: auto;
-    }
-
-    .property-section {
-        margin-bottom: 24px;
-        padding-bottom: 16px;
-        border-bottom: 1px solid var(--border-light, #f1f3f4);
-    }
-
-    .property-section:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-    }
-
-    .section-title {
-        margin: 0 0 12px 0;
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--text-primary, #212529);
-    }
-
-    .property-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 12px;
-        gap: 12px;
-    }
-
-    .property-row:last-child {
-        margin-bottom: 0;
-    }
-
-    .property-label {
-        font-size: 13px;
-        color: var(--text-secondary, #6c757d);
-        min-width: 80px;
-        flex-shrink: 0;
-    }
-
-    .property-input-group {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        flex: 1;
-        max-width: 120px;
-    }
-
-    .property-input {
-        flex: 1;
-        padding: 6px 8px;
-        border: 1px solid var(--border-color, #ced4da);
-        border-radius: 4px;
-        font-size: 13px;
-        background: var(--bg-primary, #ffffff);
-        color: var(--text-primary, #212529);
-    }
-
-    .property-input:focus {
-        outline: none;
-        border-color: var(--primary-color, #007bff);
-        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-    }
-
-    .property-unit {
-        font-size: 12px;
-        color: var(--text-secondary, #6c757d);
-    }
-
-    .color-input-group {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        flex: 1;
-        max-width: 120px;
-    }
-
-    .color-input {
-        width: 32px;
-        height: 32px;
-        border: 1px solid var(--border-color, #ced4da);
-        border-radius: 4px;
-        cursor: pointer;
-        background: var(--bg-primary, #ffffff);
-    }
-
-    .hex-input {
-        flex: 1;
-        padding: 6px 8px;
-        border: 1px solid var(--border-color, #ced4da);
-        border-radius: 4px;
-        font-size: 12px;
-        font-family: monospace;
-        background: var(--bg-primary, #ffffff);
-        color: var(--text-primary, #212529);
-    }
-
-    .range-input-group {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex: 1;
-        max-width: 140px;
-    }
-
-    .range-input {
-        flex: 1;
-        height: 4px;
-        border-radius: 2px;
-        background: var(--border-color, #ced4da);
-        outline: none;
-        cursor: pointer;
-    }
-
-    .range-value {
-        font-size: 12px;
-        color: var(--text-secondary, #6c757d);
-        min-width: 36px;
-        text-align: right;
-    }
-
-    .property-select {
-        flex: 1;
-        max-width: 120px;
-        padding: 6px 8px;
-        border: 1px solid var(--border-color, #ced4da);
-        border-radius: 4px;
-        font-size: 13px;
-        background: var(--bg-primary, #ffffff);
-        color: var(--text-primary, #212529);
-        cursor: pointer;
-    }
-
-    .checkbox-container {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        font-size: 13px;
-        color: var(--text-primary, #212529);
-    }
-
-    .checkbox-container input[type="checkbox"] {
-        margin: 0;
-        width: 16px;
-        height: 16px;
-        cursor: pointer;
-    }
-
-    .checkmark {
-        display: none;
-    }
-
-    .properties-actions {
-        display: flex;
-        gap: 8px;
-        padding: 16px;
-        background: var(--bg-secondary, #f8f9fa);
-        border-top: 1px solid var(--border-color, #dee2e6);
-    }
-
-    .btn {
-        flex: 1;
-        padding: 8px 16px;
-        border: 1px solid transparent;
-        border-radius: 4px;
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .btn-primary {
-        background: var(--primary-color, #007bff);
-        color: white;
-        border-color: var(--primary-color, #007bff);
-    }
-
-    .btn-primary:hover {
-        background: var(--primary-color-dark, #0056b3);
-        border-color: var(--primary-color-dark, #0056b3);
-    }
-
-    .btn-secondary {
-        background: var(--bg-primary, #ffffff);
-        color: var(--text-secondary, #6c757d);
-        border-color: var(--border-color, #ced4da);
-    }
-
-    .btn-secondary:hover {
-        background: var(--bg-hover, #e9ecef);
-        color: var(--text-primary, #212529);
-    }
-
-    /* Dark theme support */
-    @media (prefers-color-scheme: dark) {
+    <style>
         .canvas-properties {
-            --bg-primary: #2d3748;
-            --bg-secondary: #1a202c;
-            --bg-hover: #4a5568;
-            --text-primary: #f7fafc;
-            --text-secondary: #a0aec0;
-            --border-color: #4a5568;
-            --border-light: #2d3748;
-            --primary-color: #3182ce;
-            --primary-color-dark: #2c5282;
-        }
-    }
-</style>
-
-<script type="module">
-    import { ModuleBase, registerModule } from '../base/module-base.js';
-    import { I18nMixin } from './base/i18n-mixin.js';
-
-    class CanvasProperties extends I18nMixin(ModuleBase) {
-        constructor() {
-            super();
-
-            this.canvasElement = null;
-            this.defaultValues = {
-                width: 800,
-                height: 600,
-                backgroundColor: '#ffffff',
-                backgroundOpacity: 100,
-                transparent: false,
-                gridEnabled: false,
-                gridSize: 20,
-                gridColor: '#e0e0e0',
-                snapToGrid: false,
-                exportFormat: 'svg',
-                exportQuality: 90
-            };
-
-            this.currentValues = { ...this.defaultValues };
+            background: var(--bg-primary, #ffffff);
+            border: 1px solid var(--border-color, #dee2e6);
+            border-radius: 8px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
         }
 
-        connectedCallback() {
-            super.connectedCallback();
-            this.bindEvents();
-            this.loadCanvasValues();
-            this.applyTranslations();
+        .properties-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: var(--bg-secondary, #f8f9fa);
+            border-bottom: 1px solid var(--border-color, #dee2e6);
         }
 
-        bindEvents() {
-            // Canvas size inputs
-            this.$('#canvas-width')?.addEventListener('input', (e) => {
-                this.updateCanvasSize('width', parseInt(e.target.value));
-            });
+        .properties-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary, #212529);
+        }
 
-            this.$('#canvas-height')?.addEventListener('input', (e) => {
-                this.updateCanvasSize('height', parseInt(e.target.value));
-            });
+        .properties-reset {
+            background: none;
+            border: none;
+            padding: 6px;
+            cursor: pointer;
+            border-radius: 4px;
+            color: var(--text-secondary, #6c757d);
+            transition: all 0.2s ease;
+        }
 
-            // Background controls
-            this.$('#canvas-background-color')?.addEventListener('change', (e) => {
-                this.updateBackgroundColor(e.target.value);
-            });
+        .properties-reset:hover {
+            background: var(--bg-hover, #e9ecef);
+            color: var(--text-primary, #212529);
+        }
 
-            this.$('#canvas-background-hex')?.addEventListener('change', (e) => {
-                this.updateBackgroundColor(e.target.value);
-            });
+        .properties-content {
+            padding: 16px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
 
-            this.$('#canvas-background-opacity')?.addEventListener('input', (e) => {
-                this.updateBackgroundOpacity(parseInt(e.target.value));
-            });
+        .property-section {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-light, #f1f3f4);
+        }
 
-            this.$('#canvas-transparent')?.addEventListener('change', (e) => {
-                this.updateTransparency(e.target.checked);
-            });
+        .property-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
 
-            // Grid controls
-            this.$('#canvas-grid-enabled')?.addEventListener('change', (e) => {
-                this.updateGridEnabled(e.target.checked);
-            });
+        .section-title {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary, #212529);
+        }
 
-            this.$('#canvas-grid-size')?.addEventListener('input', (e) => {
-                this.updateGridSize(parseInt(e.target.value));
-            });
+        .property-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            gap: 12px;
+        }
 
-            this.$('#canvas-grid-color')?.addEventListener('change', (e) => {
-                this.updateGridColor(e.target.value);
-            });
+        .property-row:last-child {
+            margin-bottom: 0;
+        }
 
-            this.$('#canvas-snap-to-grid')?.addEventListener('change', (e) => {
-                this.updateSnapToGrid(e.target.checked);
-            });
+        .property-label {
+            font-size: 13px;
+            color: var(--text-secondary, #6c757d);
+            min-width: 80px;
+            flex-shrink: 0;
+        }
 
-            // Export controls
-            this.$('#canvas-export-format')?.addEventListener('change', (e) => {
-                this.updateExportFormat(e.target.value);
-            });
+        .property-input-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            max-width: 120px;
+        }
 
-            this.$('#canvas-export-quality')?.addEventListener('input', (e) => {
-                this.updateExportQuality(parseInt(e.target.value));
-            });
+        .property-input {
+            flex: 1;
+            padding: 6px 8px;
+            border: 1px solid var(--border-color, #ced4da);
+            border-radius: 4px;
+            font-size: 13px;
+            background: var(--bg-primary, #ffffff);
+            color: var(--text-primary, #212529);
+        }
 
-            // Action buttons
-            this.$('#apply-canvas-changes')?.addEventListener('click', () => {
-                this.applyChanges();
-            });
+        .property-input:focus {
+            outline: none;
+            border-color: var(--primary-color, #007bff);
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
 
-            this.$('#reset-canvas-defaults')?.addEventListener('click', () => {
-                this.resetToDefaults();
-            });
+        .property-unit {
+            font-size: 12px;
+            color: var(--text-secondary, #6c757d);
+        }
 
-            this.$('.properties-reset')?.addEventListener('click', () => {
-                this.resetToDefaults();
-            });
+        .color-input-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            max-width: 120px;
+        }
 
-            // Range input value display
-            this.$$('input[type="range"]').forEach(range => {
-                range.addEventListener('input', (e) => {
-                    const valueSpan = e.target.parentElement.querySelector('.range-value');
-                    if (valueSpan) {
-                        const suffix = e.target.id.includes('opacity') || e.target.id.includes('quality') ? '%' : '';
-                        valueSpan.textContent = e.target.value + suffix;
+        .color-input {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--border-color, #ced4da);
+            border-radius: 4px;
+            cursor: pointer;
+            background: var(--bg-primary, #ffffff);
+        }
+
+        .hex-input {
+            flex: 1;
+            padding: 6px 8px;
+            border: 1px solid var(--border-color, #ced4da);
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+            background: var(--bg-primary, #ffffff);
+            color: var(--text-primary, #212529);
+        }
+
+        .range-input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            max-width: 140px;
+        }
+
+        .range-input {
+            flex: 1;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--border-color, #ced4da);
+            outline: none;
+            cursor: pointer;
+        }
+
+        .range-value {
+            font-size: 12px;
+            color: var(--text-secondary, #6c757d);
+            min-width: 36px;
+            text-align: right;
+        }
+
+        .property-select {
+            flex: 1;
+            max-width: 120px;
+            padding: 6px 8px;
+            border: 1px solid var(--border-color, #ced4da);
+            border-radius: 4px;
+            font-size: 13px;
+            background: var(--bg-primary, #ffffff);
+            color: var(--text-primary, #212529);
+            cursor: pointer;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-primary, #212529);
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            margin: 0;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .checkmark {
+            display: none;
+        }
+
+        .properties-actions {
+            display: flex;
+            gap: 8px;
+            padding: 16px;
+            background: var(--bg-secondary, #f8f9fa);
+            border-top: 1px solid var(--border-color, #dee2e6);
+        }
+
+        .btn {
+            flex: 1;
+            padding: 8px 16px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary-color, #007bff);
+            color: white;
+            border-color: var(--primary-color, #007bff);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-color-dark, #0056b3);
+            border-color: var(--primary-color-dark, #0056b3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-primary, #ffffff);
+            color: var(--text-secondary, #6c757d);
+            border-color: var(--border-color, #ced4da);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover, #e9ecef);
+            color: var(--text-primary, #212529);
+        }
+
+        /* Dark theme support */
+        @media (prefers-color-scheme: dark) {
+            .canvas-properties {
+                --bg-primary: #2d3748;
+                --bg-secondary: #1a202c;
+                --bg-hover: #4a5568;
+                --text-primary: #f7fafc;
+                --text-secondary: #a0aec0;
+                --border-color: #4a5568;
+                --border-light: #2d3748;
+                --primary-color: #3182ce;
+                --primary-color-dark: #2c5282;
+            }
+        }
+    </style>
+
+    <script type="module">
+        import {ModuleBase, registerModule} from '../base/module-base.js';
+        import {I18nMixin} from './base/i18n-mixin.js';
+
+        class CanvasProperties extends I18nMixin(ModuleBase) {
+            constructor() {
+                super();
+
+                this.canvasElement = null;
+                this.defaultValues = {
+                    width: 800,
+                    height: 600,
+                    backgroundColor: '#ffffff',
+                    backgroundOpacity: 100,
+                    transparent: false,
+                    gridEnabled: false,
+                    gridSize: 20,
+                    gridColor: '#e0e0e0',
+                    snapToGrid: false,
+                    exportFormat: 'svg',
+                    exportQuality: 90
+                };
+
+                this.currentValues = {...this.defaultValues};
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+                this.bindEvents();
+                this.loadCanvasValues();
+                this.applyTranslations();
+            }
+
+            bindEvents() {
+                // Canvas size inputs
+                this.$('#canvas-width')?.addEventListener('input', (e) => {
+                    this.updateCanvasSize('width', parseInt(e.target.value));
+                });
+
+                this.$('#canvas-height')?.addEventListener('input', (e) => {
+                    this.updateCanvasSize('height', parseInt(e.target.value));
+                });
+
+                // Background controls
+                this.$('#canvas-background-color')?.addEventListener('change', (e) => {
+                    this.updateBackgroundColor(e.target.value);
+                });
+
+                this.$('#canvas-background-hex')?.addEventListener('change', (e) => {
+                    this.updateBackgroundColor(e.target.value);
+                });
+
+                this.$('#canvas-background-opacity')?.addEventListener('input', (e) => {
+                    this.updateBackgroundOpacity(parseInt(e.target.value));
+                });
+
+                this.$('#canvas-transparent')?.addEventListener('change', (e) => {
+                    this.updateTransparency(e.target.checked);
+                });
+
+                // Grid controls
+                this.$('#canvas-grid-enabled')?.addEventListener('change', (e) => {
+                    this.updateGridEnabled(e.target.checked);
+                });
+
+                this.$('#canvas-grid-size')?.addEventListener('input', (e) => {
+                    this.updateGridSize(parseInt(e.target.value));
+                });
+
+                this.$('#canvas-grid-color')?.addEventListener('change', (e) => {
+                    this.updateGridColor(e.target.value);
+                });
+
+                this.$('#canvas-snap-to-grid')?.addEventListener('change', (e) => {
+                    this.updateSnapToGrid(e.target.checked);
+                });
+
+                // Export controls
+                this.$('#canvas-export-format')?.addEventListener('change', (e) => {
+                    this.updateExportFormat(e.target.value);
+                });
+
+                this.$('#canvas-export-quality')?.addEventListener('input', (e) => {
+                    this.updateExportQuality(parseInt(e.target.value));
+                });
+
+                // Action buttons
+                this.$('#apply-canvas-changes')?.addEventListener('click', () => {
+                    this.applyChanges();
+                });
+
+                this.$('#reset-canvas-defaults')?.addEventListener('click', () => {
+                    this.resetToDefaults();
+                });
+
+                this.$('.properties-reset')?.addEventListener('click', () => {
+                    this.resetToDefaults();
+                });
+
+                // Range input value display
+                this.$$('input[type="range"]').forEach(range => {
+                    range.addEventListener('input', (e) => {
+                        const valueSpan = e.target.parentElement.querySelector('.range-value');
+                        if (valueSpan) {
+                            const suffix = e.target.id.includes('opacity') || e.target.id.includes('quality') ? '%' : '';
+                            valueSpan.textContent = e.target.value + suffix;
+                        }
+                    });
+                });
+            }
+
+            loadCanvasValues() {
+                this.canvasElement = document.getElementById('svg-canvas');
+                if (!this.canvasElement) return;
+
+                // Load current canvas values
+                this.currentValues.width = parseInt(this.canvasElement.getAttribute('width')) || this.defaultValues.width;
+                this.currentValues.height = parseInt(this.canvasElement.getAttribute('height')) || this.defaultValues.height;
+
+                // Update UI with current values
+                this.updateUI();
+            }
+
+            updateUI() {
+                const elements = {
+                    '#canvas-width': this.currentValues.width,
+                    '#canvas-height': this.currentValues.height,
+                    '#canvas-background-color': this.currentValues.backgroundColor,
+                    '#canvas-background-hex': this.currentValues.backgroundColor,
+                    '#canvas-background-opacity': this.currentValues.backgroundOpacity,
+                    '#canvas-grid-size': this.currentValues.gridSize,
+                    '#canvas-grid-color': this.currentValues.gridColor,
+                    '#canvas-grid-hex': this.currentValues.gridColor,
+                    '#canvas-export-quality': this.currentValues.exportQuality
+                };
+
+                Object.entries(elements).forEach(([selector, value]) => {
+                    const element = this.$(selector);
+                    if (element) {
+                        element.value = value;
                     }
                 });
-            });
-        }
 
-        loadCanvasValues() {
-            this.canvasElement = document.getElementById('svg-canvas');
-            if (!this.canvasElement) return;
+                // Update checkboxes
+                this.$('#canvas-transparent').checked = this.currentValues.transparent;
+                this.$('#canvas-grid-enabled').checked = this.currentValues.gridEnabled;
+                this.$('#canvas-snap-to-grid').checked = this.currentValues.snapToGrid;
 
-            // Load current canvas values
-            this.currentValues.width = parseInt(this.canvasElement.getAttribute('width')) || this.defaultValues.width;
-            this.currentValues.height = parseInt(this.canvasElement.getAttribute('height')) || this.defaultValues.height;
+                // Update select
+                this.$('#canvas-export-format').value = this.currentValues.exportFormat;
 
-            // Update UI with current values
-            this.updateUI();
-        }
+                // Update range displays
+                this.$('.range-value').forEach(span => {
+                    const range = span.parentElement.querySelector('input[type="range"]');
+                    if (range) {
+                        const suffix = range.id.includes('opacity') || range.id.includes('quality') ? '%' : '';
+                        span.textContent = range.value + suffix;
+                    }
+                });
+            }
 
-        updateUI() {
-            const elements = {
-                '#canvas-width': this.currentValues.width,
-                '#canvas-height': this.currentValues.height,
-                '#canvas-background-color': this.currentValues.backgroundColor,
-                '#canvas-background-hex': this.currentValues.backgroundColor,
-                '#canvas-background-opacity': this.currentValues.backgroundOpacity,
-                '#canvas-grid-size': this.currentValues.gridSize,
-                '#canvas-grid-color': this.currentValues.gridColor,
-                '#canvas-grid-hex': this.currentValues.gridColor,
-                '#canvas-export-quality': this.currentValues.exportQuality
-            };
+            updateCanvasSize(dimension, value) {
+                this.currentValues[dimension] = value;
 
-            Object.entries(elements).forEach(([selector, value]) => {
-                const element = this.$(selector);
-                if (element) {
-                    element.value = value;
+                this.emit('canvas-size-changed', {
+                    width: this.currentValues.width,
+                    height: this.currentValues.height,
+                    dimension,
+                    value
+                });
+            }
+
+            updateBackgroundColor(color) {
+                this.currentValues.backgroundColor = color;
+
+                // Update both color and hex inputs
+                this.$('#canvas-background-color').value = color;
+                this.$('#canvas-background-hex').value = color;
+
+                this.emit('canvas-background-changed', {
+                    color,
+                    opacity: this.currentValues.backgroundOpacity,
+                    transparent: this.currentValues.transparent
+                });
+            }
+
+            updateBackgroundOpacity(opacity) {
+                this.currentValues.backgroundOpacity = opacity;
+
+                this.emit('canvas-background-changed', {
+                    color: this.currentValues.backgroundColor,
+                    opacity,
+                    transparent: this.currentValues.transparent
+                });
+            }
+
+            updateTransparency(transparent) {
+                this.currentValues.transparent = transparent;
+
+                this.emit('canvas-background-changed', {
+                    color: this.currentValues.backgroundColor,
+                    opacity: this.currentValues.backgroundOpacity,
+                    transparent
+                });
+            }
+
+            updateGridEnabled(enabled) {
+                this.currentValues.gridEnabled = enabled;
+
+                this.emit('canvas-grid-changed', {
+                    enabled,
+                    size: this.currentValues.gridSize,
+                    color: this.currentValues.gridColor,
+                    snapToGrid: this.currentValues.snapToGrid
+                });
+            }
+
+            updateGridSize(size) {
+                this.currentValues.gridSize = size;
+
+                this.emit('canvas-grid-changed', {
+                    enabled: this.currentValues.gridEnabled,
+                    size,
+                    color: this.currentValues.gridColor,
+                    snapToGrid: this.currentValues.snapToGrid
+                });
+            }
+
+            updateGridColor(color) {
+                this.currentValues.gridColor = color;
+
+                // Update both color and hex inputs
+                this.$('#canvas-grid-color').value = color;
+                this.$('#canvas-grid-hex').value = color;
+
+                // Update actual grid if enabled
+                if (this.currentValues.gridEnabled) {
+                    this.updateCanvasGrid();
                 }
-            });
 
-            // Update checkboxes
-            this.$('#canvas-transparent').checked = this.currentValues.transparent;
-            this.$('#canvas-grid-enabled').checked = this.currentValues.gridEnabled;
-            this.$('#canvas-snap-to-grid').checked = this.currentValues.snapToGrid;
+                this.emit('canvas-grid-changed', {
+                    gridColor: color,
+                    gridSize: this.currentValues.gridSize,
+                    enabled: this.currentValues.gridEnabled
+                });
+            }
 
-            // Update select
-            this.$('#canvas-export-format').value = this.currentValues.exportFormat;
+            updateSnapToGrid(snapToGrid) {
+                this.currentValues.snapToGrid = snapToGrid;
 
-            // Update range displays
-            this.$('.range-value').forEach(span => {
-                const range = span.parentElement.querySelector('input[type="range"]');
-                if (range) {
-                    const suffix = range.id.includes('opacity') || range.id.includes('quality') ? '%' : '';
-                    span.textContent = range.value + suffix;
+                this.emit('canvas-grid-changed', {
+                    enabled: this.currentValues.gridEnabled,
+                    size: this.currentValues.gridSize,
+                    color: this.currentValues.gridColor,
+                    snapToGrid
+                });
+            }
+
+            updateExportFormat(format) {
+                this.currentValues.exportFormat = format;
+
+                this.emit('canvas-export-changed', {
+                    format,
+                    quality: this.currentValues.exportQuality
+                });
+            }
+
+            updateExportQuality(quality) {
+                this.currentValues.exportQuality = quality;
+
+                this.emit('canvas-export-changed', {
+                    format: this.currentValues.exportFormat,
+                    quality
+                });
+            }
+
+            applyChanges() {
+                if (!this.canvasElement) {
+                    console.warn('❌ Canvas element not available');
+                    return;
                 }
-            });
+
+                // Apply canvas size
+                this.canvasElement.setAttribute('width', this.currentValues.width);
+                this.canvasElement.setAttribute('height', this.currentValues.height);
+
+                // Update viewport
+                this.canvasElement.setAttribute('viewBox', `0 0 ${this.currentValues.width} ${this.currentValues.height}`);
+
+                // Update grid if enabled
+                if (this.currentValues.gridEnabled) {
+                    this.updateCanvasGrid();
+                }
+
+                // Update background
+                if (this.currentValues.backgroundColor) {
+                    this.setBackgroundColor(this.currentValues.backgroundColor);
+                }
+
+                // Notify about changes
+                this.notifyCanvasChange();
+
+                // Emit change event
+                this.emit('canvas-properties-apply', {
+                    values: {...this.currentValues}
+                });
+
+                console.log('✅ Canvas changes applied:', this.currentValues);
+            }
+
+            resetToDefaults() {
+                this.currentValues = {...this.defaultValues};
+                this.updateUI();
+
+                this.emit('canvas-properties-reset', {
+                    values: {...this.currentValues}
+                });
+            }
+
+            // Public API
+            setCanvas(canvasElement) {
+                this.canvasElement = canvasElement;
+                this.loadCanvasValues();
+            }
+
+            getValues() {
+                return {...this.currentValues};
+            }
+
+            setValues(values) {
+                this.currentValues = {...this.currentValues, ...values};
+                this.updateUI();
+            }
+
+            /**
+             * Advanced grid drawing functionality from canvas-properties-manager.js
+             */
+            updateCanvasGrid() {
+                if (!this.canvasElement) return;
+
+                const grid = this.canvasElement.querySelector('.grid');
+                if (!grid) return;
+
+                const width = this.currentValues.width;
+                const height = this.currentValues.height;
+                const gridSize = this.currentValues.gridSize;
+                const mainGridColor = this.currentValues.gridColor || '#cccccc';
+                const smallGridColor = '#e0e0e0'; // Lighter color for small grid
+                const smallGridSize = Math.floor(gridSize / 5);
+
+                // Clear existing grid lines
+                grid.innerHTML = '';
+
+                if (!this.currentValues.gridEnabled) return;
+
+                // Create small grid lines (finer grid)
+                if (smallGridSize && smallGridSize < gridSize) {
+                    for (let x = 0; x <= width; x += smallGridSize) {
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', x);
+                        line.setAttribute('y1', 0);
+                        line.setAttribute('x2', x);
+                        line.setAttribute('y2', height);
+                        line.setAttribute('stroke', smallGridColor);
+                        line.setAttribute('stroke-width', '0.5');
+                        line.classList.add('small-grid-line');
+                        grid.appendChild(line);
+                    }
+
+                    for (let y = 0; y <= height; y += smallGridSize) {
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', 0);
+                        line.setAttribute('y1', y);
+                        line.setAttribute('x2', width);
+                        line.setAttribute('y2', y);
+                        line.setAttribute('stroke', smallGridColor);
+                        line.setAttribute('stroke-width', '0.5');
+                        line.classList.add('small-grid-line');
+                        grid.appendChild(line);
+                    }
+                }
+
+                // Create main grid lines (thicker, more visible)
+                for (let x = 0; x <= width; x += gridSize) {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', x);
+                    line.setAttribute('y1', 0);
+                    line.setAttribute('x2', x);
+                    line.setAttribute('y2', height);
+                    line.setAttribute('stroke', mainGridColor);
+                    line.setAttribute('stroke-width', '1');
+                    line.classList.add('main-grid-line');
+                    grid.appendChild(line);
+                }
+
+                // Create main horizontal lines
+                for (let y = 0; y <= height; y += gridSize) {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', 0);
+                    line.setAttribute('y1', y);
+                    line.setAttribute('x2', width);
+                    line.setAttribute('y2', y);
+                    line.setAttribute('stroke', mainGridColor);
+                    line.setAttribute('stroke-width', '1');
+                    line.classList.add('main-grid-line');
+                    grid.appendChild(line);
+                }
+
+                console.log(`🔳 Grid updated: ${gridSize}px main (${mainGridColor}), ${smallGridSize}px small (${smallGridColor})`);
+            }
+
+            /**
+             * Canvas change notification system
+             */
+            notifyCanvasChange() {
+                // Dispatch canvas change event for other components
+                document.dispatchEvent(new CustomEvent('canvas-properties-changed', {
+                    detail: {
+                        properties: this.currentValues,
+                        canvasElement: this.canvasElement
+                    }
+                }));
+
+                // Legacy event name for backward compatibility
+                document.dispatchEvent(new CustomEvent('canvasPropertiesChanged', {
+                    detail: this.getCanvasProperties()
+                }));
+
+                // Update canvas statistics
+                this.updateCanvasStats();
+
+                console.log('📐 Canvas properties changed, notifications sent');
+            }
+
+            /**
+             * Update canvas statistics in UI
+             */
+            updateCanvasStats() {
+                if (!this.canvasElement) return;
+
+                // Count components on canvas
+                const componentCount = this.canvasElement.querySelectorAll('g.draggable-component, rect, circle, path, polygon').length;
+
+                // Calculate canvas area
+                const area = this.currentValues.width * this.currentValues.height;
+                const areaMM = (area * 0.264583).toFixed(1); // Convert pixels to mm² (approximate)
+
+                // Update UI elements if they exist
+                const componentCountEl = document.getElementById('canvas-component-count');
+                if (componentCountEl && window.componentManager) {
+                    const components = window.componentManager.getAllComponents();
+                    componentCountEl.textContent = components.length;
+                }
+
+                const selectedCountEl = document.getElementById('canvas-selected-count');
+                if (selectedCountEl && window.canvasSelectionManager) {
+                    selectedCountEl.textContent = window.canvasSelectionManager.selectedComponents.size;
+                }
+
+                const zoomLevelEl = document.getElementById('zoom-level-display');
+                if (zoomLevelEl && window.canvasZoomManager) {
+                    zoomLevelEl.textContent = window.canvasZoomManager.getZoomPercentage() + '%';
+                }
+
+                // Dispatch stats update event
+                document.dispatchEvent(new CustomEvent('canvas-stats-updated', {
+                    detail: {
+                        componentCount,
+                        area,
+                        areaMM,
+                        width: this.currentValues.width,
+                        height: this.currentValues.height
+                    }
+                }));
+
+                console.log(`📊 Canvas stats: ${componentCount} components, ${this.currentValues.width}×${this.currentValues.height}px (${areaMM}mm²)`);
+            }
+
+            /**
+             * Set canvas background color with advanced features
+             */
+            setBackgroundColor(color) {
+                if (!color || !this.canvasElement) {
+                    console.warn('❌ Canvas element not available for background update');
+                    return;
+                }
+
+                console.log(`🎨 Setting canvas background color to: ${color}`);
+
+                // Remove existing background rect
+                const existingBg = this.canvasElement.querySelector('.canvas-background, rect[data-canvas-background]');
+                if (existingBg) {
+                    existingBg.remove();
+                    console.log('🗑️ Removed existing background');
+                }
+
+                // Create new background rect
+                const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                bgRect.setAttribute('class', 'canvas-background');
+                bgRect.setAttribute('data-canvas-background', 'true');
+                bgRect.setAttribute('x', '0');
+                bgRect.setAttribute('y', '0');
+                bgRect.setAttribute('width', String(this.currentValues.width));
+                bgRect.setAttribute('height', String(this.currentValues.height));
+                bgRect.setAttribute('fill', color);
+                bgRect.setAttribute('pointer-events', 'none'); // Don't interfere with mouse events
+
+                // Insert as first element (behind all other elements)
+                this.canvasElement.insertBefore(bgRect, this.canvasElement.firstChild);
+
+                this.currentValues.backgroundColor = color;
+                this.updateUI();
+
+                console.log(`✅ Canvas background color updated to: ${color}`);
+                console.log(`📐 Background rect size: ${this.currentValues.width}x${this.currentValues.height}`);
+            }
+
+            /**
+             * Toggle grid visibility with advanced features
+             */
+            toggleGrid(visible = null) {
+                if (visible !== null) {
+                    this.currentValues.gridEnabled = visible;
+                }
+
+                if (!this.canvasElement) return;
+
+                const gridElement = this.canvasElement.querySelector('.grid');
+                if (gridElement) {
+                    if (this.currentValues.gridEnabled) {
+                        gridElement.style.display = 'block';
+                        this.updateCanvasGrid(); // Redraw grid
+                    } else {
+                        gridElement.style.display = 'none';
+                    }
+                    console.log(`🔳 Grid ${this.currentValues.gridEnabled ? 'shown' : 'hidden'}`);
+                }
+
+                this.updateUI();
+                this.notifyCanvasChange();
+            }
+
+            /**
+             * Export canvas functionality
+             */
+            exportCanvas() {
+                if (!this.canvasElement) {
+                    console.warn('❌ Canvas element not available for export');
+                    return null;
+                }
+
+                // Get canvas as SVG string
+                const serializer = new XMLSerializer();
+                const svgString = serializer.serializeToString(this.canvasElement);
+
+                console.log('📤 Canvas exported as SVG');
+                return {
+                    format: 'svg',
+                    data: svgString,
+                    width: this.currentValues.width,
+                    height: this.currentValues.height
+                };
+            }
+
+            /**
+             * Get canvas bounds for component positioning
+             */
+            getCanvasBounds() {
+                return {
+                    minX: 0,
+                    minY: 0,
+                    maxX: this.currentValues.width,
+                    maxY: this.currentValues.height
+                };
+            }
+
+            /**
+             * Get complete canvas properties for external use
+             */
+            getCanvasProperties() {
+                return {
+                    ...this.currentValues,
+                    bounds: this.getCanvasBounds()
+                };
+            }
         }
 
-        updateCanvasSize(dimension, value) {
-            this.currentValues[dimension] = value;
-
-            this.emit('canvas-size-changed', {
-                width: this.currentValues.width,
-                height: this.currentValues.height,
-                dimension,
-                value
-            });
-        }
-
-        updateBackgroundColor(color) {
-            this.currentValues.backgroundColor = color;
-
-            // Update both color and hex inputs
-            this.$('#canvas-background-color').value = color;
-            this.$('#canvas-background-hex').value = color;
-
-            this.emit('canvas-background-changed', {
-                color,
-                opacity: this.currentValues.backgroundOpacity,
-                transparent: this.currentValues.transparent
-            });
-        }
-
-        updateBackgroundOpacity(opacity) {
-            this.currentValues.backgroundOpacity = opacity;
-
-            this.emit('canvas-background-changed', {
-                color: this.currentValues.backgroundColor,
-                opacity,
-                transparent: this.currentValues.transparent
-            });
-        }
-
-        updateTransparency(transparent) {
-            this.currentValues.transparent = transparent;
-
-            this.emit('canvas-background-changed', {
-                color: this.currentValues.backgroundColor,
-                opacity: this.currentValues.backgroundOpacity,
-                transparent
-            });
-        }
-
-        updateGridEnabled(enabled) {
-            this.currentValues.gridEnabled = enabled;
-
-            this.emit('canvas-grid-changed', {
-                enabled,
-                size: this.currentValues.gridSize,
-                color: this.currentValues.gridColor,
-                snapToGrid: this.currentValues.snapToGrid
-            });
-        }
-
-        updateGridSize(size) {
-            this.currentValues.gridSize = size;
-
-            this.emit('canvas-grid-changed', {
-                enabled: this.currentValues.gridEnabled,
-                size,
-                color: this.currentValues.gridColor,
-                snapToGrid: this.currentValues.snapToGrid
-            });
-        }
-
-        updateGridColor(color) {
-            this.currentValues.gridColor = color;
-
-            // Update both color and hex inputs
-            this.$('#canvas-grid-color').value = color;
-            this.$('#canvas-grid-hex').value = color;
-
-            this.emit('canvas-grid-changed', {
-                enabled: this.currentValues.gridEnabled,
-                size: this.currentValues.gridSize,
-                color,
-                snapToGrid: this.currentValues.snapToGrid
-            });
-        }
-
-        updateSnapToGrid(snapToGrid) {
-            this.currentValues.snapToGrid = snapToGrid;
-
-            this.emit('canvas-grid-changed', {
-                enabled: this.currentValues.gridEnabled,
-                size: this.currentValues.gridSize,
-                color: this.currentValues.gridColor,
-                snapToGrid
-            });
-        }
-
-        updateExportFormat(format) {
-            this.currentValues.exportFormat = format;
-
-            this.emit('canvas-export-changed', {
-                format,
-                quality: this.currentValues.exportQuality
-            });
-        }
-
-        updateExportQuality(quality) {
-            this.currentValues.exportQuality = quality;
-
-            this.emit('canvas-export-changed', {
-                format: this.currentValues.exportFormat,
-                quality
-            });
-        }
-
-        applyChanges() {
-            this.emit('canvas-properties-apply', {
-                values: { ...this.currentValues }
-            });
-        }
-
-        resetToDefaults() {
-            this.currentValues = { ...this.defaultValues };
-            this.updateUI();
-
-            this.emit('canvas-properties-reset', {
-                values: { ...this.currentValues }
-            });
-        }
-
-        // Public API
-        setCanvas(canvasElement) {
-            this.canvasElement = canvasElement;
-            this.loadCanvasValues();
-        }
-
-        getValues() {
-            return { ...this.currentValues };
-        }
-
-        setValues(values) {
-            this.currentValues = { ...this.currentValues, ...values };
-            this.updateUI();
-        }
-    }
-
-    registerModule('canvas-properties', CanvasProperties);
-</script>
+        registerModule('canvas-properties', CanvasProperties);
+    </script>
+</template>

@@ -1,169 +1,168 @@
 <!--
   Menu Component - HTML Module
-  
+
   This module handles menu interactions for the Digital Twin IDE,
   primarily focusing on the simulation panel toggling and visibility.
-  
+
   Usage:
   <app-menu></app-menu>
 -->
-
 <template id="app-menu-template">
-  <style>
-    :host {
-      display: block;
-    }
-    
-    .menu-container {
-      position: relative;
-    }
-    
-    .menu-button {
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-    
-    .menu-button.active {
-      background-color: rgba(52, 152, 219, 0.2);
-    }
-  </style>
+    <!-- No visible UI elements - this is a utility component -->
 
-  <!-- No visible UI elements - this is a utility component -->
+    <style>
+        :host {
+            display: block;
+        }
+
+        .menu-container {
+            position: relative;
+        }
+
+        .menu-button {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .menu-button.active {
+            background-color: rgba(52, 152, 219, 0.2);
+        }
+    </style>
+
+    <script type="module">
+        /**
+         * Menu Manager - Web Component
+         * Handles menu interactions and simulation panel visibility
+         */
+        class AppMenu extends HTMLElement {
+            constructor() {
+                super();
+
+                // Create shadow DOM
+                this.attachShadow({mode: 'open'});
+
+                // Clone and attach template
+                const template = document.getElementById('app-menu-template');
+                this.shadowRoot.appendChild(template.content.cloneNode(true));
+            }
+
+            connectedCallback() {
+                console.log('[AppMenu] Component connected');
+
+                // Initialize references to DOM elements (in light DOM)
+                this.simulationPanel = document.getElementById('simulation-panel');
+                this.simulationMenuBtn = document.getElementById('simulation-menu');
+                this.closeSimPanelBtn = document.getElementById('close-sim-panel');
+
+                // Initialize event listeners
+                this.initEventListeners();
+
+                // Make the API available globally for backward compatibility
+                window.menuManager = {
+                    toggleSimulationPanel: () => this.toggleSimulationPanel(),
+                    showSimulationPanel: () => this.showSimulationPanel(),
+                    hideSimulationPanel: () => this.hideSimulationPanel()
+                };
+
+                // Dispatch connected event
+                this.dispatchEvent(new CustomEvent('component:connected', {
+                    bubbles: true,
+                    composed: true
+                }));
+            }
+
+            disconnectedCallback() {
+                console.log('[AppMenu] Component disconnected');
+
+                // Clean up global reference
+                if (window.menuManager) {
+                    delete window.menuManager;
+                }
+            }
+
+            initEventListeners() {
+                // Toggle simulation panel when clicking the Simulation menu item
+                if (this.simulationMenuBtn) {
+                    this.simulationMenuBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.toggleSimulationPanel();
+                    });
+                }
+
+                // Close simulation panel when clicking the close button
+                if (this.closeSimPanelBtn) {
+                    this.closeSimPanelBtn.addEventListener('click', () => {
+                        this.hideSimulationPanel();
+                    });
+                }
+
+                // Close panel when clicking outside of it
+                document.addEventListener('click', (e) => {
+                    if (this.simulationPanel && this.simulationPanel.style.display === 'block') {
+                        const isClickInside = this.simulationPanel.contains(e.target);
+                        const isMenuButton = this.simulationMenuBtn && this.simulationMenuBtn.contains(e.target);
+
+                        if (!isClickInside && !isMenuButton) {
+                            this.hideSimulationPanel();
+                        }
+                    }
+                });
+            }
+
+            toggleSimulationPanel() {
+                if (this.simulationPanel && this.simulationPanel.style.display === 'block') {
+                    this.hideSimulationPanel();
+                } else {
+                    this.showSimulationPanel();
+                }
+
+                // Dispatch toggle event
+                this.dispatchEvent(new CustomEvent('menu:toggle-simulation', {
+                    bubbles: true,
+                    composed: true,
+                    detail: {
+                        visible: this.simulationPanel.style.display === 'block'
+                    }
+                }));
+            }
+
+            showSimulationPanel() {
+                if (this.simulationPanel) {
+                    this.simulationPanel.style.display = 'block';
+
+                    // Add active class to menu item
+                    if (this.simulationMenuBtn) {
+                        this.simulationMenuBtn.classList.add('active');
+                    }
+
+                    // Dispatch show event
+                    this.dispatchEvent(new CustomEvent('menu:simulation-shown', {
+                        bubbles: true,
+                        composed: true
+                    }));
+                }
+            }
+
+            hideSimulationPanel() {
+                if (this.simulationPanel) {
+                    this.simulationPanel.style.display = 'none';
+
+                    // Remove active class from menu item
+                    if (this.simulationMenuBtn) {
+                        this.simulationMenuBtn.classList.remove('active');
+                    }
+
+                    // Dispatch hide event
+                    this.dispatchEvent(new CustomEvent('menu:simulation-hidden', {
+                        bubbles: true,
+                        composed: true
+                    }));
+                }
+            }
+        }
+
+        // Register the component
+        customElements.define('app-menu', AppMenu);
+        console.log('[AppMenu] Web component registered');
+    </script>
 </template>
-
-<script type="module">
-  /**
-   * Menu Manager - Web Component
-   * Handles menu interactions and simulation panel visibility
-   */
-  class AppMenu extends HTMLElement {
-    constructor() {
-      super();
-      
-      // Create shadow DOM
-      this.attachShadow({ mode: 'open' });
-      
-      // Clone and attach template
-      const template = document.getElementById('app-menu-template');
-      this.shadowRoot.appendChild(template.content.cloneNode(true));
-    }
-    
-    connectedCallback() {
-      console.log('[AppMenu] Component connected');
-      
-      // Initialize references to DOM elements (in light DOM)
-      this.simulationPanel = document.getElementById('simulation-panel');
-      this.simulationMenuBtn = document.getElementById('simulation-menu');
-      this.closeSimPanelBtn = document.getElementById('close-sim-panel');
-      
-      // Initialize event listeners
-      this.initEventListeners();
-      
-      // Make the API available globally for backward compatibility
-      window.menuManager = {
-        toggleSimulationPanel: () => this.toggleSimulationPanel(),
-        showSimulationPanel: () => this.showSimulationPanel(),
-        hideSimulationPanel: () => this.hideSimulationPanel()
-      };
-      
-      // Dispatch connected event
-      this.dispatchEvent(new CustomEvent('component:connected', { 
-        bubbles: true, 
-        composed: true 
-      }));
-    }
-    
-    disconnectedCallback() {
-      console.log('[AppMenu] Component disconnected');
-      
-      // Clean up global reference
-      if (window.menuManager) {
-        delete window.menuManager;
-      }
-    }
-    
-    initEventListeners() {
-      // Toggle simulation panel when clicking the Simulation menu item
-      if (this.simulationMenuBtn) {
-        this.simulationMenuBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          this.toggleSimulationPanel();
-        });
-      }
-
-      // Close simulation panel when clicking the close button
-      if (this.closeSimPanelBtn) {
-        this.closeSimPanelBtn.addEventListener('click', () => {
-          this.hideSimulationPanel();
-        });
-      }
-
-      // Close panel when clicking outside of it
-      document.addEventListener('click', (e) => {
-        if (this.simulationPanel && this.simulationPanel.style.display === 'block') {
-          const isClickInside = this.simulationPanel.contains(e.target);
-          const isMenuButton = this.simulationMenuBtn && this.simulationMenuBtn.contains(e.target);
-          
-          if (!isClickInside && !isMenuButton) {
-            this.hideSimulationPanel();
-          }
-        }
-      });
-    }
-
-    toggleSimulationPanel() {
-      if (this.simulationPanel && this.simulationPanel.style.display === 'block') {
-        this.hideSimulationPanel();
-      } else {
-        this.showSimulationPanel();
-      }
-      
-      // Dispatch toggle event
-      this.dispatchEvent(new CustomEvent('menu:toggle-simulation', {
-        bubbles: true,
-        composed: true,
-        detail: {
-          visible: this.simulationPanel.style.display === 'block'
-        }
-      }));
-    }
-
-    showSimulationPanel() {
-      if (this.simulationPanel) {
-        this.simulationPanel.style.display = 'block';
-        
-        // Add active class to menu item
-        if (this.simulationMenuBtn) {
-          this.simulationMenuBtn.classList.add('active');
-        }
-        
-        // Dispatch show event
-        this.dispatchEvent(new CustomEvent('menu:simulation-shown', {
-          bubbles: true,
-          composed: true
-        }));
-      }
-    }
-
-    hideSimulationPanel() {
-      if (this.simulationPanel) {
-        this.simulationPanel.style.display = 'none';
-        
-        // Remove active class from menu item
-        if (this.simulationMenuBtn) {
-          this.simulationMenuBtn.classList.remove('active');
-        }
-        
-        // Dispatch hide event
-        this.dispatchEvent(new CustomEvent('menu:simulation-hidden', {
-          bubbles: true,
-          composed: true
-        }));
-      }
-    }
-  }
-  
-  // Register the component
-  customElements.define('app-menu', AppMenu);
-  console.log('[AppMenu] Web component registered');
-</script>

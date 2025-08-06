@@ -21,455 +21,464 @@
             </div>
         </div>
     </div>
-</template>
 
-<style>
-    .property-group {
-        background: var(--bg-secondary, #f8f9fa);
-        border: 1px solid var(--border-color, #dee2e6);
-        border-radius: 8px;
-        margin-bottom: 16px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
-
-    .property-group.collapsed .property-group-content {
-        display: none;
-    }
-
-    .property-group.collapsed .toggle-icon {
-        transform: rotate(-90deg);
-    }
-
-    .property-group-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 12px 16px;
-        background: var(--bg-primary, #ffffff);
-        border-bottom: 1px solid var(--border-color, #dee2e6);
-        cursor: pointer;
-        user-select: none;
-    }
-
-    .property-group-header:hover {
-        background: var(--bg-hover, #f8f9fa);
-    }
-
-    .property-group-title {
-        margin: 0;
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--text-primary, #212529);
-    }
-
-    .property-group-toggle {
-        background: none;
-        border: none;
-        padding: 4px;
-        cursor: pointer;
-        border-radius: 3px;
-        transition: all 0.2s ease;
-        color: var(--text-secondary, #6c757d);
-    }
-
-    .property-group-toggle:hover {
-        background: var(--bg-hover, #e9ecef);
-        color: var(--text-primary, #212529);
-    }
-
-    .toggle-icon {
-        transition: transform 0.3s ease;
-        fill: currentColor;
-    }
-
-    .property-group-content {
-        padding: 16px;
-    }
-
-    .property-items {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        margin-bottom: 16px;
-    }
-
-    .property-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px;
-        background: var(--bg-primary, #ffffff);
-        border: 1px solid var(--border-color, #ced4da);
-        border-radius: 4px;
-        transition: all 0.2s ease;
-    }
-
-    .property-item:hover {
-        border-color: var(--primary-color, #007bff);
-        box-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
-    }
-
-    .property-label {
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--text-secondary, #6c757d);
-        min-width: 80px;
-        text-align: right;
-    }
-
-    .property-value {
-        flex: 1;
-        padding: 4px 8px;
-        border: 1px solid var(--border-color, #ced4da);
-        border-radius: 3px;
-        font-size: 13px;
-        background: var(--bg-primary, #ffffff);
-        color: var(--text-primary, #212529);
-    }
-
-    .property-value:focus {
-        outline: none;
-        border-color: var(--primary-color, #007bff);
-        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-    }
-
-    .property-type {
-        font-size: 11px;
-        color: var(--text-secondary, #6c757d);
-        background: var(--bg-secondary, #f8f9fa);
-        padding: 2px 6px;
-        border-radius: 2px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .property-remove {
-        background: none;
-        border: none;
-        color: var(--text-secondary, #6c757d);
-        cursor: pointer;
-        padding: 2px;
-        border-radius: 2px;
-        transition: all 0.2s ease;
-    }
-
-    .property-remove:hover {
-        color: var(--danger-color, #dc3545);
-        background: var(--danger-bg, rgba(220, 53, 69, 0.1));
-    }
-
-    .property-group-actions {
-        display: flex;
-        gap: 8px;
-        justify-content: flex-end;
-        border-top: 1px solid var(--border-color, #dee2e6);
-        padding-top: 12px;
-    }
-
-    .property-btn {
-        padding: 6px 12px;
-        border: 1px solid var(--border-color, #ced4da);
-        border-radius: 4px;
-        font-size: 12px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .property-btn-add {
-        background: var(--primary-color, #007bff);
-        color: white;
-        border-color: var(--primary-color, #007bff);
-    }
-
-    .property-btn-add:hover {
-        background: var(--primary-color-dark, #0056b3);
-    }
-
-    .property-btn-clear {
-        background: var(--bg-primary, #ffffff);
-        color: var(--text-secondary, #6c757d);
-    }
-
-    .property-btn-clear:hover {
-        background: var(--bg-hover, #e9ecef);
-        color: var(--danger-color, #dc3545);
-        border-color: var(--danger-color, #dc3545);
-    }
-
-    .property-empty {
-        text-align: center;
-        color: var(--text-secondary, #6c757d);
-        font-size: 13px;
-        padding: 24px;
-        font-style: italic;
-    }
-
-    /* Dark theme support */
-    @media (prefers-color-scheme: dark) {
+    <style>
         .property-group {
-            --bg-primary: #2d3748;
-            --bg-secondary: #1a202c;
-            --bg-hover: #4a5568;
-            --text-primary: #f7fafc;
-            --text-secondary: #a0aec0;
-            --border-color: #4a5568;
-            --primary-color: #3182ce;
-            --primary-color-dark: #2c5282;
-            --danger-color: #fc8181;
-            --danger-bg: rgba(252, 129, 129, 0.1);
-        }
-    }
-</style>
-
-<script type="module">
-    import { ModuleBase, registerModule } from '../base/module-base.js';
-    import { I18nMixin } from './base/i18n-mixin.js';
-
-    class PropertyGroup extends I18nMixin(ModuleBase) {
-        constructor() {
-            super();
-
-            this.properties = [];
-            this.isCollapsed = false;
-            this.groupTitle = this.t('property.group.title', 'Properties');
+            background: var(--bg-secondary, #f8f9fa);
+            border: 1px solid var(--border-color, #dee2e6);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            transition: all 0.3s ease;
         }
 
-        async init() {
-            await super.init();
-            await this.loadModuleTranslations('property-group');
-
-            // Get configuration from attributes
-            const config = this.getConfig();
-            if (config.title) this.groupTitle = config.title;
-            if (config.collapsed) this.isCollapsed = config.collapsed === 'true';
+        .property-group.collapsed .property-group-content {
+            display: none;
         }
 
-        render() {
-            const template = document.querySelector('template').content.cloneNode(true);
-            this.shadowRoot.innerHTML = '';
-            this.shadowRoot.appendChild(template);
+        .property-group.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
 
-            // Set title
-            const titleElement = this.$('.property-group-title');
-            if (titleElement) {
-                // Use translation for default title if no custom title is provided
-                const title = this.groupTitle === 'Properties' ?
-                    this.t('property.group.title', 'Properties') :
-                    this.groupTitle;
-                titleElement.textContent = title;
+        .property-group-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--bg-primary, #ffffff);
+            border-bottom: 1px solid var(--border-color, #dee2e6);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .property-group-header:hover {
+            background: var(--bg-hover, #f8f9fa);
+        }
+
+        .property-group-title {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary, #212529);
+        }
+
+        .property-group-toggle {
+            background: none;
+            border: none;
+            padding: 4px;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.2s ease;
+            color: var(--text-secondary, #6c757d);
+        }
+
+        .property-group-toggle:hover {
+            background: var(--bg-hover, #e9ecef);
+            color: var(--text-primary, #212529);
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+            fill: currentColor;
+        }
+
+        .property-group-content {
+            padding: 16px;
+        }
+
+        .property-items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .property-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: var(--bg-primary, #ffffff);
+            border: 1px solid var(--border-color, #ced4da);
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .property-item:hover {
+            border-color: var(--primary-color, #007bff);
+            box-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
+        }
+
+        .property-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary, #6c757d);
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .property-value {
+            flex: 1;
+            padding: 4px 8px;
+            border: 1px solid var(--border-color, #ced4da);
+            border-radius: 3px;
+            font-size: 13px;
+            background: var(--bg-primary, #ffffff);
+            color: var(--text-primary, #212529);
+        }
+
+        .property-value:focus {
+            outline: none;
+            border-color: var(--primary-color, #007bff);
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+        .property-type {
+            font-size: 11px;
+            color: var(--text-secondary, #6c757d);
+            background: var(--bg-secondary, #f8f9fa);
+            padding: 2px 6px;
+            border-radius: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .property-remove {
+            background: none;
+            border: none;
+            color: var(--text-secondary, #6c757d);
+            cursor: pointer;
+            padding: 2px;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .property-remove:hover {
+            color: var(--danger-color, #dc3545);
+            background: var(--danger-bg, rgba(220, 53, 69, 0.1));
+        }
+
+        .property-group-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            border-top: 1px solid var(--border-color, #dee2e6);
+            padding-top: 12px;
+        }
+
+        .property-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border-color, #ced4da);
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .property-btn-add {
+            background: var(--primary-color, #007bff);
+            color: white;
+            border-color: var(--primary-color, #007bff);
+        }
+
+        .property-btn-add:hover {
+            background: var(--primary-color-dark, #0056b3);
+        }
+
+        .property-btn-clear {
+            background: var(--bg-primary, #ffffff);
+            color: var(--text-secondary, #6c757d);
+        }
+
+        .property-btn-clear:hover {
+            background: var(--bg-hover, #e9ecef);
+            color: var(--danger-color, #dc3545);
+            border-color: var(--danger-color, #dc3545);
+        }
+
+        .property-empty {
+            text-align: center;
+            color: var(--text-secondary, #6c757d);
+            font-size: 13px;
+            padding: 24px;
+            font-style: italic;
+        }
+
+        /* Dark theme support */
+        @media (prefers-color-scheme: dark) {
+            .property-group {
+                --bg-primary: #2d3748;
+                --bg-secondary: #1a202c;
+                --bg-hover: #4a5568;
+                --text-primary: #f7fafc;
+                --text-secondary: #a0aec0;
+                --border-color: #4a5568;
+                --primary-color: #3182ce;
+                --primary-color-dark: #2c5282;
+                --danger-color: #fc8181;
+                --danger-bg: rgba(252, 129, 129, 0.1);
+            }
+        }
+    </style>
+
+    <script type="module">
+        import {ModuleBase, registerModule} from '../base/module-base.js';
+        import {I18nMixin} from './base/i18n-mixin.js';
+
+        class PropertyGroup extends I18nMixin(ModuleBase) {
+            constructor() {
+                super();
+
+                this.properties = [];
+                this.isCollapsed = false;
+                this.groupTitle = this.t('property.group.title', 'Properties');
             }
 
-            // Set collapsed state
-            if (this.isCollapsed) {
-                this.shadowRoot.querySelector('.property-group').classList.add('collapsed');
+            async init() {
+                await super.init();
+                await this.loadModuleTranslations('property-group');
+
+                // Get configuration from attributes
+                const config = this.getConfig();
+                if (config.title) this.groupTitle = config.title;
+                if (config.collapsed) this.isCollapsed = config.collapsed === 'true';
             }
 
-            this.renderProperties();
-            this.applyTranslations();
-        }
+            render() {
+                const template = document.querySelector('template').content.cloneNode(true);
+                this.shadowRoot.innerHTML = '';
+                this.shadowRoot.appendChild(template);
 
-        bindEvents() {
-            // Toggle collapse/expand
-            const header = this.$('.property-group-header');
-            header?.addEventListener('click', () => {
-                this.toggleCollapsed();
-            });
+                // Set title
+                const titleElement = this.$('.property-group-title');
+                if (titleElement) {
+                    // Use translation for default title if no custom title is provided
+                    const title = this.groupTitle === 'Properties' ?
+                        this.t('property.group.title', 'Properties') :
+                        this.groupTitle;
+                    titleElement.textContent = title;
+                }
 
-            // Add property button
-            const addBtn = this.$('.property-btn-add');
-            addBtn?.addEventListener('click', () => {
-                this.addProperty();
-            });
+                // Set collapsed state
+                if (this.isCollapsed) {
+                    this.shadowRoot.querySelector('.property-group').classList.add('collapsed');
+                }
 
-            // Clear all button
-            const clearBtn = this.$('.property-btn-clear');
-            clearBtn?.addEventListener('click', () => {
-                this.clearAllProperties();
-            });
-        }
-
-        renderProperties() {
-            const container = this.$('.property-items');
-            if (!container) return;
-
-            container.innerHTML = '';
-
-            if (this.properties.length === 0) {
-                const emptyEl = this.createElement('div', {
-                    className: 'property-empty'
-                }, this.t('property.empty', 'No properties defined'));
-                container.appendChild(emptyEl);
-                return;
+                this.renderProperties();
+                this.applyTranslations();
             }
 
-            this.properties.forEach((property, index) => {
-                const propertyEl = this.createPropertyElement(property, index);
-                container.appendChild(propertyEl);
-            });
-        }
-
-        createPropertyElement(property, index) {
-            const itemEl = this.createElement('div', {
-                className: 'property-item'
-            });
-
-            // Property label
-            const labelEl = this.createElement('div', {
-                className: 'property-label'
-            }, property.name || `Property ${index + 1}`);
-
-            // Property value input
-            const valueEl = this.createElement('input', {
-                className: 'property-value',
-                type: this.getInputType(property.type),
-                value: property.value || '',
-                placeholder: property.placeholder || ''
-            });
-
-            valueEl.addEventListener('input', (e) => {
-                this.updateProperty(index, 'value', e.target.value);
-            });
-
-            valueEl.addEventListener('change', (e) => {
-                this.emit('property-changed', {
-                    index,
-                    property: this.properties[index],
-                    value: e.target.value
+            bindEvents() {
+                // Toggle collapse/expand
+                const header = this.$('.property-group-header');
+                header?.addEventListener('click', () => {
+                    this.toggleCollapsed();
                 });
-            });
 
-            // Property type indicator
-            const typeEl = this.createElement('div', {
-                className: 'property-type'
-            }, property.type || 'text');
+                // Add property button
+                const addBtn = this.$('.property-btn-add');
+                addBtn?.addEventListener('click', () => {
+                    this.addProperty();
+                });
 
-            // Remove button
-            const removeEl = this.createElement('button', {
-                className: 'property-remove',
-                title: this.t('property.remove', 'Remove property')
-            }, '×');
-
-            removeEl.addEventListener('click', () => {
-                this.removeProperty(index);
-            });
-
-            itemEl.appendChild(labelEl);
-            itemEl.appendChild(valueEl);
-            itemEl.appendChild(typeEl);
-            itemEl.appendChild(removeEl);
-
-            return itemEl;
-        }
-
-        getInputType(propertyType) {
-            switch (propertyType) {
-                case 'number': return 'number';
-                case 'email': return 'email';
-                case 'url': return 'url';
-                case 'password': return 'password';
-                case 'color': return 'color';
-                case 'date': return 'date';
-                case 'time': return 'time';
-                case 'range': return 'range';
-                default: return 'text';
+                // Clear all button
+                const clearBtn = this.$('.property-btn-clear');
+                clearBtn?.addEventListener('click', () => {
+                    this.clearAllProperties();
+                });
             }
-        }
 
-        toggleCollapsed() {
-            this.isCollapsed = !this.isCollapsed;
-            const groupEl = this.shadowRoot.querySelector('.property-group');
-            groupEl.classList.toggle('collapsed', this.isCollapsed);
+            renderProperties() {
+                const container = this.$('.property-items');
+                if (!container) return;
 
-            this.emit('group-toggled', {
-                collapsed: this.isCollapsed,
-                title: this.groupTitle
-            });
-        }
+                container.innerHTML = '';
 
-        addProperty(property = null) {
-            const newProperty = property || {
-                name: `Property ${this.properties.length + 1}`,
-                value: '',
-                type: 'text',
-                placeholder: 'Enter value...'
-            };
+                if (this.properties.length === 0) {
+                    const emptyEl = this.createElement('div', {
+                        className: 'property-empty'
+                    }, this.t('property.empty', 'No properties defined'));
+                    container.appendChild(emptyEl);
+                    return;
+                }
 
-            this.properties.push(newProperty);
-            this.renderProperties();
+                this.properties.forEach((property, index) => {
+                    const propertyEl = this.createPropertyElement(property, index);
+                    container.appendChild(propertyEl);
+                });
+            }
 
-            this.emit('property-added', {
-                property: newProperty,
-                index: this.properties.length - 1
-            });
-        }
+            createPropertyElement(property, index) {
+                const itemEl = this.createElement('div', {
+                    className: 'property-item'
+                });
 
-        removeProperty(index) {
-            if (index >= 0 && index < this.properties.length) {
-                const removedProperty = this.properties.splice(index, 1)[0];
+                // Property label
+                const labelEl = this.createElement('div', {
+                    className: 'property-label'
+                }, property.name || `Property ${index + 1}`);
+
+                // Property value input
+                const valueEl = this.createElement('input', {
+                    className: 'property-value',
+                    type: this.getInputType(property.type),
+                    value: property.value || '',
+                    placeholder: property.placeholder || ''
+                });
+
+                valueEl.addEventListener('input', (e) => {
+                    this.updateProperty(index, 'value', e.target.value);
+                });
+
+                valueEl.addEventListener('change', (e) => {
+                    this.emit('property-changed', {
+                        index,
+                        property: this.properties[index],
+                        value: e.target.value
+                    });
+                });
+
+                // Property type indicator
+                const typeEl = this.createElement('div', {
+                    className: 'property-type'
+                }, property.type || 'text');
+
+                // Remove button
+                const removeEl = this.createElement('button', {
+                    className: 'property-remove',
+                    title: this.t('property.remove', 'Remove property')
+                }, '×');
+
+                removeEl.addEventListener('click', () => {
+                    this.removeProperty(index);
+                });
+
+                itemEl.appendChild(labelEl);
+                itemEl.appendChild(valueEl);
+                itemEl.appendChild(typeEl);
+                itemEl.appendChild(removeEl);
+
+                return itemEl;
+            }
+
+            getInputType(propertyType) {
+                switch (propertyType) {
+                    case 'number':
+                        return 'number';
+                    case 'email':
+                        return 'email';
+                    case 'url':
+                        return 'url';
+                    case 'password':
+                        return 'password';
+                    case 'color':
+                        return 'color';
+                    case 'date':
+                        return 'date';
+                    case 'time':
+                        return 'time';
+                    case 'range':
+                        return 'range';
+                    default:
+                        return 'text';
+                }
+            }
+
+            toggleCollapsed() {
+                this.isCollapsed = !this.isCollapsed;
+                const groupEl = this.shadowRoot.querySelector('.property-group');
+                groupEl.classList.toggle('collapsed', this.isCollapsed);
+
+                this.emit('group-toggled', {
+                    collapsed: this.isCollapsed,
+                    title: this.groupTitle
+                });
+            }
+
+            addProperty(property = null) {
+                const newProperty = property || {
+                    name: `Property ${this.properties.length + 1}`,
+                    value: '',
+                    type: 'text',
+                    placeholder: 'Enter value...'
+                };
+
+                this.properties.push(newProperty);
                 this.renderProperties();
 
-                this.emit('property-removed', {
-                    property: removedProperty,
-                    index
+                this.emit('property-added', {
+                    property: newProperty,
+                    index: this.properties.length - 1
                 });
             }
-        }
 
-        updateProperty(index, key, value) {
-            if (index >= 0 && index < this.properties.length) {
-                this.properties[index][key] = value;
+            removeProperty(index) {
+                if (index >= 0 && index < this.properties.length) {
+                    const removedProperty = this.properties.splice(index, 1)[0];
+                    this.renderProperties();
 
-                this.emit('property-updated', {
-                    property: this.properties[index],
-                    index,
-                    key,
-                    value
-                });
+                    this.emit('property-removed', {
+                        property: removedProperty,
+                        index
+                    });
+                }
+            }
+
+            updateProperty(index, key, value) {
+                if (index >= 0 && index < this.properties.length) {
+                    this.properties[index][key] = value;
+
+                    this.emit('property-updated', {
+                        property: this.properties[index],
+                        index,
+                        key,
+                        value
+                    });
+                }
+            }
+
+            clearAllProperties() {
+                const count = this.properties.length;
+                this.properties = [];
+                this.renderProperties();
+
+                this.emit('properties-cleared', {count});
+            }
+
+            // Public API
+            setProperties(properties) {
+                this.properties = [...properties];
+                this.renderProperties();
+            }
+
+            getProperties() {
+                return [...this.properties];
+            }
+
+            setTitle(title) {
+                this.groupTitle = title;
+                const titleElement = this.$('.property-group-title');
+                if (titleElement) {
+                    titleElement.textContent = title;
+                }
+            }
+
+            getTitle() {
+                return this.groupTitle;
+            }
+
+            setCollapsed(collapsed) {
+                if (collapsed !== this.isCollapsed) {
+                    this.toggleCollapsed();
+                }
+            }
+
+            isGroupCollapsed() {
+                return this.isCollapsed;
             }
         }
 
-        clearAllProperties() {
-            const count = this.properties.length;
-            this.properties = [];
-            this.renderProperties();
-
-            this.emit('properties-cleared', { count });
-        }
-
-        // Public API
-        setProperties(properties) {
-            this.properties = [...properties];
-            this.renderProperties();
-        }
-
-        getProperties() {
-            return [...this.properties];
-        }
-
-        setTitle(title) {
-            this.groupTitle = title;
-            const titleElement = this.$('.property-group-title');
-            if (titleElement) {
-                titleElement.textContent = title;
-            }
-        }
-
-        getTitle() {
-            return this.groupTitle;
-        }
-
-        setCollapsed(collapsed) {
-            if (collapsed !== this.isCollapsed) {
-                this.toggleCollapsed();
-            }
-        }
-
-        isGroupCollapsed() {
-            return this.isCollapsed;
-        }
-    }
-
-    registerModule('property-group', PropertyGroup);
-</script>
+        registerModule('property-group', PropertyGroup);
+    </script>
+</template>

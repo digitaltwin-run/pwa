@@ -1,0 +1,405 @@
+  <!-- app-core.html -->
+  <template id="app-core-template">
+      <div class="app-core">
+          <div class="app-core__status">
+              <span class="status-indicator" id="app-status">Initializing...</span>
+          </div>
+      </div>
+  
+      <style>
+          .app-core {
+              position: fixed;
+              bottom: 10px;
+              left: 10px;
+              z-index: 1000;
+              font-size: 11px;
+              opacity: 0.8;
+          }
+  
+          .status-indicator {
+              background: var(--success-color, #27ae60);
+              color: white;
+              padding: 4px 8px;
+              border-radius: 12px;
+              transition: background-color 0.3s;
+          }
+  
+          .status-indicator.initializing {
+              background: var(--warning-color, #f39c12);
+          }
+  
+          .status-indicator.error {
+              background: var(--danger-color, #e74c3c);
+          }
+  
+          .status-indicator.ready {
+              background: var(--success-color, #27ae60);
+          }
+      </style>
+  
+      <script type="module">
+          import {ModuleBase} from '../base/module-base.js';
+          import {CanvasZoomManager} from '../../js/canvas-zoom-manager.js';
+          import {CanvasPropertiesManager} from '../../js/canvas-properties-manager.js';
+          import {gridManager} from '../../js/grid.js';
+  
+          /**
+           * Application Core Module
+           * Handles main application lifecycle and initialization
+           */
+          class AppCore extends ModuleBase {
+              constructor() {
+                  super();
+                  this.template = document.currentScript.parentElement;
+                  this.isInitialized = false;
+                  this.initPromise = null;
+                  this.managers = new Map();
+                  this.config = this.getDefaultConfig();
+                  this.init();
+              }
+  
+              async init() {
+                  console.log('🎯 App Core initializing...');
+  
+                  this.updateStatus('initializing');
+  
+                  // Prevent multiple initialization calls
+                  if (this.initPromise) {
+                      return this.initPromise;
+                  }
+  
+                  this.initPromise = this.performInitialization();
+  
+                  try {
+                      await this.initPromise;
+                      this.isInitialized = true;
+                      this.updateStatus('ready');
+                      console.log('✅ App Core initialized successfully');
+                  } catch (error) {
+                      console.error('❌ App Core initialization failed:', error);
+                      this.updateStatus('error');
+                      throw error;
+                  }
+  
+                  // Make globally available
+                  window.appCore = this;
+              }
+  
+              async performInitialization() {
+                  // Load configuration first
+                  await this.loadConfiguration();
+  
+                  // Initialize core managers
+                  await this.initializeCoreManagers();
+  
+                  // Setup global event handling
+                  this.setupGlobalEventHandling();
+  
+                  // Setup HMI system integration
+                  await this.setupHMIIntegration();
+  
+                  // Initialize canvas systems
+                  await this.initializeCanvasSystems();
+  
+                  // Notify other systems that core is ready
+                  this.notifyInitializationComplete();
+              }
+  
+              async loadConfiguration() {
+                  console.log('⚙️ Loading application configuration...');
+  
+                  try {
+                      const response = await fetch('/config.json');
+                      if (response.ok) {
+                          const loadedConfig = await response.json();
+                          this.config = {
+                              ...this.config,
+                              ...loadedConfig
+                          };
+                          console.log('✅ Configuration loaded:', this.config);
+                      }
+                  } catch (error) {
+                      console.warn('⚠️ Failed to load config.json, using defaults', error);
+                  }
+              }
+  
+              async initializeCoreManagers() {
+                  console.log('🔧 Initializing core managers...');
+  
+                  // Initialize zoom manager
+                  try {
+                      const zoomManager = new CanvasZoomManager();
+                      this.managers.set('zoom', zoomManager);
+                      console.log('✅ Zoom manager initialized');
+                  } catch (error) {
+                      console.error('❌ Zoom manager initialization failed:', error);
+                  }
+  
+                  // Initialize canvas properties manager
+                  try {
+                      const canvasPropsManager = new CanvasPropertiesManager();
+                      this.managers.set('canvasProperties', canvasPropsManager);
+                      window.canvasPropertiesManager = canvasPropsManager;
+                      console.log('✅ Canvas properties manager initialized');
+                  } catch (error) {
+                      console.error('❌ Canvas properties manager initialization failed:', error);
+                  }
+  
+                  // Initialize grid manager
+                  try {
+                      if (this.config.canvas?.grid) {
+                          gridManager.updateConfig(this.config.canvas.grid);
+                      }
+                      this.managers.set('grid', gridManager);
+                      console.log('✅ Grid manager initialized');
+                  } catch (error) {
+                      console.error('❌ Grid manager initialization failed:', error);
+                  }
+              }
+  
+              setupGlobalEventHandling() {
+                  console.log('🎯 Setting up global event handling...');
+  
+                  // Global error handler
+                  window.addEventListener('error', (event) => {
+                      console.error('🚨 Global error:', event.error);
+                      this.handleGlobalError(event.error);
+                  });
+  
+                  // Unhandled promise rejection handler
+                  window.addEventListener('unhandledrejection', (event) => {
+                      console.error('🚨 Unhandled promise rejection:', event.reason);
+                      this.handleGlobalError(event.reason);
+                  });
+  
+                  // Application visibility change
+                  document.addEventListener('visibilitychange', () => {
+                      if (document.hidden) {
+                          this.handleAppHidden();
+                      } else {
+                          this.handleAppVisible();
+                      }
+                  });
+  
+                  console.log('✅ Global event handling setup complete');
+              }
+  
+              async setupHMIIntegration() {
+                  console.log('🎮 Setting up HMI integration...');
+  
+                  // Wait for HMI system to be available
+                  let attempts = 0;
+                  const maxAttempts = 10;
+  
+                  while (attempts < maxAttempts && !window.integrateHMIWithApp) {
+                      await new Promise(resolve => setTimeout(resolve, 100));
+                      attempts++;
+                  }
+  
+                  if (window.integrateHMIWithApp) {
+                      try {
+                          await window.integrateHMIWithApp(this);
+                          console.log('✅ HMI integration complete');
+                      } catch (error) {
+                          console.error('❌ HMI integration failed:', error);
+                      }
+                  } else {
+                      console.warn('⚠️ HMI integration function not available');
+                  }
+              }
+  
+              async initializeCanvasSystems() {
+                  console.log('🖼️ Initializing canvas systems...');
+  
+                  // Wait for canvas element to be available
+                  const canvas = await this.waitForElement('#svg-canvas');
+                  if (!canvas) {
+                      console.warn('⚠️ Canvas element not found');
+                      return;
+                  }
+  
+                  // Initialize canvas-specific systems
+                  this.notifyHMI('canvas-systems-ready', {
+                      canvas: canvas,
+                      config: this.config.canvas
+                  });
+  
+                  console.log('✅ Canvas systems initialized');
+              }
+  
+              notifyInitializationComplete() {
+                  console.log('📢 Notifying initialization complete...');
+  
+                  // Dispatch global event
+                  document.dispatchEvent(new CustomEvent('app-core-ready', {
+                      detail: {
+                          managers: Array.from(this.managers.keys()),
+                          config: this.config
+                      }
+                  }));
+  
+                  // Update toolbar if available
+                  if (window.i18nManager) {
+                      this.updateToolbarTexts();
+                  }
+  
+                  console.log('✅ Initialization notifications sent');
+              }
+  
+              updateToolbarTexts() {
+                  // Update toolbar button texts based on current language
+                  const buttons = [
+                      {id: 'export-json-btn', key: 'toolbar.export.json'},
+                      {id: 'import-json-btn', key: 'toolbar.import.json'},
+                      {id: 'export-png-btn', key: 'toolbar.export.png'},
+                      {id: 'export-svg-btn', key: 'toolbar.export.svg'},
+                      {id: 'connect-components-btn', key: 'toolbar.connect'}
+                  ];
+  
+                  buttons.forEach(({id, key}) => {
+                      const button = document.getElementById(id);
+                      if (button && window.i18nManager) {
+                          const text = window.i18nManager.t(key);
+                          if (text) {
+                              button.textContent = text;
+                          }
+                      }
+                  });
+              }
+  
+              handleGlobalError(error) {
+                  // Handle global errors gracefully
+                  console.error('🚨 Handling global error:', error);
+  
+                  this.updateStatus('error');
+  
+                  // You could show a user notification here
+                  this.notifyHMI('global-error', {error});
+              }
+  
+              handleAppHidden() {
+                  console.log('👁️ App hidden - pausing non-essential operations');
+                  // Pause animations, reduce resource usage, etc.
+              }
+  
+              handleAppVisible() {
+                  console.log('👁️ App visible - resuming operations');
+                  // Resume animations, refresh data if needed, etc.
+              }
+  
+              async waitForElement(selector, timeout = 5000) {
+                  const startTime = Date.now();
+  
+                  while (Date.now() - startTime < timeout) {
+                      const element = document.querySelector(selector);
+                      if (element) {
+                          return element;
+                      }
+                      await new Promise(resolve => setTimeout(resolve, 50));
+                  }
+  
+                  return null;
+              }
+  
+              updateStatus(status) {
+                  const statusElement = this.template.querySelector('#app-status');
+                  if (statusElement) {
+                      statusElement.className = `status-indicator ${status}`;
+  
+                      const statusTexts = {
+                          initializing: 'Initializing...',
+                          ready: 'Ready',
+                          error: 'Error'
+                      };
+  
+                      statusElement.textContent = statusTexts[status] || status;
+                  }
+              }
+  
+              getDefaultConfig() {
+                  return {
+                      canvas: {
+                          grid: {
+                              enabled: true,
+                              size: 5,
+                              color: '#e0e0e0',
+                              snapToGrid: true
+                          },
+                          zoom: {
+                              min: 0.1,
+                              max: 5.0,
+                              step: 0.1,
+                              default: 1.0
+                          }
+                      },
+                      ui: {
+                          theme: 'light',
+                          language: 'pl'
+                      },
+                      features: {
+                          enableServiceWorker: true,
+                          enableTesting: false
+                      }
+                  };
+              }
+  
+              // Public API methods
+  
+              getManager(name) {
+                  return this.managers.get(name);
+              }
+  
+              getConfig(path = null) {
+                  if (!path) return this.config;
+  
+                  const keys = path.split('.');
+                  let value = this.config;
+  
+                  for (const key of keys) {
+                      value = value?.[key];
+                      if (value === undefined) break;
+                  }
+  
+                  return value;
+              }
+  
+              updateConfig(path, value) {
+                  const keys = path.split('.');
+                  const lastKey = keys.pop();
+                  let target = this.config;
+  
+                  for (const key of keys) {
+                      if (!target[key]) target[key] = {};
+                      target = target[key];
+                  }
+  
+                  target[lastKey] = value;
+  
+                  // Notify managers of config changes
+                  this.notifyHMI('config-updated', {path, value});
+              }
+  
+              isReady() {
+                  return this.isInitialized;
+              }
+  
+              async waitForReady() {
+                  if (this.isInitialized) return;
+                  await this.initPromise;
+              }
+          }
+  
+          // Auto-initialize when DOM is ready
+          if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', () => {
+                  new AppCore();
+              });
+          } else {
+              new AppCore();
+          }
+  
+          // Export class for manual instantiation if needed
+          window.AppCore = AppCore;
+      </script>
+  </template>
+  

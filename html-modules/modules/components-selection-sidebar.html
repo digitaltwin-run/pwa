@@ -1,17 +1,91 @@
-<!-- Components Selection Column -->
-<aside class="sidebar components-column">
-    <h3 data-i18n="ui.components.canvasTitle">📋 Canvas Components</h3>
-    <div id="components-selection-panel">
-        <div class="selection-controls mb-2">
-            <button class="btn btn-sm btn-outline-primary" onclick="window.componentsColumnManager?.selectAll()" data-i18n="[title]ui.buttons.selectAll" title="Select all">
-                ✓ <span data-i18n="ui.buttons.all">All</span>
-            </button>
-            <button class="btn btn-sm btn-outline-dark" onclick="window.componentsColumnManager?.clearAll()" data-i18n="[title]ui.buttons.clearAll" title="Clear all">
-                ✗ <span data-i18n="ui.buttons.clear">Clear</span>
-            </button>
+<template id="components-selection-sidebar-template">
+    <!-- Components Selection Column -->
+    <aside class="sidebar components-column">
+        <h3 data-i18n="ui.components.canvasTitle">📋 Canvas Components</h3>
+        <div id="components-selection-panel">
+            <div class="selection-controls mb-2">
+                <button class="btn btn-sm btn-outline-primary" data-action="select-all"
+                        data-i18n="[title]ui.buttons.selectAll" title="Select all">
+                    ✓ <span data-i18n="ui.buttons.all">All</span>
+                </button>
+                <button class="btn btn-sm btn-outline-dark" data-action="clear-all"
+                        data-i18n="[title]ui.buttons.clearAll" title="Clear all">
+                    ✗ <span data-i18n="ui.buttons.clear">Clear</span>
+                </button>
+            </div>
+            <div id="components-list" class="components-list">
+                <p class="text-muted small" data-i18n="ui.components.noComponentsOnCanvas">No components on canvas</p>
+            </div>
         </div>
-        <div id="components-list" class="components-list">
-            <p class="text-muted small" data-i18n="ui.components.noComponentsOnCanvas">No components on canvas</p>
-        </div>
-    </div>
-</aside>
+    </aside>
+
+    <style>
+        .components-column {
+            width: 250px;
+            padding: 1rem;
+            background-color: var(--bg-secondary, #f8f9fa);
+            border-right: 1px solid var(--border-color, #dee2e6);
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .components-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .selection-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+
+    <script type="module">
+        import {ModuleBase, registerModule} from '../base/module-base.js';
+
+        class ComponentsSelectionSidebar extends ModuleBase {
+            constructor() {
+                super();
+                this.template = document.currentScript.parentElement;
+                this.initialize();
+            }
+
+            async initialize() {
+                this.bindEvents();
+                this.setupEventDelegation();
+                this.updateComponentsList();
+            }
+
+            bindEvents() {
+                // Listen for component changes on the canvas
+                document.addEventListener('components-updated', () => this.updateComponentsList());
+            }
+
+            setupEventDelegation() {
+                this.on('click', '[data-action="select-all"]', () => this.handleSelectAll());
+                this.on('click', '[data-action="clear-all"]', () => this.handleClearAll());
+            }
+
+            async handleSelectAll() {
+                // Implementation for select all
+                this.emit('select-all-components');
+            }
+
+            async handleClearAll() {
+                // Implementation for clear all
+                this.emit('clear-all-components');
+            }
+
+            updateComponentsList() {
+                // Implementation to update the components list
+                const componentsList = this.template.querySelector('#components-list');
+                // Add your component list rendering logic here
+            }
+        }
+
+        // Register the component
+        registerModule('components-selection-sidebar', ComponentsSelectionSidebar);
+    </script>
+</template>

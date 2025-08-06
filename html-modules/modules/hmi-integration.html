@@ -3,238 +3,237 @@
   Comprehensive HMI (Human-Machine Interface) integration for Digital Twin PWA
   Provides gesture recognition, voice commands, and multi-modal input
 -->
-
 <template id="hmi-debug-overlay-template">
-  <!-- This is a utility component with no visual representation -->
-  <div class="hmi-debug-overlay" style="display: none">
-    <div class="gesture-indicator"></div>
-    <div class="voice-indicator"></div>
-  </div>
-</template>
+    <!-- This is a utility component with no visual representation -->
+    <div class="hmi-debug-overlay" style="display: none">
+        <div class="gesture-indicator"></div>
+        <div class="voice-indicator"></div>
+    </div>
 
-<script>
-  /**
-   * HMI Integration Component
-   * Integrates the comprehensive HMI system with unified input management
-   */
-  class HmiIntegrationComponent extends HTMLElement {
-    constructor() {
-      super();
-      this.attachShadow({ mode: 'open' });
-      this.hmiManager = null;
-      this.inputManager = null;
-      this.appInstance = null;
-    }
-
-    connectedCallback() {
-      // Clone template content into shadow root
-      const template = document.querySelector('template[data-component="hmi-integration"]');
-      if (template) {
-        this.shadowRoot.appendChild(template.content.cloneNode(true));
-      }
-
-      // Dispatch ready event
-      this.dispatchEvent(new CustomEvent('hmi-integration-ready', {
-        bubbles: true,
-        composed: true
-      }));
-
-      console.log('[HmiIntegration] Component initialized');
-    }
-
-    /**
-     * Initialize HMI system for existing applications
-     * @param {Object} appInstance - The app instance to integrate with
-     * @returns {Promise<Object>} The HMI system instance
-     */
-    async initialize(appInstance) {
-      if (!appInstance) {
-        console.error('❌ App instance not provided to HMI integration');
-        return null;
-      }
-
-      this.appInstance = appInstance;
-
-      try {
-        // Import required modules dynamically
-        const { HMIManager } = await import('/hmi/index.js');
-        const { inputManager } = await import('/hmi/input/input-manager.js');
-
-        this.inputManager = inputManager;
-
-        // Get the SVG canvas element
-        const svgCanvas = document.getElementById('svg-canvas') || document.getElementById('svgCanvas');
-        if (!svgCanvas) {
-          throw new Error('SVG canvas not found');
+    <style>
+        /* Debug overlay styles */
+        .hmi-debug-overlay {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            padding: 5px;
+            color: white;
+            font-family: monospace;
+            pointer-events: none;
         }
 
-        // Create HMI instance with debug enabled
-        this.hmiManager = new HMIManager(svgCanvas, {
-          debug: true,
-          voice: true,
-          priority: 'gesture' // Prioritize gesture detection
-        });
+        .gesture-indicator {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
 
-        // Initialize unified input system with app references
-        await this.setupUnifiedInputSystem(svgCanvas);
+        .voice-indicator {
+            display: flex;
+            align-items: center;
+        }
 
-        // Setup gesture patterns
-        await this.setupGestures();
+        .gesture-indicator::before {
+            content: "🖱️";
+            margin-right: 5px;
+        }
 
-        // Enable debug mode
-        this.hmiManager.enableDebug();
+        .voice-indicator::before {
+            content: "🎤";
+            margin-right: 5px;
+        }
+    </style>
 
-        // Make HMI globally accessible for debugging
-        window.hmi = this.hmiManager;
-        window.inputManager = this.inputManager;
+    <script>
+        /**
+         * HMI Integration Component
+         * Integrates the comprehensive HMI system with unified input management
+         */
+        class HmiIntegrationComponent extends HTMLElement {
+            constructor() {
+                super();
+                this.attachShadow({mode: 'open'});
+                this.hmiManager = null;
+                this.inputManager = null;
+                this.appInstance = null;
+            }
 
-        console.info('✅ Advanced HMI system with unified input integrated successfully!');
-        console.info('🎮 Input systems status:', this.inputManager.getStatus());
+            connectedCallback() {
+                // Clone template content into shadow root
+                const template = document.querySelector('template[data-component="hmi-integration"]');
+                if (template) {
+                    this.shadowRoot.appendChild(template.content.cloneNode(true));
+                }
 
-        return this.hmiManager;
+                // Dispatch ready event
+                this.dispatchEvent(new CustomEvent('hmi-integration-ready', {
+                    bubbles: true,
+                    composed: true
+                }));
 
-      } catch (error) {
-        console.error('❌ Failed to integrate HMI system:', error);
-        throw error;
-      }
-    }
+                console.log('[HmiIntegration] Component initialized');
+            }
 
-    /**
-     * Setup unified input system with app references
-     */
-    async setupUnifiedInputSystem(svgCanvas) {
-      try {
-        // Set canvas and component manager references
-        this.inputManager.setReferences(svgCanvas, this.appInstance.componentManager);
+            /**
+             * Initialize HMI system for existing applications
+             * @param {Object} appInstance - The app instance to integrate with
+             * @returns {Promise<Object>} The HMI system instance
+             */
+            async initialize(appInstance) {
+                if (!appInstance) {
+                    console.error('❌ App instance not provided to HMI integration');
+                    return null;
+                }
 
-        // Set app instance reference for input manager
-        this.appInstance.inputManager = this.inputManager;
+                this.appInstance = appInstance;
 
-        // Dispatch canvas-ready event for other systems
-        const canvasReadyEvent = new CustomEvent('canvas-ready', {
-          detail: {
-            canvas: svgCanvas,
-            componentManager: this.appInstance.componentManager
-          }
-        });
-        document.dispatchEvent(canvasReadyEvent);
+                try {
+                    // Import required modules dynamically
+                    const {HMIManager} = await import('/hmi/index.js');
+                    const {inputManager} = await import('/hmi/input/input-manager.js');
 
-        console.log('🎮 Unified input system setup complete');
-      } catch (error) {
-        console.error('❌ Failed to setup unified input system:', error);
-      }
-    }
+                    this.inputManager = inputManager;
 
-    /**
-     * Setup gesture patterns for Digital Twin
-     */
-    async setupGestures() {
-      try {
-        // Import gesture setup dynamically
-        const { setupDigitalTwinGestures } = await import('/hmi/gesture-integration.js');
+                    // Get the SVG canvas element
+                    const svgCanvas = document.getElementById('svg-canvas') || document.getElementById('svgCanvas');
+                    if (!svgCanvas) {
+                        throw new Error('SVG canvas not found');
+                    }
 
-        // Setup gesture patterns for Digital Twin IDE
-        setupDigitalTwinGestures(this.hmiManager, this.appInstance);
+                    // Create HMI instance with debug enabled
+                    this.hmiManager = new HMIManager(svgCanvas, {
+                        debug: true,
+                        voice: true,
+                        priority: 'gesture' // Prioritize gesture detection
+                    });
 
-        console.log('✅ Gestures configured successfully');
-      } catch (error) {
-        console.error('❌ Failed to setup gestures:', error);
-      }
-    }
+                    // Initialize unified input system with app references
+                    await this.setupUnifiedInputSystem(svgCanvas);
 
-    /**
-     * Cleanup HMI resources
-     */
-    destroy() {
-      if (this.hmiManager) {
-        this.hmiManager.destroy();
-        this.hmiManager = null;
-      }
+                    // Setup gesture patterns
+                    await this.setupGestures();
 
-      console.info('🧹 HMI integration resources cleaned up');
-    }
+                    // Enable debug mode
+                    this.hmiManager.enableDebug();
 
-    /**
-     * Get metrics about HMI system
-     */
-    getMetrics() {
-      return this.hmiManager ? this.hmiManager.getMetrics() : {};
-    }
+                    // Make HMI globally accessible for debugging
+                    window.hmi = this.hmiManager;
+                    window.inputManager = this.inputManager;
 
-    /**
-     * Legacy compatibility helper for checking selected components
-     */
-    hasSelectedComponents() {
-      return this.appInstance &&
-             this.appInstance.canvasSelectionManager &&
-             this.appInstance.canvasSelectionManager.selectedComponents &&
-             this.appInstance.canvasSelectionManager.selectedComponents.size > 0;
-    }
-  }
+                    console.info('✅ Advanced HMI system with unified input integrated successfully!');
+                    console.info('🎮 Input systems status:', this.inputManager.getStatus());
 
-  // Register custom element
-  if (!customElements.get('hmi-integration')) {
-    customElements.define('hmi-integration', HmiIntegrationComponent);
-  }
+                    return this.hmiManager;
 
-  /**
-   * Integration function for legacy compatibility
-   * @param {Object} appInstance - The Digital Twin app instance
-   */
-  window.integrateHMIWithApp = async function(appInstance) {
-    console.info('🔄 Using modular HMI integration...');
+                } catch (error) {
+                    console.error('❌ Failed to integrate HMI system:', error);
+                    throw error;
+                }
+            }
 
-    // Get or create HMI integration component
-    let hmiIntegration = document.querySelector('hmi-integration');
+            /**
+             * Setup unified input system with app references
+             */
+            async setupUnifiedInputSystem(svgCanvas) {
+                try {
+                    // Set canvas and component manager references
+                    this.inputManager.setReferences(svgCanvas, this.appInstance.componentManager);
 
-    if (!hmiIntegration) {
-      hmiIntegration = document.createElement('hmi-integration');
-      document.body.appendChild(hmiIntegration);
+                    // Set app instance reference for input manager
+                    this.appInstance.inputManager = this.inputManager;
 
-      // Wait for component to be initialized
-      await new Promise(resolve => {
-        hmiIntegration.addEventListener('hmi-integration-ready', resolve, { once: true });
-      });
-    }
+                    // Dispatch canvas-ready event for other systems
+                    const canvasReadyEvent = new CustomEvent('canvas-ready', {
+                        detail: {
+                            canvas: svgCanvas,
+                            componentManager: this.appInstance.componentManager
+                        }
+                    });
+                    document.dispatchEvent(canvasReadyEvent);
 
-    // Initialize HMI with app instance
-    return await hmiIntegration.initialize(appInstance);
-  };
-</script>
+                    console.log('🎮 Unified input system setup complete');
+                } catch (error) {
+                    console.error('❌ Failed to setup unified input system:', error);
+                }
+            }
 
-<style>
-  /* Debug overlay styles */
-  .hmi-debug-overlay {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    z-index: 9999;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 5px;
-    padding: 5px;
-    color: white;
-    font-family: monospace;
-    pointer-events: none;
-  }
+            /**
+             * Setup gesture patterns for Digital Twin
+             */
+            async setupGestures() {
+                try {
+                    // Import gesture setup dynamically
+                    const {setupDigitalTwinGestures} = await import('/hmi/gesture-integration.js');
 
-  .gesture-indicator {
-    display: flex;
-    align-items: center;
-    margin-bottom: 5px;
-  }
+                    // Setup gesture patterns for Digital Twin IDE
+                    setupDigitalTwinGestures(this.hmiManager, this.appInstance);
 
-  .voice-indicator {
-    display: flex;
-    align-items: center;
-  }
+                    console.log('✅ Gestures configured successfully');
+                } catch (error) {
+                    console.error('❌ Failed to setup gestures:', error);
+                }
+            }
 
-  .gesture-indicator::before {
-    content: "🖱️";
-    margin-right: 5px;
-  }
+            /**
+             * Cleanup HMI resources
+             */
+            destroy() {
+                if (this.hmiManager) {
+                    this.hmiManager.destroy();
+                    this.hmiManager = null;
+                }
 
-  .voice-indicator::before {
-    content: "🎤";
-    margin-right: 5px;
-  }
-</style>
+                console.info('🧹 HMI integration resources cleaned up');
+            }
+
+            /**
+             * Get metrics about HMI system
+             */
+            getMetrics() {
+                return this.hmiManager ? this.hmiManager.getMetrics() : {};
+            }
+
+            /**
+             * Legacy compatibility helper for checking selected components
+             */
+            hasSelectedComponents() {
+                return this.appInstance &&
+                    this.appInstance.canvasSelectionManager &&
+                    this.appInstance.canvasSelectionManager.selectedComponents &&
+                    this.appInstance.canvasSelectionManager.selectedComponents.size > 0;
+            }
+        }
+
+        // Register custom element
+        if (!customElements.get('hmi-integration')) {
+            customElements.define('hmi-integration', HmiIntegrationComponent);
+        }
+
+        /**
+         * Integration function for legacy compatibility
+         * @param {Object} appInstance - The Digital Twin app instance
+         */
+        window.integrateHMIWithApp = async function (appInstance) {
+            console.info('🔄 Using modular HMI integration...');
+
+            // Get or create HMI integration component
+            let hmiIntegration = document.querySelector('hmi-integration');
+
+            if (!hmiIntegration) {
+                hmiIntegration = document.createElement('hmi-integration');
+                document.body.appendChild(hmiIntegration);
+
+                // Wait for component to be initialized
+                await new Promise(resolve => {
+                    hmiIntegration.addEventListener('hmi-integration-ready', resolve, {once: true});
+                });
+            }
+
+            // Initialize HMI with app instance
+            return await hmiIntegration.initialize(appInstance);
+        };
+    </script>
+</template>

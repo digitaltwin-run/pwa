@@ -1,0 +1,502 @@
+<!-- Error Detector Orchestrator Module - Coordinates all error detection modules -->
+<template id="error-detector-template">
+    <style scoped>
+        .error-detector-orchestrator {
+            display: none;
+        }
+    </style>
+
+    <script>
+        class ErrorDetector extends ModuleBase {
+            constructor() {
+                super();
+                this.modules = new Map();
+                this.isInitialized = false;
+                this.config = {
+                    autoStart: true,
+                    uiEnabled: true,
+                    performanceMonitoring: true,
+                    periodicChecks: true,
+                    checkInterval: 30000, // 30 seconds
+                    maxErrors: 100,
+                    maxWarnings: 200
+                };
+
+                console.log('🔍 Error Detector Orchestrator initialized');
+            }
+
+            async init() {
+                await super.init();
+
+                // Load configuration from localStorage if available
+                this.loadConfiguration();
+
+                // Initialize all modules in proper order
+                await this.initializeModules();
+
+                // Setup inter-module communication
+                this.setupModuleCommunication();
+
+                // Auto-start if configured
+                if (this.config.autoStart) {
+                    await this.start();
+                }
+
+                this.isInitialized = true;
+                console.log('✅ Error Detector Orchestrator ready');
+            }
+
+            /**
+             * Load configuration from localStorage or use defaults
+             */
+            loadConfiguration() {
+                try {
+                    const savedConfig = localStorage.getItem('error-detector-config');
+                    if (savedConfig) {
+                        this.config = {...this.config, ...JSON.parse(savedConfig)};
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Failed to load error detector config:', error);
+                }
+            }
+
+            /**
+             * Save configuration to localStorage
+             */
+            saveConfiguration() {
+                try {
+                    localStorage.setItem('error-detector-config', JSON.stringify(this.config));
+                } catch (error) {
+                    console.warn('⚠️ Failed to save error detector config:', error);
+                }
+            }
+
+            /**
+             * Initialize all error detector modules
+             */
+            async initializeModules() {
+                const moduleNames = [
+                    'error-detector-core',
+                    'error-detector-checks',
+                    'error-detector-performance',
+                    'error-detector-ui'
+                ];
+
+                console.log('🔧 Initializing error detector modules...');
+
+                for (const moduleName of moduleNames) {
+                    try {
+                        const moduleInstance = await this.loadModule(moduleName);
+                        if (moduleInstance) {
+                            this.modules.set(moduleName, moduleInstance);
+                            console.log(`✅ ${moduleName} loaded`);
+                        } else {
+                            console.warn(`⚠️ Failed to load ${moduleName}`);
+                        }
+                    } catch (error) {
+                        console.error(`❌ Error loading ${moduleName}:`, error);
+                    }
+                }
+
+                console.log(`🔍 Loaded ${this.modules.size}/${moduleNames.length} error detector modules`);
+            }
+
+            /**
+             * Load a specific module
+             */
+            async loadModule(moduleName) {
+                return new Promise((resolve) => {
+                    let attempts = 0;
+                    const maxAttempts = 50; // 5 seconds with 100ms intervals
+
+                    const checkModule = () => {
+                        attempts++;
+                        const moduleInstance = window.moduleRegistry?.get(moduleName);
+
+                        if (moduleInstance) {
+                            resolve(moduleInstance);
+                        } else if (attempts >= maxAttempts) {
+                            console.warn(`⚠️ Module ${moduleName} not found after ${maxAttempts} attempts`);
+                            resolve(null);
+                        } else {
+                            setTimeout(checkModule, 100);
+                        }
+                    };
+
+                    checkModule();
+                });
+            }
+
+            /**
+             * Setup communication between modules
+             */
+            setupModuleCommunication() {
+                const core = this.modules.get('error-detector-core');
+                const checks = this.modules.get('error-detector-checks');
+                const performance = this.modules.get('error-detector-performance');
+                const ui = this.modules.get('error-detector-ui');
+
+                // Core module events
+                if (core) {
+                    core.addEventListener('scan-completed', (event) => {
+                        this.handleScanCompleted(event.detail);
+                    });
+
+                    core.addEventListener('error-added', (event) => {
+                        this.handleError(event.detail);
+                    });
+
+                    core.addEventListener('warning-added', (event) => {
+                        this.handleWarning(event.detail);
+                    });
+                }
+
+                // Performance monitoring events
+                if (performance) {
+                    performance.addEventListener('performance-issue', (event) => {
+                        this.handlePerformanceIssue(event.detail);
+                    });
+
+                    performance.addEventListener('memory-warning', (event) => {
+                        this.handleMemoryWarning(event.detail);
+                    });
+                }
+
+                // Cross-module configuration sharing
+                this.shareConfiguration();
+            }
+
+            /**
+             * Share configuration with all modules
+             */
+            shareConfiguration() {
+                const config = {
+                    maxErrors: this.config.maxErrors,
+                    maxWarnings: this.config.maxWarnings,
+                    checkInterval: this.config.checkInterval,
+                    performanceMonitoring: this.config.performanceMonitoring
+                };
+
+                this.modules.forEach((module, name) => {
+                    if (typeof module.updateConfig === 'function') {
+                        module.updateConfig(config);
+                    }
+                });
+            }
+
+            /**
+             * Start error detection system
+             */
+            async start() {
+                console.log('🚀 Starting error detection system...');
+
+                const core = this.modules.get('error-detector-core');
+                const performance = this.modules.get('error-detector-performance');
+
+                // Start core monitoring
+                if (core && typeof core.startMonitoring === 'function') {
+                    await core.startMonitoring();
+                }
+
+                // Start performance monitoring if enabled
+                if (performance && this.config.performanceMonitoring &&
+                    typeof performance.startMonitoring === 'function') {
+                    await performance.startMonitoring();
+                }
+
+                // Run initial scan
+                await this.runFullScan();
+
+                console.log('✅ Error detection system started');
+            }
+
+            /**
+             * Stop error detection system
+             */
+            async stop() {
+                console.log('🛑 Stopping error detection system...');
+
+                const core = this.modules.get('error-detector-core');
+                const performance = this.modules.get('error-detector-performance');
+
+                // Stop core monitoring
+                if (core && typeof core.stopMonitoring === 'function') {
+                    await core.stopMonitoring();
+                }
+
+                // Stop performance monitoring
+                if (performance && typeof performance.stopMonitoring === 'function') {
+                    await performance.stopMonitoring();
+                }
+
+                console.log('✅ Error detection system stopped');
+            }
+
+            /**
+             * Run full system scan
+             */
+            async runFullScan() {
+                console.log('🔍 Running full system scan...');
+
+                const core = this.modules.get('error-detector-core');
+                if (!core || typeof core.runFullScan !== 'function') {
+                    console.warn('⚠️ Core module not available for full scan');
+                    return null;
+                }
+
+                try {
+                    const results = await core.runFullScan();
+
+                    // Broadcast scan results
+                    this.dispatchEvent(new CustomEvent('full-scan-completed', {
+                        detail: results
+                    }));
+
+                    return results;
+                } catch (error) {
+                    console.error('❌ Full scan failed:', error);
+                    return null;
+                }
+            }
+
+            /**
+             * Handle scan completion
+             */
+            handleScanCompleted(results) {
+                console.log('📊 Scan completed:', results);
+
+                // Emit global event for other parts of the system
+                document.dispatchEvent(new CustomEvent('error-detector-scan-completed', {
+                    detail: results
+                }));
+            }
+
+            /**
+             * Handle new error
+             */
+            handleError(errorData) {
+                console.error('❌ Error detected:', errorData);
+
+                // Emit global event
+                document.dispatchEvent(new CustomEvent('error-detector-error', {
+                    detail: errorData
+                }));
+
+                // Check if error limit reached
+                const core = this.modules.get('error-detector-core');
+                if (core) {
+                    const status = core.getStatus();
+                    if (status.totalErrors >= this.config.maxErrors) {
+                        console.warn('⚠️ Maximum error limit reached');
+                        this.handleErrorLimitReached();
+                    }
+                }
+            }
+
+            /**
+             * Handle new warning
+             */
+            handleWarning(warningData) {
+                console.warn('⚠️ Warning detected:', warningData);
+
+                // Emit global event
+                document.dispatchEvent(new CustomEvent('error-detector-warning', {
+                    detail: warningData
+                }));
+
+                // Check if warning limit reached
+                const core = this.modules.get('error-detector-core');
+                if (core) {
+                    const status = core.getStatus();
+                    if (status.totalWarnings >= this.config.maxWarnings) {
+                        console.warn('⚠️ Maximum warning limit reached');
+                        this.handleWarningLimitReached();
+                    }
+                }
+            }
+
+            /**
+             * Handle performance issues
+             */
+            handlePerformanceIssue(issueData) {
+                console.warn('🐌 Performance issue detected:', issueData);
+
+                // Add as warning to core
+                const core = this.modules.get('error-detector-core');
+                if (core && typeof core.addWarning === 'function') {
+                    core.addWarning({
+                        title: 'Problem wydajności',
+                        description: issueData.description || 'Wykryto problem z wydajnością',
+                        source: 'performance-monitor',
+                        data: issueData
+                    });
+                }
+            }
+
+            /**
+             * Handle memory warnings
+             */
+            handleMemoryWarning(warningData) {
+                console.warn('🧠 Memory warning:', warningData);
+
+                // Add as warning to core
+                const core = this.modules.get('error-detector-core');
+                if (core && typeof core.addWarning === 'function') {
+                    core.addWarning({
+                        title: 'Ostrzeżenie pamięci',
+                        description: warningData.description || 'Wykryto problem z pamięcią',
+                        source: 'memory-monitor',
+                        data: warningData
+                    });
+                }
+            }
+
+            /**
+             * Handle error limit reached
+             */
+            handleErrorLimitReached() {
+                console.error('🚨 Error limit reached - considering stopping monitoring');
+
+                // Emit global event
+                document.dispatchEvent(new CustomEvent('error-detector-limit-reached', {
+                    detail: {type: 'errors', limit: this.config.maxErrors}
+                }));
+            }
+
+            /**
+             * Handle warning limit reached
+             */
+            handleWarningLimitReached() {
+                console.warn('⚠️ Warning limit reached - clearing old warnings');
+
+                // Clear old warnings to make room for new ones
+                const core = this.modules.get('error-detector-core');
+                if (core && typeof core.clearOldWarnings === 'function') {
+                    core.clearOldWarnings(Math.floor(this.config.maxWarnings * 0.5));
+                }
+            }
+
+            /**
+             * Get current system status
+             */
+            getStatus() {
+                const core = this.modules.get('error-detector-core');
+                const performance = this.modules.get('error-detector-performance');
+
+                const baseStatus = {
+                    initialized: this.isInitialized,
+                    modulesLoaded: this.modules.size,
+                    config: this.config
+                };
+
+                if (core && typeof core.getStatus === 'function') {
+                    Object.assign(baseStatus, core.getStatus());
+                }
+
+                if (performance && typeof performance.getStatus === 'function') {
+                    baseStatus.performance = performance.getStatus();
+                }
+
+                return baseStatus;
+            }
+
+            /**
+             * Update configuration
+             */
+            updateConfig(newConfig) {
+                this.config = {...this.config, ...newConfig};
+                this.saveConfiguration();
+                this.shareConfiguration();
+
+                console.log('🔧 Error detector configuration updated:', newConfig);
+            }
+
+            /**
+             * Get specific module
+             */
+            getModule(name) {
+                return this.modules.get(name);
+            }
+
+            /**
+             * Clear all errors and warnings
+             */
+            clearAll() {
+                const core = this.modules.get('error-detector-core');
+                if (core && typeof core.clearAll === 'function') {
+                    core.clearAll();
+                }
+
+                console.log('🧹 All errors and warnings cleared');
+            }
+
+            /**
+             * Get health score (0-100)
+             */
+            getHealthScore() {
+                const status = this.getStatus();
+
+                if (!status.totalErrors && !status.totalWarnings) {
+                    return 100;
+                }
+
+                // Calculate health based on errors and warnings
+                const errorPenalty = (status.totalErrors || 0) * 10;
+                const warningPenalty = (status.totalWarnings || 0) * 2;
+
+                return Math.max(0, 100 - errorPenalty - warningPenalty);
+            }
+
+            /**
+             * Export diagnostic report
+             */
+            exportReport() {
+                const status = this.getStatus();
+                const core = this.modules.get('error-detector-core');
+
+                const report = {
+                    timestamp: new Date().toISOString(),
+                    status: status,
+                    health: this.getHealthScore(),
+                    errors: core ? core.getErrors() : [],
+                    warnings: core ? core.getWarnings() : [],
+                    config: this.config
+                };
+
+                return report;
+            }
+
+            /**
+             * Public API for external access
+             */
+            getAPI() {
+                return {
+                    start: () => this.start(),
+                    stop: () => this.stop(),
+                    runScan: () => this.runFullScan(),
+                    getStatus: () => this.getStatus(),
+                    getHealthScore: () => this.getHealthScore(),
+                    clearAll: () => this.clearAll(),
+                    updateConfig: (config) => this.updateConfig(config),
+                    exportReport: () => this.exportReport(),
+                    getModule: (name) => this.getModule(name)
+                };
+            }
+        }
+
+        // Register module and expose global API
+        registerModule('error-detector', ErrorDetector);
+
+        // Make error detector available globally for debugging
+        window.errorDetector = null;
+
+        // Initialize when module registry is ready
+        document.addEventListener('modules-loaded', () => {
+            const errorDetector = window.moduleRegistry?.get('error-detector');
+            if (errorDetector) {
+                window.errorDetector = errorDetector.getAPI();
+                console.log('🌐 Error Detector API available globally as window.errorDetector');
+            }
+        });
+    </script>
+</template>

@@ -1,0 +1,357 @@
+  <!-- service-worker-manager.html -->
+  <template id="service-worker-manager-template">
+    <div class="service-worker-manager" style="display: none;">
+      <!-- Hidden service worker manager -->
+    </div>
+  
+    <style>
+      .service-worker-manager {
+        display: none;
+      }
+    </style>
+  
+    <script type="module">
+      import { ModuleBase } from '../base/module-base.js';
+      import pwaConfig from '../../config/pwa-config.js';
+  
+      /**
+       * Service Worker Manager Module
+       * Handles service worker registration and lifecycle
+       */
+      class ServiceWorkerManager extends ModuleBase {
+        constructor() {
+          super();
+          this.template = document.currentScript.parentElement;
+          this.isRegistered = false;
+          this.registration = null;
+          this.init();
+        }
+  
+        async init() {
+          console.log('📱 Service Worker Manager initializing...');
+  
+          // Wait for managers to be ready
+          await this.waitForManagersReady();
+  
+          // Register service worker
+          await this.registerServiceWorker();
+  
+          // Make globally available
+          window.serviceWorkerManager = this;
+  
+          console.log('✅ Service Worker Manager initialized');
+        }
+  
+        async waitForManagersReady() {
+          return new Promise((resolve) => {
+            if (window.managersOrchestrator?.isReady()) {
+              resolve();
+              return;
+            }
+  
+            const handleManagersReady = () => {
+              document.removeEventListener('managers-ready', handleManagersReady);
+              resolve();
+            };
+  
+            document.addEventListener('managers-ready', handleManagersReady);
+  
+            // Fallback timeout
+            setTimeout(() => {
+              document.removeEventListener('managers-ready', handleManagersReady);
+              resolve();
+            }, 5000);
+          });
+        }
+  
+        async registerServiceWorker() {
+          if (!('serviceWorker' in navigator)) {
+            console.warn('📱 Service workers are not supported in this browser');
+            return;
+          }
+  
+          try {
+            // Check configuration
+            if (!this.shouldEnableServiceWorker()) {
+              console.log('📱 Service Worker disabled in configuration');
+              await this.unregisterExistingServiceWorkers();
+              return;
+            }
+  
+            // Check protocol requirement
+            if (!this.isSecureContext()) {
+              console.warn('📱 Service Worker registration skipped: must be served over HTTPS in production');
+              return;
+            }
+  
+            // Register service worker
+            this.registration = await navigator.serviceWorker.register('/service-worker.js');
+            this.isRegistered = true;
+  
+            console.log('✅ Service Worker registered successfully:', this.registration.scope);
+  
+            // Setup service worker event listeners
+            this.setupServiceWorkerEvents();
+  
+            // Notify other systems
+            this.notifyHMI('service-worker-registered', {
+              registration: this.registration
+            });
+  
+          } catch (error) {
+            console.error('❌ Service Worker registration failed:', error);
+            this.notifyHMI('service-worker-registration-failed', { error });
+          }
+        }
+  
+        shouldEnableServiceWorker() {
+          // Check PWA config
+          if (!pwaConfig.enableServiceWorker) {
+            return false;
+          }
+  
+          // Check config manager if available
+          if (window.configManager) {
+            return window.configManager.shouldEnableServiceWorker();
+          }
+  
+          // Check app core config
+          if (window.appCore) {
+            const swEnabled = window.appCore.getConfig('features.enableServiceWorker');
+            return swEnabled !== false;
+          }
+  
+          // Default to enabled
+          return true;
+        }
+  
+        isSecureContext() {
+          const isDev = this.isDevelopmentMode();
+          const isSecure = window.location.protocol === 'https:' || isDev;
+          return isSecure;
+        }
+  
+        isDevelopmentMode() {
+          return window.location.hostname === 'localhost' || 
+                 window.location.hostname === '127.0.0.1' ||
+                 window.location.hostname.startsWith('192.168.') ||
+                 window.location.hostname.endsWith('.local');
+        }
+  
+        async unregisterExistingServiceWorkers() {
+          try {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            
+            for (let registration of registrations) {
+              console.log('📱 Unregistering existing service worker:', registration.scope);
+              await registration.unregister();
+            }
+  
+            if (registrations.length > 0) {
+              console.log('✅ All existing service workers unregistered');
+            }
+          } catch (error) {
+            console.error('❌ Failed to unregister existing service workers:', error);
+          }
+        }
+  
+        setupServiceWorkerEvents() {
+          if (!this.registration) return;
+  
+          // Handle service worker updates
+          this.registration.addEventListener('updatefound', () => {
+            console.log('📱 Service Worker update found');
+            const newWorker = this.registration.installing;
+            
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('📱 New Service Worker available');
+                  this.handleServiceWorkerUpdate(newWorker);
+                }
+              });
+            }
+          });
+  
+          // Listen for messages from service worker
+          navigator.serviceWorker.addEventListener('message', (event) => {
+            console.log('📱 Message from Service Worker:', event.data);
+            this.handleServiceWorkerMessage(event.data);
+          });
+  
+          // Handle service worker controller changes
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            console.log('📱 Service Worker controller changed');
+            this.handleControllerChange();
+          });
+        }
+  
+        handleServiceWorkerUpdate(newWorker) {
+          // Notify user about update availability
+          this.notifyHMI('service-worker-update-available', {
+            newWorker: newWorker
+          });
+  
+          // You could show a notification to the user here
+          console.log('🔄 Service Worker update available. New version will be used on next page load.');
+        }
+  
+        handleServiceWorkerMessage(data) {
+          switch (data.type) {
+            case 'CACHE_UPDATED':
+              console.log('📱 Service Worker cache updated:', data.payload);
+              break;
+            case 'OFFLINE_READY':
+              console.log('📱 App ready for offline use');
+              this.notifyHMI('app-offline-ready', {});
+              break;
+            case 'SYNC_BACKGROUND':
+              console.log('📱 Background sync completed:', data.payload);
+              break;
+            default:
+              console.log('📱 Unknown service worker message:', data);
+          }
+        }
+  
+        handleControllerChange() {
+          // Page will be reloaded to use new service worker
+          console.log('📱 Service Worker controller changed - reloading page');
+          window.location.reload();
+        }
+  
+        // Public API methods
+  
+        async updateServiceWorker() {
+          if (!this.registration) {
+            console.warn('📱 No service worker registration found');
+            return;
+          }
+  
+          try {
+            await this.registration.update();
+            console.log('✅ Service Worker update check completed');
+          } catch (error) {
+            console.error('❌ Service Worker update failed:', error);
+          }
+        }
+  
+        async skipWaiting() {
+          if (!this.registration || !this.registration.waiting) {
+            console.warn('📱 No waiting service worker found');
+            return;
+          }
+  
+          // Send skip waiting message to service worker
+          this.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+          console.log('📱 Skip waiting message sent to service worker');
+        }
+  
+        async unregister() {
+          if (!this.registration) {
+            console.warn('📱 No service worker registration to unregister');
+            return;
+          }
+  
+          try {
+            await this.registration.unregister();
+            this.isRegistered = false;
+            this.registration = null;
+            console.log('✅ Service Worker unregistered successfully');
+            
+            this.notifyHMI('service-worker-unregistered', {});
+          } catch (error) {
+            console.error('❌ Service Worker unregistration failed:', error);
+          }
+        }
+  
+        getRegistrationInfo() {
+          if (!this.registration) {
+            return { registered: false };
+          }
+  
+          return {
+            registered: this.isRegistered,
+            scope: this.registration.scope,
+            updateViaCache: this.registration.updateViaCache,
+            installing: !!this.registration.installing,
+            waiting: !!this.registration.waiting,
+            active: !!this.registration.active
+          };
+        }
+  
+        async getCacheInfo() {
+          if (!('caches' in window)) {
+            return { supported: false };
+          }
+  
+          try {
+            const cacheNames = await caches.keys();
+            const cacheInfo = [];
+  
+            for (const cacheName of cacheNames) {
+              const cache = await caches.open(cacheName);
+              const keys = await cache.keys();
+              
+              cacheInfo.push({
+                name: cacheName,
+                entryCount: keys.length,
+                entries: keys.slice(0, 10).map(request => request.url) // First 10 entries
+              });
+            }
+  
+            return {
+              supported: true,
+              caches: cacheInfo
+            };
+          } catch (error) {
+            console.error('❌ Failed to get cache info:', error);
+            return { supported: true, error: error.message };
+          }
+        }
+  
+        async clearCaches() {
+          if (!('caches' in window)) {
+            console.warn('📱 Cache API not supported');
+            return;
+          }
+  
+          try {
+            const cacheNames = await caches.keys();
+            
+            await Promise.all(
+              cacheNames.map(cacheName => caches.delete(cacheName))
+            );
+  
+            console.log('✅ All caches cleared');
+            this.notifyHMI('caches-cleared', { clearedCaches: cacheNames });
+          } catch (error) {
+            console.error('❌ Failed to clear caches:', error);
+          }
+        }
+  
+        isRegistered() {
+          return this.isRegistered;
+        }
+  
+        getRegistration() {
+          return this.registration;
+        }
+      }
+  
+      // Auto-initialize when managers are ready
+      document.addEventListener('managers-ready', () => {
+        new ServiceWorkerManager();
+      });
+  
+      // Fallback initialization
+      setTimeout(() => {
+        if (!window.serviceWorkerManager) {
+          new ServiceWorkerManager();
+        }
+      }, 3000);
+  
+      // Export class
+      window.ServiceWorkerManager = ServiceWorkerManager;
+    </script>
+  </template>
+  

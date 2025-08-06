@@ -1,0 +1,439 @@
+<!-- Error Detector Core Module - Main monitoring and error management -->
+<template id="error-detector-core-template">
+    <div class="error-detector-core">
+        <!-- Core error detection logic - no visible UI -->
+    </div>
+
+    <style scoped>
+        .error-detector-core {
+            display: none; /* Core module - no visible UI */
+        }
+    </style>
+
+    <script>
+        class ErrorDetectorCore extends ModuleBase {
+            constructor() {
+                super();
+                this.errors = [];
+                this.warnings = [];
+                this.isMonitoring = false;
+                this.checkInterval = 5000; // 5 seconds
+                this.intervalId = null;
+                this.mutationObserver = null;
+                this.errorChecks = null;
+                this.performanceMonitor = null;
+
+                console.log('🔍 Error Detector Core initialized');
+            }
+
+            async init() {
+                await super.init();
+
+                // Wait for other error detector modules
+                this.waitForModule('error-detector-checks').then(checks => {
+                    this.errorChecks = checks;
+                });
+
+                this.waitForModule('error-detector-performance').then(performance => {
+                    this.performanceMonitor = performance;
+                });
+
+                // Auto-start in development mode
+                if (this.isDevelopmentMode()) {
+                    this.scheduleAutoStart();
+                }
+
+                console.log('✅ Error Detector Core ready');
+            }
+
+            /**
+             * 🚀 Start automatic monitoring
+             */
+            startMonitoring() {
+                if (this.isMonitoring) {
+                    console.log('🔍 Error monitoring already running');
+                    return;
+                }
+
+                this.isMonitoring = true;
+                console.log('🔍 Error monitoring started...');
+
+                // Initial scan
+                this.runFullScan();
+
+                // Setup periodic checks
+                this.intervalId = setInterval(() => {
+                    this.runPeriodicChecks();
+                }, this.checkInterval);
+
+                // Setup DOM mutation observer
+                this.setupMutationObserver();
+
+                // Setup global error handlers
+                this.setupGlobalErrorHandlers();
+
+                // Emit monitoring started event
+                this.emit('monitoring-started');
+            }
+
+            /**
+             * ⏹️ Stop monitoring
+             */
+            stopMonitoring() {
+                if (!this.isMonitoring) return;
+
+                this.isMonitoring = false;
+
+                if (this.intervalId) {
+                    clearInterval(this.intervalId);
+                    this.intervalId = null;
+                }
+
+                if (this.mutationObserver) {
+                    this.mutationObserver.disconnect();
+                    this.mutationObserver = null;
+                }
+
+                console.log('⏹️ Error monitoring stopped');
+
+                // Emit monitoring stopped event
+                this.emit('monitoring-stopped');
+            }
+
+            /**
+             * 🔍 Run comprehensive system scan
+             */
+            async runFullScan() {
+                console.log('🔍 Running full system scan...');
+
+                const results = {
+                    timestamp: new Date().toISOString(),
+                    errors: [],
+                    warnings: [],
+                    checks: []
+                };
+
+                // Wait for checks module to be available
+                if (!this.errorChecks) {
+                    await this.waitForModule('error-detector-checks');
+                    this.errorChecks = window.moduleRegistry?.get('error-detector-checks');
+                }
+
+                // Run core system checks
+                if (this.errorChecks) {
+                    results.checks.push(await this.errorChecks.checkCanvasAvailability());
+                    results.checks.push(await this.errorChecks.checkComponentManager());
+                    results.checks.push(await this.errorChecks.checkPropertiesManager());
+                    results.checks.push(await this.errorChecks.checkPropertiesMapper());
+                    results.checks.push(await this.errorChecks.checkComponentsOnCanvas());
+                    results.checks.push(await this.errorChecks.checkComponentMapping());
+                    results.checks.push(await this.errorChecks.checkInteractionPanels());
+                    results.checks.push(await this.errorChecks.checkColorManagement());
+                    results.checks.push(await this.errorChecks.checkUIConsistency());
+                    results.checks.push(await this.errorChecks.checkEventListeners());
+                }
+
+                // Run performance checks
+                if (this.performanceMonitor) {
+                    results.checks.push(await this.performanceMonitor.checkPerformanceIssues());
+                }
+
+                // Compile results
+                results.errors = [...this.errors];
+                results.warnings = [...this.warnings];
+
+                const report = this.generateReport(results);
+
+                // Emit scan completed event
+                this.emit('scan-completed', {results, report});
+
+                return results;
+            }
+
+            /**
+             * 🔄 Periodic lightweight checks
+             */
+            async runPeriodicChecks() {
+                if (!this.errorChecks) return;
+
+                // Quick health checks
+                try {
+                    await this.errorChecks.checkComponentMapping();
+                    await this.errorChecks.checkInteractionPanels();
+                    await this.errorChecks.checkUIConsistency();
+
+                    // Emit periodic check completed
+                    this.emit('periodic-check-completed');
+
+                } catch (error) {
+                    this.addError('Periodic Check Failed', `Error during periodic checks: ${error.message}`);
+                }
+            }
+
+            /**
+             * Setup DOM mutation observer
+             */
+            setupMutationObserver() {
+                if (this.mutationObserver) {
+                    this.mutationObserver.disconnect();
+                }
+
+                const observer = new MutationObserver((mutations) => {
+                    let significantChange = false;
+
+                    mutations.forEach(mutation => {
+                        // Check for significant canvas changes
+                        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                            // Check if SVG components were added
+                            Array.from(mutation.addedNodes).forEach(node => {
+                                if (node.nodeType === 1 && node.getAttribute && node.getAttribute('data-id')) {
+                                    significantChange = true;
+                                }
+                            });
+                        }
+
+                        // Check for attribute changes on important elements
+                        if (mutation.type === 'attributes' &&
+                            ['data-id', 'data-svg-url', 'class'].includes(mutation.attributeName)) {
+                            significantChange = true;
+                        }
+                    });
+
+                    if (significantChange) {
+                        console.log('🔄 Significant DOM change detected, running checks...');
+                        setTimeout(() => this.runPeriodicChecks(), 1000);
+                        this.emit('dom-change-detected');
+                    }
+                });
+
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['data-id', 'data-svg-url', 'class']
+                });
+
+                this.mutationObserver = observer;
+                console.log('🔍 DOM mutation observer setup complete');
+            }
+
+            /**
+             * Setup global error handlers
+             */
+            setupGlobalErrorHandlers() {
+                // JavaScript errors
+                window.addEventListener('error', (event) => {
+                    this.addError('JavaScript Error', `${event.message} at ${event.filename}:${event.lineno}`);
+                    this.emit('javascript-error', {event});
+                });
+
+                // Unhandled promise rejections
+                window.addEventListener('unhandledrejection', (event) => {
+                    this.addError('Unhandled Promise Rejection', event.reason?.message || event.reason);
+                    this.emit('promise-rejection', {event});
+                });
+
+                // Console error interception
+                const originalConsoleError = console.error;
+                console.error = (...args) => {
+                    this.addWarning('Console Error', args.join(' '));
+                    originalConsoleError.apply(console, args);
+                };
+
+                console.log('🔍 Global error handlers setup complete');
+            }
+
+            /**
+             * Add error to collection
+             */
+            addError(title, description, metadata = {}) {
+                const error = {
+                    type: 'ERROR',
+                    title,
+                    description,
+                    timestamp: new Date().toISOString(),
+                    stack: new Error().stack,
+                    metadata
+                };
+
+                this.errors.push(error);
+                console.error('🚨 Error detected:', title, '-', description);
+
+                // Emit error added event
+                this.emit('error-added', {error});
+
+                // Limit errors array size to prevent memory issues
+                if (this.errors.length > 100) {
+                    this.errors = this.errors.slice(-50); // Keep last 50
+                }
+            }
+
+            /**
+             * Add warning to collection
+             */
+            addWarning(title, description, metadata = {}) {
+                const warning = {
+                    type: 'WARNING',
+                    title,
+                    description,
+                    timestamp: new Date().toISOString(),
+                    metadata
+                };
+
+                this.warnings.push(warning);
+                console.warn('⚠️ Warning:', title, '-', description);
+
+                // Emit warning added event
+                this.emit('warning-added', {warning});
+
+                // Limit warnings array size
+                if (this.warnings.length > 100) {
+                    this.warnings = this.warnings.slice(-50); // Keep last 50
+                }
+            }
+
+            /**
+             * Generate comprehensive report
+             */
+            generateReport(results) {
+                const report = {
+                    ...results,
+                    summary: {
+                        totalChecks: results.checks.length,
+                        passed: results.checks.filter(c => c.status === 'PASS').length,
+                        failed: results.checks.filter(c => c.status === 'FAIL').length,
+                        warnings: results.checks.filter(c => c.status === 'WARN').length,
+                        skipped: results.checks.filter(c => c.status === 'SKIP').length
+                    },
+                    health: this.calculateHealthScore(results)
+                };
+
+                console.log('📊 Error Detection Report:', report);
+
+                // Store report globally for access
+                window.errorDetectionReport = report;
+
+                // Emit report generated event
+                this.emit('report-generated', {report});
+
+                return report;
+            }
+
+            /**
+             * Calculate system health score
+             */
+            calculateHealthScore(results) {
+                const total = results.checks.length;
+                if (total === 0) return 100;
+
+                const passed = results.checks.filter(c => c.status === 'PASS').length;
+                const warnings = results.checks.filter(c => c.status === 'WARN').length;
+                const failed = results.checks.filter(c => c.status === 'FAIL').length;
+
+                // Score calculation: PASS=100%, WARN=70%, FAIL=0%
+                const score = ((passed * 100) + (warnings * 70) + (failed * 0)) / total;
+
+                return Math.round(score);
+            }
+
+            /**
+             * Get current status
+             */
+            getStatus() {
+                return {
+                    isMonitoring: this.isMonitoring,
+                    totalErrors: this.errors.length,
+                    totalWarnings: this.warnings.length,
+                    lastCheck: new Date().toISOString(),
+                    checkInterval: this.checkInterval,
+                    healthScore: this.calculateHealthScore({checks: []})
+                };
+            }
+
+            /**
+             * Clear errors and warnings
+             */
+            clearAll() {
+                this.errors = [];
+                this.warnings = [];
+                console.log('🧹 All errors and warnings cleared');
+                this.emit('cleared');
+            }
+
+            /**
+             * Get all errors
+             */
+            getErrors() {
+                return [...this.errors];
+            }
+
+            /**
+             * Get all warnings
+             */
+            getWarnings() {
+                return [...this.warnings];
+            }
+
+            /**
+             * Check if running in development mode
+             */
+            isDevelopmentMode() {
+                return window.location.hostname === 'localhost' ||
+                    window.location.hostname === '127.0.0.1' ||
+                    window.location.hostname.includes('dev');
+            }
+
+            /**
+             * Schedule auto start for development mode
+             */
+            scheduleAutoStart() {
+                const startErrorDetection = () => {
+                    console.log('🔍 Auto-starting error detection in development mode...');
+                    this.startMonitoring();
+                };
+
+                // If DOM is already loaded, wait a bit more for app initialization
+                if (document.readyState === 'complete') {
+                    setTimeout(startErrorDetection, 1000);
+                } else {
+                    // Wait for window load (after all resources)
+                    window.addEventListener('load', () => {
+                        setTimeout(startErrorDetection, 1000);
+                    });
+                }
+            }
+
+            /**
+             * Set check interval
+             */
+            setCheckInterval(intervalMs) {
+                this.checkInterval = intervalMs;
+
+                // Restart monitoring with new interval if currently monitoring
+                if (this.isMonitoring) {
+                    this.stopMonitoring();
+                    this.startMonitoring();
+                }
+            }
+
+            /**
+             * Wait for module to be available
+             */
+            async waitForModule(moduleName) {
+                return new Promise((resolve) => {
+                    const checkModule = () => {
+                        const moduleInstance = window.moduleRegistry?.get(moduleName);
+                        if (moduleInstance) {
+                            resolve(moduleInstance);
+                        } else {
+                            setTimeout(checkModule, 100);
+                        }
+                    };
+                    checkModule();
+                });
+            }
+        }
+
+        registerModule('error-detector-core', ErrorDetectorCore);
+    </script>
+</template>

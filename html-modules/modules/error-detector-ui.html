@@ -1,0 +1,856 @@
+<!-- Error Detector UI Module - Error reporting interface and visualization -->
+<template id="error-detector-ui-template">
+    <!-- Toggle button -->
+    <button class="toggle-btn" data-toggle-detector title="Detektor błędów">
+        🔍
+    </button>
+
+    <!-- Main error detector panel -->
+    <div class="error-detector-ui" data-detector-panel>
+        <div class="error-detector-header" data-detector-header>
+            <div class="error-detector-title">
+                <span>🔍</span>
+                <span>Detektor błędów</span>
+            </div>
+            <div class="health-score" data-health-score>100%</div>
+            <button class="close-btn" data-close-detector>×</button>
+        </div>
+
+        <div class="error-detector-tabs">
+            <button class="tab active" data-tab="summary">Podsumowanie</button>
+            <button class="tab" data-tab="errors">Błędy</button>
+            <button class="tab" data-tab="checks">Testy</button>
+        </div>
+
+        <div class="error-detector-content">
+            <!-- Summary Tab -->
+            <div class="tab-content active" data-tab-content="summary">
+                <div class="summary-stats" data-summary-stats>
+                    <div class="stat-card errors">
+                        <div class="stat-number" data-errors-count>0</div>
+                        <div class="stat-label">Błędy</div>
+                    </div>
+                    <div class="stat-card warnings">
+                        <div class="stat-number" data-warnings-count>0</div>
+                        <div class="stat-label">Ostrzeżenia</div>
+                    </div>
+                    <div class="stat-card passed">
+                        <div class="stat-number" data-passed-count>0</div>
+                        <div class="stat-label">Zaliczone</div>
+                    </div>
+                    <div class="stat-card failed">
+                        <div class="stat-number" data-failed-count>0</div>
+                        <div class="stat-label">Nie zaliczone</div>
+                    </div>
+                </div>
+
+                <div class="performance-metrics" data-performance-metrics>
+                    <div class="metric-item">
+                        <span class="metric-label">Węzły DOM:</span>
+                        <span class="metric-value" data-metric-dom>-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Pamięć:</span>
+                        <span class="metric-value" data-metric-memory>-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Ostatni skan:</span>
+                        <span class="metric-value" data-metric-last-scan>-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Status:</span>
+                        <span class="metric-value" data-metric-status>-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Errors Tab -->
+            <div class="tab-content" data-tab-content="errors">
+                <div class="error-list" data-errors-list>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✅</div>
+                        <div>Brak błędów i ostrzeżeń</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Checks Tab -->
+            <div class="tab-content" data-tab-content="checks">
+                <div class="error-list" data-checks-list>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <div>Uruchom skan aby zobaczyć wyniki</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" data-run-scan>Uruchom skan</button>
+            <button class="btn btn-secondary" data-clear-all>Wyczyść</button>
+        </div>
+    </div>
+
+    <style scoped>
+        .error-detector-ui {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 400px;
+            max-height: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .error-detector-ui.visible {
+            transform: translateX(0);
+        }
+
+        .error-detector-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+
+        .error-detector-header.healthy {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        }
+
+        .error-detector-header.warning {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+
+        .error-detector-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .health-score {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .error-detector-content {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .error-detector-tabs {
+            display: flex;
+            border-bottom: 1px solid #eee;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: #333;
+            background: #f8f9fa;
+            border-bottom: 2px solid #007bff;
+        }
+
+        .tab-content {
+            padding: 16px;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .stat-card.errors .stat-number {
+            color: #e74c3c;
+        }
+
+        .stat-card.warnings .stat-number {
+            color: #f39c12;
+        }
+
+        .stat-card.passed .stat-number {
+            color: #27ae60;
+        }
+
+        .stat-card.failed .stat-number {
+            color: #e74c3c;
+        }
+
+        .error-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .error-item {
+            padding: 12px;
+            border-left: 4px solid #e74c3c;
+            background: #fdf2f2;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+
+        .warning-item {
+            padding: 12px;
+            border-left: 4px solid #f39c12;
+            background: #fefbf3;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+
+        .error-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .error-description {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .error-timestamp {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .check-item.pass {
+            background: #f0f9f0;
+            color: #27ae60;
+        }
+
+        .check-item.fail {
+            background: #fdf2f2;
+            color: #e74c3c;
+        }
+
+        .check-item.warn {
+            background: #fefbf3;
+            color: #f39c12;
+        }
+
+        .check-item.skip {
+            background: #f8f9fa;
+            color: #666;
+        }
+
+        .check-icon {
+            margin-right: 8px;
+            font-weight: bold;
+        }
+
+        .controls {
+            padding: 16px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .toggle-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .toggle-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .toggle-btn.healthy {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        }
+
+        .toggle-btn.warning {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+
+        .metric-label {
+            color: #666;
+        }
+
+        .metric-value {
+            font-weight: 500;
+        }
+    </style>
+
+    <script>
+        class ErrorDetectorUI extends ModuleBase {
+            constructor() {
+                super();
+                this.errorDetectorCore = null;
+                this.isVisible = false;
+                this.currentTab = 'summary';
+                this.lastReport = null;
+
+                console.log('🖥️ Error Detector UI initialized');
+            }
+
+            async init() {
+                await super.init();
+
+                this.setupEventListeners();
+                this.setupUIHandlers();
+
+                // Wait for error detector core
+                this.waitForModule('error-detector-core').then(core => {
+                    this.errorDetectorCore = core;
+                    this.setupCoreEventListeners();
+                    this.updateUI();
+                });
+
+                console.log('✅ Error Detector UI ready');
+            }
+
+            setupEventListeners() {
+                // Listen to global error detection events
+                document.addEventListener('error-detector-report', (event) => {
+                    this.handleReportUpdate(event.detail);
+                });
+            }
+
+            setupUIHandlers() {
+                // Toggle button
+                this.$('[data-toggle-detector]').addEventListener('click', () => {
+                    this.toggle();
+                });
+
+                // Close button
+                this.$('[data-close-detector]').addEventListener('click', () => {
+                    this.hide();
+                });
+
+                // Tab buttons
+                this.$$('[data-tab]').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        this.switchTab(tab.dataset.tab);
+                    });
+                });
+
+                // Control buttons
+                this.$('[data-run-scan]').addEventListener('click', () => {
+                    this.runScan();
+                });
+
+                this.$('[data-clear-all]').addEventListener('click', () => {
+                    this.clearAll();
+                });
+            }
+
+            setupCoreEventListeners() {
+                if (!this.errorDetectorCore) return;
+
+                // Listen to core events
+                this.errorDetectorCore.addEventListener('scan-completed', (event) => {
+                    this.handleScanCompleted(event.detail);
+                });
+
+                this.errorDetectorCore.addEventListener('error-added', (event) => {
+                    this.handleErrorAdded(event.detail);
+                });
+
+                this.errorDetectorCore.addEventListener('warning-added', (event) => {
+                    this.handleWarningAdded(event.detail);
+                });
+
+                this.errorDetectorCore.addEventListener('monitoring-started', () => {
+                    this.updateMonitoringStatus(true);
+                });
+
+                this.errorDetectorCore.addEventListener('monitoring-stopped', () => {
+                    this.updateMonitoringStatus(false);
+                });
+
+                // Initial status update
+                this.updateUI();
+            }
+
+            /**
+             * Show/hide error detector panel
+             */
+            toggle() {
+                if (this.isVisible) {
+                    this.hide();
+                } else {
+                    this.show();
+                }
+            }
+
+            show() {
+                const panel = this.$('[data-detector-panel]');
+                panel.classList.add('visible');
+                this.isVisible = true;
+
+                // Update UI with latest data
+                this.updateUI();
+            }
+
+            hide() {
+                const panel = this.$('[data-detector-panel]');
+                panel.classList.remove('visible');
+                this.isVisible = false;
+            }
+
+            /**
+             * Switch between tabs
+             */
+            switchTab(tabName) {
+                this.currentTab = tabName;
+
+                // Update tab buttons
+                this.$$('[data-tab]').forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.tab === tabName);
+                });
+
+                // Update tab content
+                this.$$('[data-tab-content]').forEach(content => {
+                    content.classList.toggle('active', content.dataset.tabContent === tabName);
+                });
+            }
+
+            /**
+             * Run full system scan
+             */
+            async runScan() {
+                if (!this.errorDetectorCore) {
+                    console.warn('❌ Error detector core not available');
+                    return;
+                }
+
+                // Show loading state
+                this.$('[data-run-scan]').textContent = 'Skanowanie...';
+                this.$('[data-run-scan]').disabled = true;
+
+                try {
+                    const results = await this.errorDetectorCore.runFullScan();
+                    console.log('✅ Scan completed:', results);
+                } catch (error) {
+                    console.error('❌ Scan failed:', error);
+                } finally {
+                    // Restore button
+                    this.$('[data-run-scan]').textContent = 'Uruchom skan';
+                    this.$('[data-run-scan]').disabled = false;
+                }
+            }
+
+            /**
+             * Clear all errors and warnings
+             */
+            clearAll() {
+                if (!this.errorDetectorCore) return;
+
+                this.errorDetectorCore.clearAll();
+                this.lastReport = null;
+                this.updateUI();
+            }
+
+            /**
+             * Handle scan completion
+             */
+            handleScanCompleted({results, report}) {
+                this.lastReport = report;
+                this.updateUI();
+
+                // Auto-show panel if there are errors
+                if (results.errors.length > 0 && !this.isVisible) {
+                    this.show();
+                }
+            }
+
+            /**
+             * Handle new error
+             */
+            handleErrorAdded({error}) {
+                this.updateUI();
+                this.updateToggleButton();
+            }
+
+            /**
+             * Handle new warning
+             */
+            handleWarningAdded({warning}) {
+                this.updateUI();
+                this.updateToggleButton();
+            }
+
+            /**
+             * Update monitoring status
+             */
+            updateMonitoringStatus(isMonitoring) {
+                const status = this.$('[data-metric-status]');
+                if (status) {
+                    status.textContent = isMonitoring ? 'Aktywny' : 'Nieaktywny';
+                }
+            }
+
+            /**
+             * Update the entire UI
+             */
+            updateUI() {
+                this.updateSummaryStats();
+                this.updateErrorsList();
+                this.updateChecksList();
+                this.updatePerformanceMetrics();
+                this.updateToggleButton();
+                this.updateHeaderStatus();
+            }
+
+            /**
+             * Update summary statistics
+             */
+            updateSummaryStats() {
+                if (!this.errorDetectorCore) return;
+
+                const status = this.errorDetectorCore.getStatus();
+                const report = this.lastReport;
+
+                // Basic counts
+                this.$('[data-errors-count]').textContent = status.totalErrors || 0;
+                this.$('[data-warnings-count]').textContent = status.totalWarnings || 0;
+
+                // Check results counts
+                if (report && report.summary) {
+                    this.$('[data-passed-count]').textContent = report.summary.passed || 0;
+                    this.$('[data-failed-count]').textContent = report.summary.failed || 0;
+                }
+            }
+
+            /**
+             * Update errors and warnings list
+             */
+            updateErrorsList() {
+                const container = this.$('[data-errors-list]');
+                if (!container || !this.errorDetectorCore) return;
+
+                const errors = this.errorDetectorCore.getErrors();
+                const warnings = this.errorDetectorCore.getWarnings();
+                const allIssues = [...errors, ...warnings].sort((a, b) =>
+                    new Date(b.timestamp) - new Date(a.timestamp)
+                );
+
+                container.innerHTML = '';
+
+                if (allIssues.length === 0) {
+                    container.innerHTML = `
+                      <div class="empty-state">
+                          <div class="empty-state-icon">✅</div>
+                          <div>Brak błędów i ostrzeżeń</div>
+                      </div>
+                  `;
+                    return;
+                }
+
+                allIssues.forEach(issue => {
+                    const item = document.createElement('div');
+                    item.className = issue.type === 'ERROR' ? 'error-item' : 'warning-item';
+
+                    const timestamp = new Date(issue.timestamp).toLocaleTimeString('pl-PL');
+
+                    item.innerHTML = `
+                      <div class="error-title">${issue.title}</div>
+                      <div class="error-description">${issue.description}</div>
+                      <div class="error-timestamp">${timestamp}</div>
+                  `;
+
+                    container.appendChild(item);
+                });
+            }
+
+            /**
+             * Update checks list
+             */
+            updateChecksList() {
+                const container = this.$('[data-checks-list]');
+                if (!container || !this.lastReport) return;
+
+                const checks = this.lastReport.checks || [];
+
+                container.innerHTML = '';
+
+                if (checks.length === 0) {
+                    container.innerHTML = `
+                      <div class="empty-state">
+                          <div class="empty-state-icon">🔍</div>
+                          <div>Uruchom skan aby zobaczyć wyniki</div>
+                      </div>
+                  `;
+                    return;
+                }
+
+                checks.forEach(check => {
+                    const item = document.createElement('div');
+                    item.className = `check-item ${check.status.toLowerCase()}`;
+
+                    const icon = this.getStatusIcon(check.status);
+                    const message = check.error || check.warning || 'Sprawdzenie pomyślne';
+
+                    item.innerHTML = `
+                      <span class="check-icon">${icon}</span>
+                      <span>${check.name}: ${message}</span>
+                  `;
+
+                    container.appendChild(item);
+                });
+            }
+
+            /**
+             * Update performance metrics
+             */
+            updatePerformanceMetrics() {
+                if (!this.lastReport || !this.lastReport.metrics) return;
+
+                const metrics = this.lastReport.metrics;
+
+                this.$('[data-metric-dom]').textContent = metrics.domNodes || '-';
+                this.$('[data-metric-memory]').textContent =
+                    metrics.memoryUsage ? `${metrics.memoryUsage.toFixed(1)}MB` : '-';
+
+                if (this.lastReport.timestamp) {
+                    const lastScan = new Date(this.lastReport.timestamp).toLocaleTimeString('pl-PL');
+                    this.$('[data-metric-last-scan]').textContent = lastScan;
+                }
+            }
+
+            /**
+             * Update toggle button appearance
+             */
+            updateToggleButton() {
+                const toggleBtn = this.$('[data-toggle-detector]');
+                if (!toggleBtn || !this.errorDetectorCore) return;
+
+                const status = this.errorDetectorCore.getStatus();
+                const healthScore = this.getHealthScore();
+
+                toggleBtn.className = 'toggle-btn';
+
+                if (status.totalErrors > 0) {
+                    toggleBtn.classList.add('error');
+                    toggleBtn.title = `Detektor błędów (${status.totalErrors} błędów)`;
+                } else if (status.totalWarnings > 0) {
+                    toggleBtn.classList.add('warning');
+                    toggleBtn.title = `Detektor błędów (${status.totalWarnings} ostrzeżeń)`;
+                } else {
+                    toggleBtn.classList.add('healthy');
+                    toggleBtn.title = 'Detektor błędów (brak problemów)';
+                }
+            }
+
+            /**
+             * Update header status
+             */
+            updateHeaderStatus() {
+                const header = this.$('[data-detector-header]');
+                const healthScore = this.$('[data-health-score]');
+
+                if (!header || !healthScore) return;
+
+                const score = this.getHealthScore();
+                healthScore.textContent = `${score}%`;
+
+                header.className = 'error-detector-header';
+
+                if (score >= 90) {
+                    header.classList.add('healthy');
+                } else if (score >= 70) {
+                    header.classList.add('warning');
+                }
+                // Default (error) class if score < 70
+            }
+
+            /**
+             * Get system health score
+             */
+            getHealthScore() {
+                if (!this.lastReport || !this.lastReport.health) {
+                    return this.errorDetectorCore ?
+                        (this.errorDetectorCore.getStatus().totalErrors > 0 ? 70 : 100) : 100;
+                }
+                return this.lastReport.health;
+            }
+
+            /**
+             * Get status icon for check result
+             */
+            getStatusIcon(status) {
+                switch (status) {
+                    case 'PASS':
+                        return '✅';
+                    case 'FAIL':
+                        return '❌';
+                    case 'WARN':
+                        return '⚠️';
+                    case 'SKIP':
+                        return '⏭️';
+                    default:
+                        return '❓';
+                }
+            }
+
+            /**
+             * Get current UI status
+             */
+            getStatus() {
+                return {
+                    visible: this.isVisible,
+                    currentTab: this.currentTab,
+                    healthScore: this.getHealthScore(),
+                    hasReport: !!this.lastReport
+                };
+            }
+
+            /**
+             * Wait for module to be available
+             */
+            async waitForModule(moduleName) {
+                return new Promise((resolve) => {
+                    const checkModule = () => {
+                        const moduleInstance = window.moduleRegistry?.get(moduleName);
+                        if (moduleInstance) {
+                            resolve(moduleInstance);
+                        } else {
+                            setTimeout(checkModule, 100);
+                        }
+                    };
+                    checkModule();
+                });
+            }
+        }
+
+        registerModule('error-detector-ui', ErrorDetectorUI);
+    </script>
+</template>

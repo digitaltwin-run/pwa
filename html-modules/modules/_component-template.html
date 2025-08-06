@@ -20,11 +20,14 @@
   </style>
 
   <script type="module">
-    class [ComponentName] extends HTMLElement {
+    import { ModuleBase, registerModule } from '../base/module-base.js';
+    
+    class [ComponentName] extends ModuleBase {
       constructor() {
         super();
-        this.attachShadow({ mode: 'open' });
-        this.shadowRoot.appendChild(
+        this.template = document.currentScript.parentElement;
+        this.shadow = this.attachShadow({ mode: 'open' });
+        this.shadow.appendChild(
           document.getElementById('[component-name]-template')
             .content.cloneNode(true)
         );
@@ -49,22 +52,19 @@
       }
       
       render() {
-        // Rendering logic
+        // Render logic
       }
       
-      // Lifecycle callbacks
       connectedCallback() {
         console.log('[ComponentName] Component connected');
       }
       
       disconnectedCallback() {
-        // Cleanup
+        // Cleanup logic
       }
     }
     
     // Register the component
-    if (!customElements.get('[component-name]')) {
-      customElements.define('[component-name]', [ComponentName]);
-    }
+    registerModule('[component-name]', [ComponentName]);
   </script>
 </template>

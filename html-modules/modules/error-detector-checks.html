@@ -1,0 +1,465 @@
+  <!-- Error Detector Checks Module - System-specific diagnostic tests -->
+  <template id="error-detector-checks-template">
+    <div class="error-detector-checks">
+          <!-- System checks logic - no visible UI -->
+      </div>
+
+    <style scoped>
+          .error-detector-checks {
+              display: none; /* Core module - no visible UI */
+          }
+      </style>
+
+    <script>
+      class ErrorDetectorChecks extends ModuleBase {
+          constructor() {
+              super();
+              this.errorDetectorCore = null;
+
+              console.log('🔍 Error Detector Checks initialized');
+          }
+
+          async init() {
+              await super.init();
+
+              // Wait for error detector core
+              this.waitForModule('error-detector-core').then(core => {
+                  this.errorDetectorCore = core;
+              });
+
+              console.log('✅ Error Detector Checks ready');
+          }
+
+          /**
+           * ✅ Check if canvas is available and functioning
+           */
+          async checkCanvasAvailability() {
+              try {
+                  const canvas = document.getElementById('svg-canvas');
+
+                  if (!canvas) {
+                      this.addError('Canvas not found', 'SVG canvas element is missing');
+                      return { name: 'Canvas Availability', status: 'FAIL', error: 'Canvas not found' };
+                  }
+
+                  if (!canvas.querySelector) {
+                      this.addError('Canvas malformed', 'Canvas element lacks querySelector method');
+                      return { name: 'Canvas Availability', status: 'FAIL', error: 'Canvas malformed' };
+                  }
+
+                  // Check canvas basic properties
+                  const canvasRect = canvas.getBoundingClientRect();
+                  if (canvasRect.width === 0 || canvasRect.height === 0) {
+                      this.addWarning('Canvas invisible', 'Canvas has zero dimensions');
+                      return { name: 'Canvas Availability', status: 'WARN', warning: 'Canvas invisible' };
+                  }
+
+                  return { name: 'Canvas Availability', status: 'PASS' };
+
+              } catch (error) {
+                  this.addError('Canvas check failed', `Error checking canvas: ${error.message}`);
+                  return { name: 'Canvas Availability', status: 'FAIL', error: error.message };
+              }
+          }
+
+          /**
+           * 🧩 Check component manager functionality
+           */
+          async checkComponentManager() {
+              try {
+                  const componentManager = window.componentManager;
+
+                  if (!componentManager) {
+                      this.addError('ComponentManager missing', 'Global componentManager not found');
+                      return { name: 'Component Manager', status: 'FAIL', error: 'Not available' };
+                  }
+
+                  // Check essential methods
+                  const requiredMethods = ['getSelectedComponent', 'getAllComponents', 'addComponent'];
+                  const missingMethods = requiredMethods.filter(method =>
+                      typeof componentManager[method] !== 'function'
+                  );
+
+                  if (missingMethods.length > 0) {
+                      this.addError('ComponentManager incomplete', `Missing methods: ${missingMethods.join(', ')}`);
+                      return { name: 'Component Manager', status: 'FAIL', error: 'Missing essential methods' };
+                  }
+
+                  // Test basic functionality
+                  try {
+                      const components = componentManager.getAllComponents();
+                      if (!Array.isArray(components)) {
+                          this.addWarning('ComponentManager data invalid', 'getAllComponents() did not return array');
+                          return { name: 'Component Manager', status: 'WARN', warning: 'Invalid data structure' };
+                      }
+                  } catch (testError) {
+                      this.addError('ComponentManager broken', `Method calls failing: ${testError.message}`);
+                      return { name: 'Component Manager', status: 'FAIL', error: 'Method calls failing' };
+                  }
+
+                  return { name: 'Component Manager', status: 'PASS' };
+
+              } catch (error) {
+                  this.addError('Component Manager check failed', `Error checking component manager: ${error.message}`);
+                  return { name: 'Component Manager', status: 'FAIL', error: error.message };
+              }
+          }
+
+          /**
+           * ⚙️ Check properties manager system
+           */
+          async checkPropertiesManager() {
+              try {
+                  const propertiesManager = window.propertiesManager;
+
+                  if (!propertiesManager) {
+                      this.addError('PropertiesManager missing', 'Global propertiesManager not found');
+                      return { name: 'Properties Manager', status: 'FAIL', error: 'Not available' };
+                  }
+
+                  // Check for properties panel
+                  const propertiesPanel = document.getElementById('properties-panel');
+                  if (!propertiesPanel) {
+                      this.addWarning('Properties panel missing', 'Properties panel DOM element not found');
+                      return { name: 'Properties Manager', status: 'WARN', warning: 'UI panel missing' };
+                  }
+
+                  // Check essential methods
+                  const requiredMethods = ['showProperties', 'hideProperties', 'updateProperties'];
+                  const missingMethods = requiredMethods.filter(method =>
+                      typeof propertiesManager[method] !== 'function'
+                  );
+
+                  if (missingMethods.length > 0) {
+                      this.addWarning('PropertiesManager incomplete', `Missing methods: ${missingMethods.join(', ')}`);
+                      return { name: 'Properties Manager', status: 'WARN', warning: 'Some methods missing' };
+                  }
+
+                  return { name: 'Properties Manager', status: 'PASS' };
+
+              } catch (error) {
+                  this.addError('Properties Manager check failed', `Error checking properties manager: ${error.message}`);
+                  return { name: 'Properties Manager', status: 'FAIL', error: error.message };
+              }
+          }
+
+          /**
+           * 🗺️ Check properties mapper functionality
+           */
+          async checkPropertiesMapper() {
+              try {
+                  const propertiesMapper = window.propertiesMapper;
+
+                  if (!propertiesMapper) {
+                      this.addWarning('PropertiesMapper missing', 'Global propertiesMapper not found');
+                      return { name: 'Properties Mapper', status: 'WARN', warning: 'Not available' };
+                  }
+
+                  // Check essential methods
+                  const requiredMethods = ['extractElementProperties', 'getAvailableTargetComponents'];
+                  const missingMethods = requiredMethods.filter(method =>
+                      typeof propertiesMapper[method] !== 'function'
+                  );
+
+                  if (missingMethods.length > 0) {
+                      this.addWarning('PropertiesMapper incomplete', `Missing methods: ${missingMethods.join(', ')}`);
+                      return { name: 'Properties Mapper', status: 'WARN', warning: 'Some methods missing' };
+                  }
+
+                  return { name: 'Properties Mapper', status: 'PASS' };
+
+              } catch (error) {
+                  this.addError('Properties Mapper check failed', `Error checking properties mapper: ${error.message}`);
+                  return { name: 'Properties Mapper', status: 'FAIL', error: error.message };
+              }
+          }
+
+          /**
+           * 🧩 Check components on canvas
+           */
+          async checkComponentsOnCanvas() {
+              try {
+                  const canvas = document.getElementById('svg-canvas');
+                  if (!canvas) {
+                      return { name: 'Components on Canvas', status: 'SKIP', reason: 'Canvas not available' };
+                  }
+
+                  // Check for various component types
+                  const components = canvas.querySelectorAll('g[data-id], rect, circle, path, polygon');
+                  const componentCount = components.length;
+
+                  // Check for orphaned elements
+                  const orphanedElements = canvas.querySelectorAll('*:not(defs):not(defs *):not(g):not(rect):not(circle):not(path):not(polygon):not(line):not(text):not(image)');
+                  if (orphanedElements.length > 0) {
+                      this.addWarning('Orphaned elements on canvas', `Found ${orphanedElements.length} unexpected elements`);
+                      return { name: 'Components on Canvas', status: 'WARN', warning: 'Orphaned elements found', count: componentCount };
+                  }
+
+                  // Check for components without data-id
+                  const componentsWithoutId = canvas.querySelectorAll('g:not([data-id])');
+                  if (componentsWithoutId.length > 0) {
+                      this.addWarning('Components without ID', `Found ${componentsWithoutId.length} components missing data-id`);
+                      return { name: 'Components on Canvas', status: 'WARN', warning: 'Components missing IDs', count: componentCount };
+                  }
+
+                  return { name: 'Components on Canvas', status: 'PASS', count: componentCount };
+
+              } catch (error) {
+                  this.addError('Components on canvas check failed', `Error checking canvas components: ${error.message}`);
+                  return { name: 'Components on Canvas', status: 'FAIL', error: error.message };
+              }
+          }
+
+          /**
+           * 🗺️ Check component mapping consistency
+           */
+          async checkComponentMapping() {
+              try {
+                  const componentManager = window.componentManager;
+                  if (!componentManager || typeof componentManager.getAllComponents !== 'function') {
+                      return { name: 'Component Mapping', status: 'SKIP', reason: 'ComponentManager not available' };
+                  }
+
+                  const canvas = document.getElementById('svg-canvas');
+                  if (!canvas) {
+                      return { name: 'Component Mapping', status: 'SKIP', reason: 'Canvas not available' };
+                  }
+
+                  // Get components from manager
+                  const managerComponents = componentManager.getAllComponents();
+
+                  // Get components from DOM
+                  const domComponents = canvas.querySelectorAll('g[data-id]');
+
+                  // Check for mismatches
+                  const domIds = Array.from(domComponents).map(el => el.getAttribute('data-id'));
+                  const managerIds = managerComponents.map(comp => comp.id);
+
+                  const orphanedInDOM = domIds.filter(id => !managerIds.includes(id));
+                  const orphanedInManager = managerIds.filter(id => !domIds.includes(id));
+
+                  if (orphanedInDOM.length > 0) {
+                      this.addWarning('Orphaned DOM components', `${orphanedInDOM.length} components in DOM but not in manager`);
+                      return { name: 'Component Mapping', status: 'WARN', warning: 'DOM/Manager mismatch' };
+                  }
+
+                  if (orphanedInManager.length > 0) {
+                      this.addWarning('Orphaned manager components', `${orphanedInManager.length} components in manager but not in DOM`);
+                      return { name: 'Component Mapping', status: 'WARN', warning: 'Manager/DOM mismatch' };
+                  }
+
+                  return { name: 'Component Mapping', status: 'PASS', domCount: domIds.length, managerCount: managerIds.length };
+
+              } catch (error) {
+                  this.addError('Component mapping check failed', `Error checking component mapping: ${error.message}`);
+                  return { name: 'Component Mapping', status: 'FAIL', error: error.message };
+              }
+          }
+
+          /**
+           * 🔗 Check interaction panels for empty selects (SPECIFIC BUG!)
+           */
+          async checkInteractionPanels() {
+              try {
+                  const interactionPanels = document.querySelectorAll('.interaction-config');
+                  let emptySelectsFound = 0;
+                  let totalSelects = 0;
+
+                  interactionPanels.forEach(panel => {
+                      const selects = panel.querySelectorAll('select[name="target_component"]');
+                      totalSelects += selects.length;
+
+                      selects.forEach(select => {
+                          if (select.options.length <= 1) { // Only default option or empty
+                              emptySelectsFound++;
+                          }
+                      });
+                  });
+
+                  if (emptySelectsFound > 0) {
+                      this.addError('Empty interaction selects',
+                          `Found ${emptySelectsFound} target component selects with no options`);
+                      return { name: 'Interaction Panels', status: 'FAIL',
+                              error: 'Empty selects found', emptyCount: emptySelectsFound, totalCount: totalSelects };
+                  }
+
+                  if (totalSelects === 0 && interactionPanels.length > 0) {
+                      this.addWarning('No interaction selects found', 'Interaction panels exist but no selects found');
+                      return { name: 'Interaction Panels', status: 'WARN', warning: 'No selects found' };
+                  }
+
+                  return { name: 'Interaction Panels', status: 'PASS', totalCount: totalSelects };
+
+              } catch (error) {
+                  this.addError('Interaction panels check failed', `Error checking interaction panels: ${error.message}`);
+                  return { name: 'Interaction Panels', status: 'FAIL', error: error.message };
+              }
+          }
+
+          /**
+           * 🎨 Check color management system
+           */
+          async checkColorManagement() {
+              try {
+                  const colorManager = window.colorsManager || window.colorManager;
+
+                  if (!colorManager) {
+                      this.addWarning('Color manager missing', 'Global color manager not found');
+                      return { name: 'Color Management', status: 'WARN', warning: 'Manager not available' };
+                  }
+
+                  // Check for color picker elements
+                  const colorPickers = document.querySelectorAll('input[type="color"]');
+                  const colorInputs = document.querySelectorAll('.color-input, .color-picker');
+
+                  if (colorPickers.length === 0 && colorInputs.length === 0) {
+                      this.addWarning('No color controls found', 'No color picker inputs found in UI');
+                      return { name: 'Color Management', status: 'WARN', warning: 'No color controls' };
+                  }
+
+                  // Check for color validation
+                  if (typeof colorManager.validateColor !== 'function') {
+                      this.addWarning('Color validation missing', 'Color manager lacks validation method');
+                      return { name: 'Color Management', status: 'WARN', warning: 'Validation missing' };
+                  }
+
+                  return { name: 'Color Management', status: 'PASS', controlsCount: colorPickers.length + colorInputs.length };
+
+              } catch (error) {
+                  this.addError('Color management check failed', `Error checking color management: ${error.message}`);
+                  return { name: 'Color Management', status: 'FAIL', error: error.message };
+              }
+          }
+
+          /**
+           * 🖱️ Check UI consistency and responsiveness
+           */
+          async checkUIConsistency() {
+              try {
+                  const issues = [];
+
+                  // Check for missing button labels
+                  const buttonsWithoutText = document.querySelectorAll('button:not([title]):not([aria-label]):empty');
+                  if (buttonsWithoutText.length > 0) {
+                      issues.push(`${buttonsWithoutText.length} buttons without accessible labels`);
+                  }
+
+                  // Check for missing form labels
+                  const inputsWithoutLabels = document.querySelectorAll('input:not([aria-label]):not([title])');
+                  const unassociatedInputs = Array.from(inputsWithoutLabels).filter(input => {
+                      const id = input.id;
+                      return !id || !document.querySelector(`label[for="${id}"]`);
+                  });
+
+                  if (unassociatedInputs.length > 0) {
+                      issues.push(`${unassociatedInputs.length} inputs without proper labels`);
+                  }
+
+                  // Check for elements with invalid IDs
+                  const elementsWithIds = document.querySelectorAll('[id]');
+                  const duplicateIds = [];
+                  const idCounts = {};
+
+                  elementsWithIds.forEach(el => {
+                      const id = el.id;
+                      idCounts[id] = (idCounts[id] || 0) + 1;
+                      if (idCounts[id] > 1 && !duplicateIds.includes(id)) {
+                          duplicateIds.push(id);
+                      }
+                  });
+
+                  if (duplicateIds.length > 0) {
+                      issues.push(`${duplicateIds.length} duplicate IDs found`);
+                  }
+
+                  if (issues.length > 0) {
+                      this.addWarning('UI consistency issues', issues.join(', '));
+                      return { name: 'UI Consistency', status: 'WARN', warning: 'Multiple issues found', issues };
+                  }
+
+                  return { name: 'UI Consistency', status: 'PASS' };
+
+              } catch (error) {
+                  this.addError('UI consistency check failed', `Error checking UI consistency: ${error.message}`);
+                  return { name: 'UI Consistency', status: 'FAIL', error: error.message };
+              }
+          }
+
+          /**
+           * 🎧 Check event listeners
+           */
+          async checkEventListeners() {
+              try {
+                  const issues = [];
+
+                  // Check for elements that should have click handlers
+                  const buttons = document.querySelectorAll('button:not([disabled])');
+                  const clickableElements = document.querySelectorAll('[onclick], .clickable, .btn');
+
+                  // Basic validation - if we have many buttons but no click events, might be an issue
+                  if (buttons.length > 10 && clickableElements.length === 0) {
+                      issues.push('Many buttons found but no onclick attributes detected');
+                  }
+
+                  // Check for form elements without change handlers
+                  const formInputs = document.querySelectorAll('input, select, textarea');
+                  const inputsWithHandlers = document.querySelectorAll('input[onchange], input[oninput], select[onchange], textarea[onchange]');
+
+                  if (formInputs.length > 5 && inputsWithHandlers.length === 0) {
+                      issues.push('Form inputs found but no change handlers detected');
+                  }
+
+                  if (issues.length > 0) {
+                      this.addWarning('Event listener issues', issues.join(', '));
+                      return { name: 'Event Listeners', status: 'WARN', warning: 'Potential issues found', issues };
+                  }
+
+                  return { name: 'Event Listeners', status: 'PASS',
+                          buttons: buttons.length, clickable: clickableElements.length, inputs: formInputs.length };
+
+              } catch (error) {
+                  this.addError('Event listeners check failed', `Error checking event listeners: ${error.message}`);
+                  return { name: 'Event Listeners', status: 'FAIL', error: error.message };
+              }
+          }
+
+          /**
+           * Helper methods for error/warning reporting
+           */
+          addError(title, description, metadata = {}) {
+              if (this.errorDetectorCore) {
+                  this.errorDetectorCore.addError(title, description, metadata);
+              } else {
+                  console.error('🚨 Error (no core):', title, '-', description);
+              }
+          }
+
+          addWarning(title, description, metadata = {}) {
+              if (this.errorDetectorCore) {
+                  this.errorDetectorCore.addWarning(title, description, metadata);
+              } else {
+                  console.warn('⚠️ Warning (no core):', title, '-', description);
+              }
+          }
+
+          /**
+           * Wait for module to be available
+           */
+          async waitForModule(moduleName) {
+              return new Promise((resolve) => {
+                  const checkModule = () => {
+                      const moduleInstance = window.moduleRegistry?.get(moduleName);
+                      if (moduleInstance) {
+                          resolve(moduleInstance);
+                      } else {
+                          setTimeout(checkModule, 100);
+                      }
+                  };
+                  checkModule();
+              });
+          }
+      }
+
+      registerModule('error-detector-checks', ErrorDetectorChecks);
+  </script>
+  </template>

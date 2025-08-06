@@ -57,296 +57,296 @@
             <button class="scale-btn scale-btn-reset" data-i18n="ui.reset">Reset</button>
         </div>
     </div>
-</template>
 
-<style>
-    .scale-editor {
-        background: var(--bg-secondary, #f8f9fa);
-        border: 1px solid var(--border-color, #dee2e6);
-        border-radius: 8px;
-        padding: 16px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        max-width: 400px;
-    }
-
-    .scale-editor-header {
-        margin-bottom: 16px;
-        border-bottom: 1px solid var(--border-color, #dee2e6);
-        padding-bottom: 8px;
-    }
-
-    .scale-editor-title {
-        margin: 0;
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--text-primary, #212529);
-    }
-
-    .scale-editor-content {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .scale-group {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .scale-label {
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--text-secondary, #6c757d);
-        margin-bottom: 4px;
-    }
-
-    .scale-uniform-controls,
-    .scale-individual-controls {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .scale-slider {
-        flex: 1;
-        height: 20px;
-        appearance: none;
-        background: linear-gradient(to right, #ddd, #007bff, #ddd);
-        border-radius: 10px;
-        cursor: pointer;
-    }
-
-    .scale-input {
-        width: 80px;
-        padding: 6px 8px;
-        border: 1px solid var(--border-color, #ced4da);
-        border-radius: 4px;
-        text-align: center;
-        font-size: 14px;
-    }
-
-    .scale-unit {
-        font-size: 14px;
-        color: var(--text-secondary, #6c757d);
-        min-width: 16px;
-    }
-
-    .scale-presets {
-        display: flex;
-        gap: 4px;
-        flex-wrap: wrap;
-        margin-top: 8px;
-    }
-
-    .scale-preset-btn {
-        padding: 4px 8px;
-        border: 1px solid var(--border-color, #ced4da);
-        border-radius: 3px;
-        background: var(--bg-primary, #ffffff);
-        font-size: 12px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .scale-preset-btn:hover {
-        background: var(--bg-hover, #e9ecef);
-        border-color: var(--primary-color, #007bff);
-    }
-
-    .scale-preset-btn.active {
-        background: var(--primary-color, #007bff);
-        color: white;
-        border-color: var(--primary-color, #007bff);
-    }
-
-    .scale-axis {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex: 1;
-    }
-
-    .scale-axis label {
-        min-width: 60px;
-        font-size: 13px;
-        font-weight: 500;
-    }
-
-    .scale-x-input,
-    .scale-y-input {
-        width: 70px;
-        padding: 4px 6px;
-        border: 1px solid var(--border-color, #ced4da);
-        border-radius: 3px;
-        text-align: center;
-        font-size: 13px;
-    }
-
-    .transform-preview {
-        border: 1px dashed var(--border-color, #ced4da);
-        border-radius: 4px;
-        padding: 16px;
-        background: var(--bg-primary, #ffffff);
-    }
-
-    .preview-container {
-        display: flex;
-        align-items: center;
-        justify-content: space-around;
-        min-height: 80px;
-    }
-
-    .preview-original {
-        font-size: 12px;
-        color: var(--text-secondary, #6c757d);
-        text-align: center;
-    }
-
-    .preview-transformed {
-        position: relative;
-    }
-
-    .preview-shape {
-        width: 40px;
-        height: 40px;
-        background: var(--primary-color, #007bff);
-        border-radius: 4px;
-        transition: transform 0.3s ease;
-        transform-origin: center;
-    }
-
-    .scale-editor-actions {
-        margin-top: 16px;
-        display: flex;
-        gap: 8px;
-        justify-content: flex-end;
-        border-top: 1px solid var(--border-color, #dee2e6);
-        padding-top: 16px;
-    }
-
-    .scale-btn {
-        padding: 8px 16px;
-        border: 1px solid var(--border-color, #ced4da);
-        border-radius: 4px;
-        font-size: 14px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .scale-btn-apply {
-        background: var(--primary-color, #007bff);
-        color: white;
-        border-color: var(--primary-color, #007bff);
-    }
-
-    .scale-btn-apply:hover {
-        background: var(--primary-color-dark, #0056b3);
-    }
-
-    .scale-btn-reset {
-        background: var(--bg-primary, #ffffff);
-        color: var(--text-secondary, #6c757d);
-    }
-
-    .scale-btn-reset:hover {
-        background: var(--bg-hover, #e9ecef);
-    }
-
-    /* Dark theme support */
-    @media (prefers-color-scheme: dark) {
+    <style>
         .scale-editor {
-            --bg-primary: #2d3748;
-            --bg-secondary: #1a202c;
-            --bg-hover: #4a5568;
-            --text-primary: #f7fafc;
-            --text-secondary: #a0aec0;
-            --border-color: #4a5568;
-            --primary-color: #3182ce;
-            --primary-color-dark: #2c5282;
-        }
-    }
-</style>
-
-<script type="module">
-    import { ModuleBase, registerModule } from '../base/module-base.js';
-    import { I18nMixin } from '../base/i18n-mixin.js';
-
-    class ScaleEditor extends I18nMixin(ModuleBase) {
-        constructor() {
-            super();
-            this.transform = { scaleX: 1, scaleY: 1, linked: true };
+            background: var(--bg-secondary, #f8f9fa);
+            border: 1px solid var(--border-color, #dee2e6);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 400px;
         }
 
-        async init() {
-            await super.init();
-            await this.loadModuleTranslations('scale-editor');
+        .scale-editor-header {
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-color, #dee2e6);
+            padding-bottom: 8px;
         }
 
-        render() {
-            const template = document.querySelector('template').content.cloneNode(true);
-            this.shadowRoot.innerHTML = '';
-            this.shadowRoot.appendChild(template);
-            this.updatePreview();
-            this.applyTranslations();
+        .scale-editor-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary, #212529);
         }
 
-        bindEvents() {
-            const scaleSlider = this.$('.scale-slider');
-            const scaleInput = this.$('.scale-input');
+        .scale-editor-content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
 
-            scaleSlider?.addEventListener('input', (e) => {
-                const value = parseFloat(e.target.value);
-                scaleInput.value = value;
-                this.transform.scaleX = this.transform.scaleY = value;
+        .scale-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .scale-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary, #6c757d);
+            margin-bottom: 4px;
+        }
+
+        .scale-uniform-controls,
+        .scale-individual-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .scale-slider {
+            flex: 1;
+            height: 20px;
+            appearance: none;
+            background: linear-gradient(to right, #ddd, #007bff, #ddd);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .scale-input {
+            width: 80px;
+            padding: 6px 8px;
+            border: 1px solid var(--border-color, #ced4da);
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .scale-unit {
+            font-size: 14px;
+            color: var(--text-secondary, #6c757d);
+            min-width: 16px;
+        }
+
+        .scale-presets {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .scale-preset-btn {
+            padding: 4px 8px;
+            border: 1px solid var(--border-color, #ced4da);
+            border-radius: 3px;
+            background: var(--bg-primary, #ffffff);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .scale-preset-btn:hover {
+            background: var(--bg-hover, #e9ecef);
+            border-color: var(--primary-color, #007bff);
+        }
+
+        .scale-preset-btn.active {
+            background: var(--primary-color, #007bff);
+            color: white;
+            border-color: var(--primary-color, #007bff);
+        }
+
+        .scale-axis {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .scale-axis label {
+            min-width: 60px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .scale-x-input,
+        .scale-y-input {
+            width: 70px;
+            padding: 4px 6px;
+            border: 1px solid var(--border-color, #ced4da);
+            border-radius: 3px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .transform-preview {
+            border: 1px dashed var(--border-color, #ced4da);
+            border-radius: 4px;
+            padding: 16px;
+            background: var(--bg-primary, #ffffff);
+        }
+
+        .preview-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            min-height: 80px;
+        }
+
+        .preview-original {
+            font-size: 12px;
+            color: var(--text-secondary, #6c757d);
+            text-align: center;
+        }
+
+        .preview-transformed {
+            position: relative;
+        }
+
+        .preview-shape {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color, #007bff);
+            border-radius: 4px;
+            transition: transform 0.3s ease;
+            transform-origin: center;
+        }
+
+        .scale-editor-actions {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            border-top: 1px solid var(--border-color, #dee2e6);
+            padding-top: 16px;
+        }
+
+        .scale-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color, #ced4da);
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .scale-btn-apply {
+            background: var(--primary-color, #007bff);
+            color: white;
+            border-color: var(--primary-color, #007bff);
+        }
+
+        .scale-btn-apply:hover {
+            background: var(--primary-color-dark, #0056b3);
+        }
+
+        .scale-btn-reset {
+            background: var(--bg-primary, #ffffff);
+            color: var(--text-secondary, #6c757d);
+        }
+
+        .scale-btn-reset:hover {
+            background: var(--bg-hover, #e9ecef);
+        }
+
+        /* Dark theme support */
+        @media (prefers-color-scheme: dark) {
+            .scale-editor {
+                --bg-primary: #2d3748;
+                --bg-secondary: #1a202c;
+                --bg-hover: #4a5568;
+                --text-primary: #f7fafc;
+                --text-secondary: #a0aec0;
+                --border-color: #4a5568;
+                --primary-color: #3182ce;
+                --primary-color-dark: #2c5282;
+            }
+        }
+    </style>
+
+    <script type="module">
+        import {ModuleBase, registerModule} from '../base/module-base.js';
+        import {I18nMixin} from '../base/i18n-mixin.js';
+
+        class ScaleEditor extends I18nMixin(ModuleBase) {
+            constructor() {
+                super();
+                this.transform = {scaleX: 1, scaleY: 1, linked: true};
+            }
+
+            async init() {
+                await super.init();
+                await this.loadModuleTranslations('scale-editor');
+            }
+
+            render() {
+                const template = document.querySelector('template').content.cloneNode(true);
+                this.shadowRoot.innerHTML = '';
+                this.shadowRoot.appendChild(template);
                 this.updatePreview();
-                this.emit('transform-changed', { transform: this.transform });
-            });
+                this.applyTranslations();
+            }
 
-            // Scale presets
-            this.$$('.scale-preset-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const scale = parseFloat(e.target.dataset.scale);
-                    this.setUniformScale(scale);
+            bindEvents() {
+                const scaleSlider = this.$('.scale-slider');
+                const scaleInput = this.$('.scale-input');
+
+                scaleSlider?.addEventListener('input', (e) => {
+                    const value = parseFloat(e.target.value);
+                    scaleInput.value = value;
+                    this.transform.scaleX = this.transform.scaleY = value;
+                    this.updatePreview();
+                    this.emit('transform-changed', {transform: this.transform});
                 });
-            });
 
-            // Action buttons
-            const applyBtn = this.$('.scale-btn-apply');
-            applyBtn?.addEventListener('click', () => {
-                this.emit('transform-apply', { transform: this.transform });
-            });
+                // Scale presets
+                this.$$('.scale-preset-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const scale = parseFloat(e.target.dataset.scale);
+                        this.setUniformScale(scale);
+                    });
+                });
 
-            const resetBtn = this.$('.scale-btn-reset');
-            resetBtn?.addEventListener('click', () => {
-                this.resetTransform();
-            });
-        }
+                // Action buttons
+                const applyBtn = this.$('.scale-btn-apply');
+                applyBtn?.addEventListener('click', () => {
+                    this.emit('transform-apply', {transform: this.transform});
+                });
 
-        setUniformScale(scale) {
-            this.transform.scaleX = this.transform.scaleY = scale;
-            this.$('.scale-slider').value = scale;
-            this.$('.scale-input').value = scale;
-            this.updatePreview();
-        }
+                const resetBtn = this.$('.scale-btn-reset');
+                resetBtn?.addEventListener('click', () => {
+                    this.resetTransform();
+                });
+            }
 
-        updatePreview() {
-            const previewShape = this.$('.preview-shape');
-            if (previewShape) {
-                previewShape.style.transform = `scale(${this.transform.scaleX}, ${this.transform.scaleY})`;
+            setUniformScale(scale) {
+                this.transform.scaleX = this.transform.scaleY = scale;
+                this.$('.scale-slider').value = scale;
+                this.$('.scale-input').value = scale;
+                this.updatePreview();
+            }
+
+            updatePreview() {
+                const previewShape = this.$('.preview-shape');
+                if (previewShape) {
+                    previewShape.style.transform = `scale(${this.transform.scaleX}, ${this.transform.scaleY})`;
+                }
+            }
+
+            resetTransform() {
+                this.transform = {scaleX: 1, scaleY: 1, linked: true};
+                this.setUniformScale(1);
+                this.emit('transform-reset');
+            }
+
+            getTransform() {
+                return {...this.transform};
             }
         }
 
-        resetTransform() {
-            this.transform = { scaleX: 1, scaleY: 1, linked: true };
-            this.setUniformScale(1);
-            this.emit('transform-reset');
-        }
-
-        getTransform() {
-            return { ...this.transform };
-        }
-    }
-
-    registerModule('scale-editor', ScaleEditor);
-</script>
+        registerModule('scale-editor', ScaleEditor);
+    </script>
+</template>

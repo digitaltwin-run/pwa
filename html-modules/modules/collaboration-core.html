@@ -1,0 +1,335 @@
+<!-- Collaboration Core Module - WebSocket connections and room management -->
+<template id="collaboration-core-template">
+    <div class="collaboration-core">
+        <!-- Core collaboration logic - no visible UI -->
+    </div>
+
+    <style scoped>
+        .collaboration-core {
+            display: none; /* Core module - no visible UI */
+        }
+    </style>
+
+    <script type="module">
+        import {ModuleBase, registerModule} from '../base/module-base.js';
+
+        class CollaborationCore extends ModuleBase {
+            constructor() {
+                super();
+                this.isEnabled = false;
+                this.websocket = null;
+                this.roomId = null;
+                this.isHost = false;
+                this.localUser = null;
+
+                // Configuration
+                this.config = {
+                    websocketUrl: 'ws://localhost:4001',
+                    iceServers: [
+                        {urls: 'stun:stun.l.google.com:19302'},
+                        {urls: 'stun:stun1.l.google.com:19302'}
+                    ]
+                };
+
+                console.log('🌐 Collaboration Core initialized');
+            }
+
+            async init() {
+                await super.init();
+
+                // Check if collaboration is enabled
+                this.isEnabled = localStorage.getItem('collaboration-enabled') === 'true' || false;
+
+                if (!this.isEnabled) {
+                    console.log('📴 Collaboration disabled');
+                    return;
+                }
+
+                console.log('🚀 Initializing collaboration core...');
+
+                // Generate or retrieve user ID
+                this.localUser = this.getOrCreateUser();
+
+                console.log('✅ Collaboration Core ready');
+            }
+
+            /**
+             * Generate or retrieve user identity
+             */
+            getOrCreateUser() {
+                let user = JSON.parse(localStorage.getItem('collaboration-user') || 'null');
+
+                if (!user) {
+                    const colors = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c'];
+                    user = {
+                        id: this.generateUserId(),
+                        name: `User ${Math.floor(Math.random() * 1000)}`,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        avatar: this.generateAvatar(),
+                        joinedAt: Date.now()
+                    };
+                    localStorage.setItem('collaboration-user', JSON.stringify(user));
+                }
+
+                console.log('👤 Local user:', user);
+                return user;
+            }
+
+            /**
+             * Generate unique user ID
+             */
+            generateUserId() {
+                return 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+            }
+
+            /**
+             * Generate user avatar
+             */
+            generateAvatar() {
+                const emojis = ['👨‍💻', '👩‍💻', '🧑‍🔬', '👨‍🔧', '👩‍🔧', '🧑‍💼', '👨‍🎨', '👩‍🎨'];
+                return emojis[Math.floor(Math.random() * emojis.length)];
+            }
+
+            /**
+             * Create or join a collaboration room
+             */
+            async joinRoom(roomId = null) {
+                if (!this.isEnabled) {
+                    console.warn('❌ Collaboration not enabled');
+                    return false;
+                }
+
+                try {
+                    this.roomId = roomId || this.generateRoomId();
+                    this.isHost = !roomId; // Host if creating new room
+
+                    console.log(`🚪 ${this.isHost ? 'Creating' : 'Joining'} room:`, this.roomId);
+
+                    // Connect to WebSocket server
+                    await this.connectWebSocket();
+
+                    // Join the room
+                    this.sendMessage({
+                        type: 'join-room',
+                        roomId: this.roomId,
+                        user: this.localUser,
+                        isHost: this.isHost
+                    });
+
+                    return this.roomId;
+                } catch (error) {
+                    console.error('❌ Failed to join room:', error);
+                    return false;
+                }
+            }
+
+            /**
+             * Generate room ID
+             */
+            generateRoomId() {
+                return 'room_' + Math.random().toString(36).substr(2, 9);
+            }
+
+            /**
+             * Connect to WebSocket server
+             */
+            async connectWebSocket() {
+                return new Promise((resolve, reject) => {
+                    console.log('🔌 Connecting to WebSocket server...');
+                    this.websocket = new WebSocket(this.config.websocketUrl);
+
+                    this.websocket.onopen = () => {
+                        console.log('✅ WebSocket connected');
+                        this.emit('websocket-connected');
+                        resolve();
+                    };
+
+                    this.websocket.onmessage = (event) => {
+                        this.handleWebSocketMessage(event);
+                    };
+
+                    this.websocket.onerror = (error) => {
+                        console.error('❌ WebSocket error:', error);
+                        this.emit('websocket-error', {error});
+                        reject(error);
+                    };
+
+                    this.websocket.onclose = () => {
+                        console.log('🔌 WebSocket disconnected');
+                        this.emit('websocket-disconnected');
+                        this.handleDisconnection();
+                    };
+                });
+            }
+
+            /**
+             * Handle WebSocket messages
+             */
+            handleWebSocketMessage(event) {
+                try {
+                    const message = JSON.parse(event.data);
+                    console.log('📨 Received message:', message.type);
+
+                    switch (message.type) {
+                        case 'room-joined':
+                            this.handleRoomJoined(message);
+                            break;
+                        case 'user-joined':
+                            this.handleUserJoined(message);
+                            break;
+                        case 'user-left':
+                            this.handleUserLeft(message);
+                            break;
+                        case 'canvas-update':
+                            this.handleCanvasUpdate(message);
+                            break;
+                        case 'cursor-move':
+                            this.handleCursorMove(message);
+                            break;
+                        case 'component-select':
+                            this.handleComponentSelect(message);
+                            break;
+                        default:
+                            console.log('❓ Unknown message type:', message.type);
+                    }
+                } catch (error) {
+                    console.error('❌ Error parsing WebSocket message:', error);
+                }
+            }
+
+            /**
+             * Handle room joined
+             */
+            handleRoomJoined(message) {
+                console.log('🎉 Successfully joined room:', message.roomId);
+                this.emit('room-joined', {roomId: message.roomId, users: message.users});
+            }
+
+            /**
+             * Handle user joined
+             */
+            handleUserJoined(message) {
+                console.log('👋 User joined:', message.user.name);
+                this.emit('user-joined', {user: message.user});
+            }
+
+            /**
+             * Handle user left
+             */
+            handleUserLeft(message) {
+                console.log('👋 User left:', message.userId);
+                this.emit('user-left', {userId: message.userId});
+            }
+
+            /**
+             * Handle canvas updates
+             */
+            handleCanvasUpdate(message) {
+                console.log('🎨 Canvas update from:', message.userId);
+                this.emit('canvas-update', message);
+            }
+
+            /**
+             * Handle cursor movements
+             */
+            handleCursorMove(message) {
+                this.emit('cursor-move', message);
+            }
+
+            /**
+             * Handle component selection
+             */
+            handleComponentSelect(message) {
+                this.emit('component-select', message);
+            }
+
+            /**
+             * Send message via WebSocket
+             */
+            sendMessage(message) {
+                if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
+                    message.userId = this.localUser?.id;
+                    message.roomId = this.roomId;
+                    message.timestamp = Date.now();
+
+                    this.websocket.send(JSON.stringify(message));
+                } else {
+                    console.warn('❌ WebSocket not connected, message not sent');
+                }
+            }
+
+            /**
+             * Leave room
+             */
+            leaveRoom() {
+                if (this.websocket) {
+                    this.sendMessage({
+                        type: 'leave-room'
+                    });
+                    this.websocket.close();
+                }
+
+                this.roomId = null;
+                this.emit('room-left');
+
+                console.log('👋 Left collaboration room');
+            }
+
+            /**
+             * Handle disconnection
+             */
+            handleDisconnection() {
+                this.emit('disconnected');
+
+                // Try to reconnect after delay
+                setTimeout(() => {
+                    if (this.roomId) {
+                        console.log('🔄 Attempting to reconnect...');
+                        this.joinRoom(this.roomId);
+                    }
+                }, 5000);
+            }
+
+            /**
+             * Public API
+             */
+            enable() {
+                this.isEnabled = true;
+                localStorage.setItem('collaboration-enabled', 'true');
+                this.init();
+                this.emit('collaboration-enabled');
+            }
+
+            disable() {
+                this.isEnabled = false;
+                localStorage.setItem('collaboration-enabled', 'false');
+                this.leaveRoom();
+                this.emit('collaboration-disabled');
+            }
+
+            getStatus() {
+                return {
+                    enabled: this.isEnabled,
+                    connected: this.websocket?.readyState === WebSocket.OPEN,
+                    roomId: this.roomId,
+                    isHost: this.isHost,
+                    localUser: this.localUser
+                };
+            }
+
+            getLocalUser() {
+                return this.localUser;
+            }
+
+            getRoomId() {
+                return this.roomId;
+            }
+
+            isConnected() {
+                return this.websocket?.readyState === WebSocket.OPEN;
+            }
+        }
+
+        registerModule('collaboration-core', CollaborationCore);
+    </script>
+</template>

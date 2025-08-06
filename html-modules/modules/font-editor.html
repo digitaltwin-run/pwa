@@ -1,10 +1,10 @@
 <!-- Font Editor HTML Module for Digital Twin IDE PWA -->
-<template>
+<template id="font-editor-template">
     <div class="font-editor">
         <div class="font-editor-header">
             <h4 class="font-editor-title" data-i18n="font.title">Font Settings</h4>
         </div>
-        
+
         <div class="font-editor-content">
             <!-- Font Family Selection -->
             <div class="font-group">
@@ -26,7 +26,7 @@
             <div class="font-group">
                 <label class="font-label" data-i18n="font.size">Font Size:</label>
                 <div class="font-size-controls">
-                    <input type="number" class="font-size-input" data-property="font-size" 
+                    <input type="number" class="font-size-input" data-property="font-size"
                            min="8" max="72" value="12" step="1">
                     <span class="font-unit">px</span>
                     <div class="font-size-presets">
@@ -71,10 +71,17 @@
             <div class="font-group">
                 <label class="font-label" data-i18n="font.decoration">Text Decoration:</label>
                 <div class="font-decoration-buttons">
-                    <button class="font-decoration-btn" data-decoration="none" data-i18n="font.decoration.none">None</button>
-                    <button class="font-decoration-btn" data-decoration="underline" data-i18n="font.decoration.underline">Underline</button>
-                    <button class="font-decoration-btn" data-decoration="overline" data-i18n="font.decoration.overline">Overline</button>
-                    <button class="font-decoration-btn" data-decoration="line-through" data-i18n="font.decoration.strikethrough">Strike</button>
+                    <button class="font-decoration-btn" data-decoration="none" data-i18n="font.decoration.none">None
+                    </button>
+                    <button class="font-decoration-btn" data-decoration="underline"
+                            data-i18n="font.decoration.underline">Underline
+                    </button>
+                    <button class="font-decoration-btn" data-decoration="overline" data-i18n="font.decoration.overline">
+                        Overline
+                    </button>
+                    <button class="font-decoration-btn" data-decoration="line-through"
+                            data-i18n="font.decoration.strikethrough">Strike
+                    </button>
                 </div>
             </div>
 
@@ -92,386 +99,386 @@
             <button class="font-btn font-btn-reset" data-i18n="ui.reset">Reset</button>
         </div>
     </div>
-</template>
 
-<style>
-    .font-editor {
-        background: var(--bg-secondary, #f8f9fa);
-        border: 1px solid var(--border-color, #dee2e6);
-        border-radius: 8px;
-        padding: 16px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        max-width: 400px;
-    }
-
-    .font-editor-header {
-        margin-bottom: 16px;
-        border-bottom: 1px solid var(--border-color, #dee2e6);
-        padding-bottom: 8px;
-    }
-
-    .font-editor-title {
-        margin: 0;
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--text-primary, #212529);
-    }
-
-    .font-editor-content {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .font-group {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .font-label {
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--text-secondary, #6c757d);
-        margin-bottom: 4px;
-    }
-
-    .font-family-select,
-    .font-weight-select {
-        padding: 8px 12px;
-        border: 1px solid var(--border-color, #ced4da);
-        border-radius: 4px;
-        background: var(--bg-primary, #ffffff);
-        font-size: 14px;
-        color: var(--text-primary, #212529);
-    }
-
-    .font-family-select:focus,
-    .font-weight-select:focus {
-        outline: none;
-        border-color: var(--primary-color, #007bff);
-        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-    }
-
-    .font-size-controls {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .font-size-input {
-        width: 80px;
-        padding: 8px;
-        border: 1px solid var(--border-color, #ced4da);
-        border-radius: 4px;
-        font-size: 14px;
-        text-align: center;
-    }
-
-    .font-unit {
-        font-size: 14px;
-        color: var(--text-secondary, #6c757d);
-    }
-
-    .font-size-presets {
-        display: flex;
-        gap: 4px;
-    }
-
-    .font-preset-btn {
-        padding: 4px 8px;
-        border: 1px solid var(--border-color, #ced4da);
-        border-radius: 3px;
-        background: var(--bg-primary, #ffffff);
-        font-size: 12px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .font-preset-btn:hover {
-        background: var(--bg-hover, #e9ecef);
-        border-color: var(--primary-color, #007bff);
-    }
-
-    .font-preset-btn.active {
-        background: var(--primary-color, #007bff);
-        color: white;
-        border-color: var(--primary-color, #007bff);
-    }
-
-    .font-style-buttons,
-    .font-decoration-buttons {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .font-style-btn,
-    .font-decoration-btn {
-        padding: 8px 12px;
-        border: 1px solid var(--border-color, #ced4da);
-        border-radius: 4px;
-        background: var(--bg-primary, #ffffff);
-        font-size: 14px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .font-style-btn:hover,
-    .font-decoration-btn:hover {
-        background: var(--bg-hover, #e9ecef);
-        border-color: var(--primary-color, #007bff);
-    }
-
-    .font-style-btn.active,
-    .font-decoration-btn.active {
-        background: var(--primary-color, #007bff);
-        color: white;
-        border-color: var(--primary-color, #007bff);
-    }
-
-    .font-preview {
-        padding: 16px;
-        border: 1px dashed var(--border-color, #ced4da);
-        border-radius: 4px;
-        background: var(--bg-primary, #ffffff);
-        min-height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .font-preview-text {
-        color: var(--text-primary, #212529);
-        text-align: center;
-        line-height: 1.4;
-    }
-
-    .font-editor-actions {
-        margin-top: 16px;
-        display: flex;
-        gap: 8px;
-        justify-content: flex-end;
-        border-top: 1px solid var(--border-color, #dee2e6);
-        padding-top: 16px;
-    }
-
-    .font-btn {
-        padding: 8px 16px;
-        border: 1px solid var(--border-color, #ced4da);
-        border-radius: 4px;
-        font-size: 14px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .font-btn-apply {
-        background: var(--primary-color, #007bff);
-        color: white;
-        border-color: var(--primary-color, #007bff);
-    }
-
-    .font-btn-apply:hover {
-        background: var(--primary-color-dark, #0056b3);
-    }
-
-    .font-btn-reset {
-        background: var(--bg-primary, #ffffff);
-        color: var(--text-secondary, #6c757d);
-    }
-
-    .font-btn-reset:hover {
-        background: var(--bg-hover, #e9ecef);
-    }
-
-    /* Dark theme support */
-    @media (prefers-color-scheme: dark) {
+    <style>
         .font-editor {
-            --bg-primary: #2d3748;
-            --bg-secondary: #1a202c;
-            --bg-hover: #4a5568;
-            --text-primary: #f7fafc;
-            --text-secondary: #a0aec0;
-            --border-color: #4a5568;
-            --primary-color: #3182ce;
-            --primary-color-dark: #2c5282;
-        }
-    }
-</style>
-
-<script type="module">
-    import { ModuleBase, registerModule } from '../base/module-base.js';
-    import { I18nMixin } from './base/i18n-mixin.js';
-
-    class FontEditor extends I18nMixin(ModuleBase) {
-        constructor() {
-            super();
-            
-            this.currentFontConfig = {
-                fontFamily: 'Arial, sans-serif',
-                fontSize: '12px',
-                fontWeight: 'normal',
-                fontStyle: 'normal',
-                textDecoration: 'none'
-            };
+            background: var(--bg-secondary, #f8f9fa);
+            border: 1px solid var(--border-color, #dee2e6);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 400px;
         }
 
-        async init() {
-            await super.init();
-            await this.loadModuleTranslations('font-editor');
+        .font-editor-header {
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-color, #dee2e6);
+            padding-bottom: 8px;
         }
 
-        render() {
-            // Get template content
-            const template = document.querySelector('template').content.cloneNode(true);
-            
-            // Clear shadow root and add template
-            this.shadowRoot.innerHTML = '';
-            this.shadowRoot.appendChild(template);
-            
-            // Apply current configuration
-            this.updatePreview();
-            this.applyTranslations();
+        .font-editor-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary, #212529);
         }
 
-        bindEvents() {
-            // Font family change
-            const familySelect = this.$('.font-family-select');
-            familySelect?.addEventListener('change', (e) => {
-                this.currentFontConfig.fontFamily = e.target.value;
+        .font-editor-content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .font-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .font-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary, #6c757d);
+            margin-bottom: 4px;
+        }
+
+        .font-family-select,
+        .font-weight-select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color, #ced4da);
+            border-radius: 4px;
+            background: var(--bg-primary, #ffffff);
+            font-size: 14px;
+            color: var(--text-primary, #212529);
+        }
+
+        .font-family-select:focus,
+        .font-weight-select:focus {
+            outline: none;
+            border-color: var(--primary-color, #007bff);
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+        .font-size-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .font-size-input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid var(--border-color, #ced4da);
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .font-unit {
+            font-size: 14px;
+            color: var(--text-secondary, #6c757d);
+        }
+
+        .font-size-presets {
+            display: flex;
+            gap: 4px;
+        }
+
+        .font-preset-btn {
+            padding: 4px 8px;
+            border: 1px solid var(--border-color, #ced4da);
+            border-radius: 3px;
+            background: var(--bg-primary, #ffffff);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .font-preset-btn:hover {
+            background: var(--bg-hover, #e9ecef);
+            border-color: var(--primary-color, #007bff);
+        }
+
+        .font-preset-btn.active {
+            background: var(--primary-color, #007bff);
+            color: white;
+            border-color: var(--primary-color, #007bff);
+        }
+
+        .font-style-buttons,
+        .font-decoration-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .font-style-btn,
+        .font-decoration-btn {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color, #ced4da);
+            border-radius: 4px;
+            background: var(--bg-primary, #ffffff);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .font-style-btn:hover,
+        .font-decoration-btn:hover {
+            background: var(--bg-hover, #e9ecef);
+            border-color: var(--primary-color, #007bff);
+        }
+
+        .font-style-btn.active,
+        .font-decoration-btn.active {
+            background: var(--primary-color, #007bff);
+            color: white;
+            border-color: var(--primary-color, #007bff);
+        }
+
+        .font-preview {
+            padding: 16px;
+            border: 1px dashed var(--border-color, #ced4da);
+            border-radius: 4px;
+            background: var(--bg-primary, #ffffff);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .font-preview-text {
+            color: var(--text-primary, #212529);
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .font-editor-actions {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            border-top: 1px solid var(--border-color, #dee2e6);
+            padding-top: 16px;
+        }
+
+        .font-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color, #ced4da);
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .font-btn-apply {
+            background: var(--primary-color, #007bff);
+            color: white;
+            border-color: var(--primary-color, #007bff);
+        }
+
+        .font-btn-apply:hover {
+            background: var(--primary-color-dark, #0056b3);
+        }
+
+        .font-btn-reset {
+            background: var(--bg-primary, #ffffff);
+            color: var(--text-secondary, #6c757d);
+        }
+
+        .font-btn-reset:hover {
+            background: var(--bg-hover, #e9ecef);
+        }
+
+        /* Dark theme support */
+        @media (prefers-color-scheme: dark) {
+            .font-editor {
+                --bg-primary: #2d3748;
+                --bg-secondary: #1a202c;
+                --bg-hover: #4a5568;
+                --text-primary: #f7fafc;
+                --text-secondary: #a0aec0;
+                --border-color: #4a5568;
+                --primary-color: #3182ce;
+                --primary-color-dark: #2c5282;
+            }
+        }
+    </style>
+
+    <script type="module">
+        import {ModuleBase, registerModule} from '../base/module-base.js';
+        import {I18nMixin} from './base/i18n-mixin.js';
+
+        class FontEditor extends I18nMixin(ModuleBase) {
+            constructor() {
+                super();
+
+                this.currentFontConfig = {
+                    fontFamily: 'Arial, sans-serif',
+                    fontSize: '12px',
+                    fontWeight: 'normal',
+                    fontStyle: 'normal',
+                    textDecoration: 'none'
+                };
+            }
+
+            async init() {
+                await super.init();
+                await this.loadModuleTranslations('font-editor');
+            }
+
+            render() {
+                // Get template content
+                const template = document.querySelector('template').content.cloneNode(true);
+
+                // Clear shadow root and add template
+                this.shadowRoot.innerHTML = '';
+                this.shadowRoot.appendChild(template);
+
+                // Apply current configuration
                 this.updatePreview();
-                this.emit('font-changed', { property: 'font-family', value: e.target.value });
-            });
+                this.applyTranslations();
+            }
 
-            // Font size change
-            const sizeInput = this.$('.font-size-input');
-            sizeInput?.addEventListener('input', (e) => {
-                this.currentFontConfig.fontSize = e.target.value + 'px';
+            bindEvents() {
+                // Font family change
+                const familySelect = this.$('.font-family-select');
+                familySelect?.addEventListener('change', (e) => {
+                    this.currentFontConfig.fontFamily = e.target.value;
+                    this.updatePreview();
+                    this.emit('font-changed', {property: 'font-family', value: e.target.value});
+                });
+
+                // Font size change
+                const sizeInput = this.$('.font-size-input');
+                sizeInput?.addEventListener('input', (e) => {
+                    this.currentFontConfig.fontSize = e.target.value + 'px';
+                    this.updatePreview();
+                    this.emit('font-changed', {property: 'font-size', value: e.target.value + 'px'});
+                });
+
+                // Font size presets
+                this.$$('.font-preset-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const size = e.target.dataset.size;
+                        sizeInput.value = size;
+                        this.currentFontConfig.fontSize = size + 'px';
+                        this.updatePreview();
+                        this.updatePresetButtons(size);
+                        this.emit('font-changed', {property: 'font-size', value: size + 'px'});
+                    });
+                });
+
+                // Font weight change
+                const weightSelect = this.$('.font-weight-select');
+                weightSelect?.addEventListener('change', (e) => {
+                    this.currentFontConfig.fontWeight = e.target.value;
+                    this.updatePreview();
+                    this.emit('font-changed', {property: 'font-weight', value: e.target.value});
+                });
+
+                // Font style buttons
+                this.$$('.font-style-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const style = e.target.dataset.style;
+                        this.currentFontConfig.fontStyle = style;
+                        this.updatePreview();
+                        this.updateStyleButtons(style);
+                        this.emit('font-changed', {property: 'font-style', value: style});
+                    });
+                });
+
+                // Font decoration buttons
+                this.$$('.font-decoration-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const decoration = e.target.dataset.decoration;
+                        this.currentFontConfig.textDecoration = decoration;
+                        this.updatePreview();
+                        this.updateDecorationButtons(decoration);
+                        this.emit('font-changed', {property: 'text-decoration', value: decoration});
+                    });
+                });
+
+                // Action buttons
+                const applyBtn = this.$('.font-btn-apply');
+                applyBtn?.addEventListener('click', () => {
+                    this.emit('font-apply', {config: this.currentFontConfig});
+                });
+
+                const resetBtn = this.$('.font-btn-reset');
+                resetBtn?.addEventListener('click', () => {
+                    this.resetToDefaults();
+                    this.emit('font-reset');
+                });
+            }
+
+            updatePreview() {
+                const preview = this.$('.font-preview-text');
+                if (preview) {
+                    preview.style.fontFamily = this.currentFontConfig.fontFamily;
+                    preview.style.fontSize = this.currentFontConfig.fontSize;
+                    preview.style.fontWeight = this.currentFontConfig.fontWeight;
+                    preview.style.fontStyle = this.currentFontConfig.fontStyle;
+                    preview.style.textDecoration = this.currentFontConfig.textDecoration;
+                }
+            }
+
+            updatePresetButtons(activeSize) {
+                this.$$('.font-preset-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.size === activeSize);
+                });
+            }
+
+            updateStyleButtons(activeStyle) {
+                this.$$('.font-style-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.style === activeStyle);
+                });
+            }
+
+            updateDecorationButtons(activeDecoration) {
+                this.$$('.font-decoration-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.decoration === activeDecoration);
+                });
+            }
+
+            resetToDefaults() {
+                this.currentFontConfig = {
+                    fontFamily: 'Arial, sans-serif',
+                    fontSize: '12px',
+                    fontWeight: 'normal',
+                    fontStyle: 'normal',
+                    textDecoration: 'none'
+                };
+
+                // Update UI controls
+                const familySelect = this.$('.font-family-select');
+                if (familySelect) familySelect.value = this.currentFontConfig.fontFamily;
+
+                const sizeInput = this.$('.font-size-input');
+                if (sizeInput) sizeInput.value = '12';
+
+                const weightSelect = this.$('.font-weight-select');
+                if (weightSelect) weightSelect.value = this.currentFontConfig.fontWeight;
+
+                this.updatePresetButtons('12');
+                this.updateStyleButtons('normal');
+                this.updateDecorationButtons('none');
                 this.updatePreview();
-                this.emit('font-changed', { property: 'font-size', value: e.target.value + 'px' });
-            });
+            }
 
-            // Font size presets
-            this.$$('.font-preset-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const size = e.target.dataset.size;
-                    sizeInput.value = size;
-                    this.currentFontConfig.fontSize = size + 'px';
-                    this.updatePreview();
-                    this.updatePresetButtons(size);
-                    this.emit('font-changed', { property: 'font-size', value: size + 'px' });
-                });
-            });
-
-            // Font weight change
-            const weightSelect = this.$('.font-weight-select');
-            weightSelect?.addEventListener('change', (e) => {
-                this.currentFontConfig.fontWeight = e.target.value;
+            // Public API
+            setFontConfig(config) {
+                this.currentFontConfig = {...this.currentFontConfig, ...config};
                 this.updatePreview();
-                this.emit('font-changed', { property: 'font-weight', value: e.target.value });
-            });
+            }
 
-            // Font style buttons
-            this.$$('.font-style-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const style = e.target.dataset.style;
-                    this.currentFontConfig.fontStyle = style;
-                    this.updatePreview();
-                    this.updateStyleButtons(style);
-                    this.emit('font-changed', { property: 'font-style', value: style });
-                });
-            });
-
-            // Font decoration buttons
-            this.$$('.font-decoration-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const decoration = e.target.dataset.decoration;
-                    this.currentFontConfig.textDecoration = decoration;
-                    this.updatePreview();
-                    this.updateDecorationButtons(decoration);
-                    this.emit('font-changed', { property: 'text-decoration', value: decoration });
-                });
-            });
-
-            // Action buttons
-            const applyBtn = this.$('.font-btn-apply');
-            applyBtn?.addEventListener('click', () => {
-                this.emit('font-apply', { config: this.currentFontConfig });
-            });
-
-            const resetBtn = this.$('.font-btn-reset');
-            resetBtn?.addEventListener('click', () => {
-                this.resetToDefaults();
-                this.emit('font-reset');
-            });
-        }
-
-        updatePreview() {
-            const preview = this.$('.font-preview-text');
-            if (preview) {
-                preview.style.fontFamily = this.currentFontConfig.fontFamily;
-                preview.style.fontSize = this.currentFontConfig.fontSize;
-                preview.style.fontWeight = this.currentFontConfig.fontWeight;
-                preview.style.fontStyle = this.currentFontConfig.fontStyle;
-                preview.style.textDecoration = this.currentFontConfig.textDecoration;
+            getFontConfig() {
+                return {...this.currentFontConfig};
             }
         }
 
-        updatePresetButtons(activeSize) {
-            this.$$('.font-preset-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.size === activeSize);
-            });
-        }
-
-        updateStyleButtons(activeStyle) {
-            this.$$('.font-style-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.style === activeStyle);
-            });
-        }
-
-        updateDecorationButtons(activeDecoration) {
-            this.$$('.font-decoration-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.decoration === activeDecoration);
-            });
-        }
-
-        resetToDefaults() {
-            this.currentFontConfig = {
-                fontFamily: 'Arial, sans-serif',
-                fontSize: '12px',
-                fontWeight: 'normal',
-                fontStyle: 'normal',
-                textDecoration: 'none'
-            };
-
-            // Update UI controls
-            const familySelect = this.$('.font-family-select');
-            if (familySelect) familySelect.value = this.currentFontConfig.fontFamily;
-
-            const sizeInput = this.$('.font-size-input');
-            if (sizeInput) sizeInput.value = '12';
-
-            const weightSelect = this.$('.font-weight-select');
-            if (weightSelect) weightSelect.value = this.currentFontConfig.fontWeight;
-
-            this.updatePresetButtons('12');
-            this.updateStyleButtons('normal');
-            this.updateDecorationButtons('none');
-            this.updatePreview();
-        }
-
-        // Public API
-        setFontConfig(config) {
-            this.currentFontConfig = { ...this.currentFontConfig, ...config };
-            this.updatePreview();
-        }
-
-        getFontConfig() {
-            return { ...this.currentFontConfig };
-        }
-    }
-
-    // Register the component
-    registerModule('font-editor', FontEditor);
-</script>
+        // Register the component
+        registerModule('font-editor', FontEditor);
+    </script>
+</template>

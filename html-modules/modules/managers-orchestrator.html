@@ -1,0 +1,400 @@
+<!-- managers-orchestrator.html -->
+<template id="managers-orchestrator-template">
+    <div class="managers-orchestrator" style="display: none;">
+        <!-- Hidden orchestrator module -->
+    </div>
+
+    <style>
+        .managers-orchestrator {
+            display: none;
+        }
+    </style>
+
+    <script type="module">
+        import {ModuleBase} from '../base/module-base.js';
+        import {ComponentManager} from '../../js/components.js';
+        import {DragDropManager} from '../../js/hmi/input/dragdrop-manager.js';
+        import {PropertiesManager} from '../../js/properties.js';
+        import {PropertiesMapper} from '../../js/properties-mapper.js';
+        import {SimulationManager} from '../../js/simulation.js';
+        import {ConnectionManager} from '../../js/connections.js';
+        import {ExportManager} from '../../js/export.js';
+        import {ActionManager} from '../../js/actions.js';
+        import {PWAManager} from '../../js/pwa-manager.js';
+        import pwaConfig from '../../config/pwa-config.js';
+        import {CollaborationManager} from '../../js/collaboration-manager.js';
+        import {I18nManager} from '../../js/i18n-manager.js';
+
+        /**
+         * Managers Orchestrator Module
+         * Initializes and coordinates all application managers
+         */
+        class ManagersOrchestrator extends ModuleBase {
+            constructor() {
+                super();
+                this.template = document.currentScript.parentElement;
+                this.managers = new Map();
+                this.isInitialized = false;
+                this.initPromise = null;
+                this.init();
+            }
+
+            async init() {
+                console.log('🔧 Managers Orchestrator initializing...');
+
+                // Wait for app core to be ready
+                await this.waitForAppCore();
+
+                if (this.initPromise) {
+                    return this.initPromise;
+                }
+
+                this.initPromise = this.initializeManagers();
+
+                try {
+                    await this.initPromise;
+                    this.isInitialized = true;
+                    console.log('✅ All managers initialized successfully');
+                    this.notifyManagersReady();
+                } catch (error) {
+                    console.error('❌ Managers initialization failed:', error);
+                    throw error;
+                }
+
+                // Make globally available
+                window.managersOrchestrator = this;
+            }
+
+            async waitForAppCore() {
+                let attempts = 0;
+                const maxAttempts = 50;
+
+                while (attempts < maxAttempts && (!window.appCore || !window.appCore.isReady())) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+
+                if (!window.appCore?.isReady()) {
+                    console.warn('⚠️ App Core not ready, proceeding with manager initialization anyway');
+                }
+            }
+
+            async initializeManagers() {
+                console.log('🔧 Initializing application managers...');
+
+                // Initialize I18n Manager first (needed by other managers)
+                await this.initializeI18nManager();
+
+                // Initialize Component Manager
+                await this.initializeComponentManager();
+
+                // Initialize Drag & Drop Manager
+                await this.initializeDragDropManager();
+
+                // Initialize Properties Manager
+                await this.initializePropertiesManager();
+
+                // Initialize Export Manager
+                await this.initializeExportManager();
+
+                // Initialize Simulation Manager
+                await this.initializeSimulationManager();
+
+                // Initialize Connection Manager
+                await this.initializeConnectionManager();
+
+                // Initialize Action Manager
+                await this.initializeActionManager();
+
+                // Initialize PWA Manager
+                await this.initializePWAManager();
+
+                // Initialize Collaboration Manager
+                await this.initializeCollaborationManager();
+
+                console.log('✅ All core managers initialized');
+            }
+
+            async initializeI18nManager() {
+                try {
+                    console.log('🌐 Initializing I18n Manager...');
+                    const i18nManager = new I18nManager();
+                    await i18nManager.init();
+
+                    this.managers.set('i18n', i18nManager);
+                    window.i18nManager = i18nManager;
+
+                    console.log('✅ I18n Manager initialized');
+                } catch (error) {
+                    console.error('❌ I18n Manager initialization failed:', error);
+                    throw error;
+                }
+            }
+
+            async initializeComponentManager() {
+                try {
+                    console.log('📦 Initializing Component Manager...');
+                    const componentManager = new ComponentManager();
+
+                    this.managers.set('component', componentManager);
+                    window.componentManager = componentManager;
+
+                    console.log('✅ Component Manager initialized');
+                } catch (error) {
+                    console.error('❌ Component Manager initialization failed:', error);
+                    throw error;
+                }
+            }
+
+            async initializeDragDropManager() {
+                try {
+                    console.log('🔄 Initializing Drag & Drop Manager...');
+                    const componentManager = this.managers.get('component');
+
+                    if (!componentManager) {
+                        throw new Error('Component Manager required for Drag & Drop Manager');
+                    }
+
+                    const dragDropManager = new DragDropManager(componentManager);
+
+                    this.managers.set('dragdrop', dragDropManager);
+                    window.dragDropManager = dragDropManager;
+
+                    console.log('✅ Drag & Drop Manager initialized');
+                } catch (error) {
+                    console.error('❌ Drag & Drop Manager initialization failed:', error);
+                    throw error;
+                }
+            }
+
+            async initializePropertiesManager() {
+                try {
+                    console.log('🎛️ Initializing Properties Manager...');
+                    const componentManager = this.managers.get('component');
+
+                    if (!componentManager) {
+                        throw new Error('Component Manager required for Properties Manager');
+                    }
+
+                    const propertiesManager = new PropertiesManager(componentManager);
+
+                    // Initialize Properties Mapper
+                    const propertiesMapper = new PropertiesMapper(componentManager);
+                    propertiesMapper.setupAutoRefresh();
+
+                    this.managers.set('properties', propertiesManager);
+                    this.managers.set('propertiesMapper', propertiesMapper);
+                    window.propertiesManager = propertiesManager;
+                    window.propertiesMapper = propertiesMapper;
+
+                    console.log('✅ Properties Manager initialized');
+                } catch (error) {
+                    console.error('❌ Properties Manager initialization failed:', error);
+                    // Properties manager is not critical, continue with other managers
+                }
+            }
+
+            async initializeExportManager() {
+                try {
+                    console.log('📤 Initializing Export Manager...');
+                    const componentManager = this.managers.get('component');
+
+                    const exportManager = new ExportManager(componentManager);
+
+                    this.managers.set('export', exportManager);
+                    window.exportManager = exportManager;
+
+                    console.log('✅ Export Manager initialized');
+                } catch (error) {
+                    console.error('❌ Export Manager initialization failed:', error);
+                }
+            }
+
+            async initializeSimulationManager() {
+                try {
+                    console.log('🧪 Initializing Simulation Manager...');
+                    const simulationManager = new SimulationManager();
+
+                    this.managers.set('simulation', simulationManager);
+                    window.simulationManager = simulationManager;
+
+                    console.log('✅ Simulation Manager initialized');
+                } catch (error) {
+                    console.error('❌ Simulation Manager initialization failed:', error);
+                }
+            }
+
+            async initializeConnectionManager() {
+                try {
+                    console.log('🔗 Initializing Connection Manager...');
+                    const connectionManager = new ConnectionManager();
+
+                    this.managers.set('connection', connectionManager);
+                    window.connectionManager = connectionManager;
+
+                    console.log('✅ Connection Manager initialized');
+                } catch (error) {
+                    console.error('❌ Connection Manager initialization failed:', error);
+                }
+            }
+
+            async initializeActionManager() {
+                try {
+                    console.log('⚡ Initializing Action Manager...');
+                    const componentManager = this.managers.get('component');
+
+                    const actionManager = new ActionManager(componentManager);
+
+                    this.managers.set('action', actionManager);
+                    window.actionManager = actionManager;
+
+                    console.log('✅ Action Manager initialized');
+                } catch (error) {
+                    console.error('❌ Action Manager initialization failed:', error);
+                }
+            }
+
+            async initializePWAManager() {
+                try {
+                    console.log('📱 Initializing PWA Manager...');
+                    const pwaManager = new PWAManager();
+                    await pwaManager.init(pwaConfig);
+
+                    this.managers.set('pwa', pwaManager);
+                    window.pwaManager = pwaManager;
+
+                    console.log('✅ PWA Manager initialized');
+                } catch (error) {
+                    console.error('❌ PWA Manager initialization failed:', error);
+                }
+            }
+
+            async initializeCollaborationManager() {
+                try {
+                    console.log('🤝 Initializing Collaboration Manager...');
+                    const collaborationManager = new CollaborationManager();
+
+                    this.managers.set('collaboration', collaborationManager);
+                    window.collaborationManager = collaborationManager;
+
+                    console.log('✅ Collaboration Manager initialized');
+                } catch (error) {
+                    console.error('❌ Collaboration Manager initialization failed:', error);
+                }
+            }
+
+            notifyManagersReady() {
+                console.log('📢 Notifying managers ready...');
+
+                // Dispatch event for other systems
+                document.dispatchEvent(new CustomEvent('managers-ready', {
+                    detail: {
+                        managers: Array.from(this.managers.keys()),
+                        orchestrator: this
+                    }
+                }));
+
+                // Connect properties manager with modular properties system
+                this.connectWithModularProperties();
+
+                // Setup manager interdependencies
+                this.setupManagerConnections();
+
+                console.log('✅ Manager ready notifications sent');
+            }
+
+            connectWithModularProperties() {
+                // Connect legacy properties manager with new modular system
+                const propertiesManager = this.managers.get('properties');
+                if (propertiesManager && window.propertiesManager) {
+                    // Set component manager reference in modular properties system
+                    if (window.propertiesManager.setComponentManager) {
+                        window.propertiesManager.setComponentManager(this.managers.get('component'));
+                    }
+                }
+            }
+
+            setupManagerConnections() {
+                console.log('🔗 Setting up manager connections...');
+
+                // Connect drag & drop with selection manager
+                const dragDropManager = this.managers.get('dragdrop');
+                if (dragDropManager && window.canvasSelectionManager) {
+                    // Connection is typically handled internally
+                }
+
+                // Connect export manager with other systems
+                const exportManager = this.managers.get('export');
+                if (exportManager) {
+                    exportManager.setPropertiesMapper(this.managers.get('propertiesMapper'));
+                }
+
+                console.log('✅ Manager connections established');
+            }
+
+            // Public API methods
+
+            getManager(name) {
+                return this.managers.get(name);
+            }
+
+            getAllManagers() {
+                return new Map(this.managers);
+            }
+
+            isReady() {
+                return this.isInitialized;
+            }
+
+            async waitForReady() {
+                if (this.isInitialized) return;
+                await this.initPromise;
+            }
+
+            async reinitializeManager(name) {
+                console.log(`🔄 Reinitializing manager: ${name}`);
+
+                const reinitMethods = {
+                    'i18n': () => this.initializeI18nManager(),
+                    'component': () => this.initializeComponentManager(),
+                    'dragdrop': () => this.initializeDragDropManager(),
+                    'properties': () => this.initializePropertiesManager(),
+                    'export': () => this.initializeExportManager(),
+                    'simulation': () => this.initializeSimulationManager(),
+                    'connection': () => this.initializeConnectionManager(),
+                    'action': () => this.initializeActionManager(),
+                    'pwa': () => this.initializePWAManager(),
+                    'collaboration': () => this.initializeCollaborationManager()
+                };
+
+                const reinitMethod = reinitMethods[name];
+                if (reinitMethod) {
+                    try {
+                        await reinitMethod();
+                        console.log(`✅ Manager ${name} reinitialized successfully`);
+                    } catch (error) {
+                        console.error(`❌ Failed to reinitialize manager ${name}:`, error);
+                        throw error;
+                    }
+                } else {
+                    throw new Error(`Unknown manager: ${name}`);
+                }
+            }
+        }
+
+        // Auto-initialize when app core is ready
+        document.addEventListener('app-core-ready', () => {
+            new ManagersOrchestrator();
+        });
+
+        // Fallback initialization if app-core-ready event is missed
+        setTimeout(() => {
+            if (!window.managersOrchestrator) {
+                new ManagersOrchestrator();
+            }
+        }, 2000);
+
+        // Export class
+        window.ManagersOrchestrator = ManagersOrchestrator;
+    </script>
+</template>

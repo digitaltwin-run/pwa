@@ -1,7 +1,105 @@
-<!-- Right Sidebar: Properties Panel -->
-<aside class="sidebar right">
-    <h3 data-i18n="ui.properties.title">⚙️ Properties</h3>
-    <div id="properties-panel">
-        <p data-i18n="ui.properties.selectComponent">Select a component to edit its properties.</p>
-    </div>
-</aside>
+<template id="properties-sidebar-template">
+    <!-- Right Sidebar: Properties Panel -->
+    <aside class="sidebar right">
+        <h3 data-i18n="ui.properties.title">⚙️ Properties</h3>
+        <div id="properties-panel">
+            <p data-i18n="ui.properties.selectComponent">Select a component to edit its properties.</p>
+        </div>
+    </aside>
+
+    <style>
+        .sidebar.right {
+            width: 300px;
+            padding: 1rem;
+            background-color: var(--bg-secondary, #f8f9fa);
+            border-left: 1px solid var(--border-color, #dee2e6);
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .sidebar h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            color: var(--text-primary, #212529);
+        }
+
+        #properties-panel {
+            min-height: 100px;
+        }
+    </style>
+
+    <script type="module">
+        import {ModuleBase, registerModule} from '../base/module-base.js';
+
+        class PropertiesSidebar extends ModuleBase {
+            constructor() {
+                super();
+                this.template = document.currentScript.parentElement;
+                this.initialize();
+            }
+
+            async initialize() {
+                this.bindEvents();
+                this.setupEventListeners();
+            }
+
+            bindEvents() {
+                // Listen for selection changes
+                document.addEventListener('selection-changed', (event) => {
+                    this.updatePropertiesPanel(event.detail);
+                });
+            }
+
+            setupEventListeners() {
+                // Add any additional event listeners here
+            }
+
+            updatePropertiesPanel(selection) {
+                const panel = this.template.querySelector('#properties-panel');
+
+                if (!selection || selection.length === 0) {
+                    panel.innerHTML = `
+            <p data-i18n="ui.properties.selectComponent">Select a component to edit its properties.</p>
+          `;
+                    return;
+                }
+
+                // Handle single selection
+                if (selection.length === 1) {
+                    const component = selection[0];
+                    this.showComponentProperties(component, panel);
+                }
+                // Handle multiple selection
+                else {
+                    this.showMultiSelectionProperties(selection, panel);
+                }
+            }
+
+            showComponentProperties(component, container) {
+                // Implementation for showing properties of a single component
+                container.innerHTML = `
+          <div class="component-properties">
+            <h4>${component.type || 'Component'}</h4>
+            <!-- Add property editors here -->
+          </div>
+        `;
+            }
+
+            showMultiSelectionProperties(components, container) {
+                // Implementation for showing properties of multiple selected components
+                const types = [...new Set(components.map(c => c.type))];
+                container.innerHTML = `
+          <div class="multi-selection-properties">
+            <h4>${components.length} items selected</h4>
+            <p>${types.join(', ')}</p>
+            <!-- Add common property editors here -->
+          </div>
+        `;
+            }
+        }
+
+        // Register the component
+        registerModule('properties-sidebar', PropertiesSidebar);
+    </script>
+</template>

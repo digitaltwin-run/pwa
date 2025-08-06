@@ -1,0 +1,694 @@
+  <!-- Collaboration UI Module - Main collaboration interface and controls -->
+  <template id="collaboration-ui-template">
+    <!-- Toggle button -->
+      <button class="toggle-btn" data-toggle-collaboration title="Współpraca">
+          🌐
+      </button>
+
+      <!-- Main collaboration panel -->
+      <div class="collaboration-ui" data-collaboration-panel>
+          <div class="collaboration-header">
+              <div class="collaboration-title">
+                  <span>🌐</span>
+                  <span>Współpraca</span>
+              </div>
+              <div class="collaboration-status">
+                  <div class="status-indicator" data-status-indicator></div>
+                  <span data-status-text>Rozłączony</span>
+              </div>
+              <button class="close-btn" data-close-collaboration>×</button>
+          </div>
+
+          <div class="collaboration-content">
+              <div class="collaboration-section">
+                  <div class="section-title">🚪 Pokój współpracy</div>
+
+                  <div class="room-controls" data-room-controls>
+                      <div class="room-input-group">
+                          <label for="room-id-input">ID Pokoju</label>
+                          <input type="text" class="room-input" data-room-input
+                                 placeholder="Wpisz ID pokoju lub pozostaw puste dla nowego">
+                      </div>
+
+                      <div class="room-buttons">
+                          <button class="btn btn-primary" data-join-room>Dołącz</button>
+                          <button class="btn btn-secondary" data-create-room>Utwórz</button>
+                      </div>
+                  </div>
+
+                  <div class="room-info" data-room-info style="display: none;">
+                      <div class="room-info-item">
+                          <span class="room-info-label">ID Pokoju:</span>
+                          <span class="room-info-value" data-current-room-id>-</span>
+                      </div>
+                      <div class="room-info-item">
+                          <span class="room-info-label">Rola:</span>
+                          <span class="room-info-value" data-user-role>-</span>
+                      </div>
+                      <div class="room-info-item">
+                          <span class="room-info-label">Status:</span>
+                          <span class="room-info-value" data-connection-status>-</span>
+                      </div>
+
+                      <div style="margin-top: 12px;">
+                          <button class="btn btn-danger" data-leave-room style="width: 100%;">
+                              Opuść pokój
+                          </button>
+                      </div>
+                  </div>
+              </div>
+
+              <!-- Users list will be inserted here by collaboration-users module -->
+              <div class="collaboration-section" data-users-section>
+              </div>
+          </div>
+      </div>
+
+    <style scoped>
+          .collaboration-ui {
+              position: fixed;
+              top: 80px;
+              right: 20px;
+              width: 320px;
+              background: white;
+              border-radius: 12px;
+              box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              z-index: 1000;
+              transform: translateX(100%);
+              transition: transform 0.3s ease-in-out;
+              max-height: 70vh;
+              overflow: hidden;
+              display: flex;
+              flex-direction: column;
+          }
+
+          .collaboration-ui.visible {
+              transform: translateX(0);
+          }
+
+          .collaboration-header {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              padding: 16px 20px;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+              border-radius: 12px 12px 0 0;
+          }
+
+          .collaboration-title {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              font-size: 16px;
+              font-weight: 600;
+          }
+
+          .collaboration-status {
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              font-size: 12px;
+          }
+
+          .status-indicator {
+              width: 8px;
+              height: 8px;
+              border-radius: 50%;
+              background: #28a745;
+          }
+
+          .status-indicator.disconnected {
+              background: #dc3545;
+          }
+
+          .status-indicator.connecting {
+              background: #ffc107;
+              animation: pulse 1.5s infinite;
+          }
+
+          @keyframes pulse {
+              0%, 100% { opacity: 1; }
+              50% { opacity: 0.5; }
+          }
+
+          .close-btn {
+              background: none;
+              border: none;
+              color: white;
+              font-size: 18px;
+              cursor: pointer;
+              padding: 4px;
+              border-radius: 4px;
+              transition: background-color 0.2s;
+          }
+
+          .close-btn:hover {
+              background: rgba(255, 255, 255, 0.2);
+          }
+
+          .collaboration-content {
+              flex: 1;
+              overflow-y: auto;
+          }
+
+          .collaboration-section {
+              padding: 16px 20px;
+              border-bottom: 1px solid #eee;
+          }
+
+          .collaboration-section:last-child {
+              border-bottom: none;
+          }
+
+          .section-title {
+              font-size: 14px;
+              font-weight: 600;
+              color: #333;
+              margin-bottom: 12px;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+          }
+
+          .room-controls {
+              display: flex;
+              flex-direction: column;
+              gap: 12px;
+          }
+
+          .room-input-group {
+              display: flex;
+              flex-direction: column;
+              gap: 6px;
+          }
+
+          .room-input-group label {
+              font-size: 12px;
+              font-weight: 500;
+              color: #666;
+          }
+
+          .room-input {
+              padding: 8px 12px;
+              border: 1px solid #ddd;
+              border-radius: 6px;
+              font-size: 14px;
+              transition: border-color 0.2s;
+          }
+
+          .room-input:focus {
+              outline: none;
+              border-color: #667eea;
+              box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+          }
+
+          .room-buttons {
+              display: flex;
+              gap: 8px;
+          }
+
+          .btn {
+              padding: 8px 16px;
+              border: none;
+              border-radius: 6px;
+              font-size: 14px;
+              font-weight: 500;
+              cursor: pointer;
+              transition: all 0.2s;
+              flex: 1;
+          }
+
+          .btn-primary {
+              background: #667eea;
+              color: white;
+          }
+
+          .btn-primary:hover {
+              background: #5a67d8;
+          }
+
+          .btn-secondary {
+              background: #e2e8f0;
+              color: #4a5568;
+          }
+
+          .btn-secondary:hover {
+              background: #cbd5e0;
+          }
+
+          .btn-danger {
+              background: #e53e3e;
+              color: white;
+          }
+
+          .btn-danger:hover {
+              background: #c53030;
+          }
+
+          .btn:disabled {
+              opacity: 0.6;
+              cursor: not-allowed;
+          }
+
+          .room-info {
+              background: #f7fafc;
+              padding: 12px;
+              border-radius: 6px;
+              font-size: 13px;
+          }
+
+          .room-info-item {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 4px;
+          }
+
+          .room-info-item:last-child {
+              margin-bottom: 0;
+          }
+
+          .room-info-label {
+              color: #666;
+          }
+
+          .room-info-value {
+              font-weight: 500;
+              color: #333;
+          }
+
+          .toggle-btn {
+              position: fixed;
+              top: 130px;
+              right: 20px;
+              width: 48px;
+              height: 48px;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              border: none;
+              border-radius: 50%;
+              color: white;
+              font-size: 20px;
+              cursor: pointer;
+              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+              transition: all 0.3s ease;
+              z-index: 999;
+          }
+
+          .toggle-btn:hover {
+              transform: scale(1.05);
+              box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+          }
+
+          .toggle-btn.active {
+              background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+          }
+
+          .notification {
+              position: fixed;
+              top: 20px;
+              right: 20px;
+              padding: 12px 16px;
+              border-radius: 6px;
+              color: white;
+              font-size: 14px;
+              font-weight: 500;
+              z-index: 2000;
+              transform: translateX(100%);
+              transition: transform 0.3s ease;
+          }
+
+          .notification.visible {
+              transform: translateX(0);
+          }
+
+          .notification.success { background: #28a745; }
+          .notification.error { background: #dc3545; }
+          .notification.warning { background: #ffc107; color: #333; }
+          .notification.info { background: #17a2b8; }
+      </style>
+
+    <script>
+      class CollaborationUI extends ModuleBase {
+          constructor() {
+              super();
+              this.collaborationCore = null;
+              this.collaborationUsers = null;
+              this.isVisible = false;
+              this.connectionStatus = 'disconnected';
+
+              console.log('🖥️ Collaboration UI initialized');
+          }
+
+          async init() {
+              await super.init();
+
+              this.setupEventListeners();
+              this.setupUIHandlers();
+
+              // Wait for other collaboration modules
+              this.waitForModule('collaboration-core').then(core => {
+                  this.collaborationCore = core;
+                  this.setupCoreEventListeners();
+              });
+
+              this.waitForModule('collaboration-users').then(users => {
+                  this.collaborationUsers = users;
+                  this.setupUsersUI();
+              });
+
+              console.log('✅ Collaboration UI ready');
+          }
+
+          setupEventListeners() {
+              // Global collaboration enable/disable
+              document.addEventListener('collaboration-enabled', () => {
+                  this.updateToggleButton(true);
+              });
+
+              document.addEventListener('collaboration-disabled', () => {
+                  this.updateToggleButton(false);
+                  this.hide();
+              });
+          }
+
+          setupUIHandlers() {
+              // Toggle button
+              this.$('[data-toggle-collaboration]').addEventListener('click', () => {
+                  this.toggle();
+              });
+
+              // Close button
+              this.$('[data-close-collaboration]').addEventListener('click', () => {
+                  this.hide();
+              });
+
+              // Room controls
+              this.$('[data-join-room]').addEventListener('click', () => {
+                  this.joinRoom();
+              });
+
+              this.$('[data-create-room]').addEventListener('click', () => {
+                  this.createRoom();
+              });
+
+              this.$('[data-leave-room]').addEventListener('click', () => {
+                  this.leaveRoom();
+              });
+
+              // Enter key in room input
+              this.$('[data-room-input]').addEventListener('keypress', (e) => {
+                  if (e.key === 'Enter') {
+                      this.joinRoom();
+                  }
+              });
+          }
+
+          setupCoreEventListeners() {
+              if (!this.collaborationCore) return;
+
+              this.collaborationCore.addEventListener('websocket-connected', () => {
+                  this.updateConnectionStatus('connected');
+              });
+
+              this.collaborationCore.addEventListener('websocket-disconnected', () => {
+                  this.updateConnectionStatus('disconnected');
+              });
+
+              this.collaborationCore.addEventListener('websocket-error', () => {
+                  this.updateConnectionStatus('error');
+              });
+
+              this.collaborationCore.addEventListener('room-joined', (event) => {
+                  this.handleRoomJoined(event.detail);
+              });
+
+              this.collaborationCore.addEventListener('room-left', () => {
+                  this.handleRoomLeft();
+              });
+
+              // Update initial status
+              const status = this.collaborationCore.getStatus();
+              this.updateConnectionStatus(status.connected ? 'connected' : 'disconnected');
+              this.updateToggleButton(status.enabled);
+
+              if (status.roomId) {
+                  this.handleRoomJoined({ roomId: status.roomId });
+              }
+          }
+
+          setupUsersUI() {
+              if (!this.collaborationUsers) return;
+
+              // Insert users component into the UI
+              const usersSection = this.$('[data-users-section]');
+              if (usersSection && this.collaborationUsers.shadowRoot) {
+                  const usersElement = this.collaborationUsers.shadowRoot.querySelector('.collaboration-users');
+                  if (usersElement) {
+                      usersSection.appendChild(usersElement.cloneNode(true));
+                  }
+              }
+          }
+
+          /**
+           * Show/hide collaboration panel
+           */
+          toggle() {
+              if (this.isVisible) {
+                  this.hide();
+              } else {
+                  this.show();
+              }
+          }
+
+          show() {
+              const panel = this.$('[data-collaboration-panel]');
+              panel.classList.add('visible');
+              this.isVisible = true;
+
+              // Enable collaboration if not already enabled
+              if (this.collaborationCore && !this.collaborationCore.getStatus().enabled) {
+                  this.collaborationCore.enable();
+              }
+          }
+
+          hide() {
+              const panel = this.$('[data-collaboration-panel]');
+              panel.classList.remove('visible');
+              this.isVisible = false;
+          }
+
+          /**
+           * Join existing room
+           */
+          async joinRoom() {
+              if (!this.collaborationCore) {
+                  this.showNotification('Współpraca nie jest dostępna', 'error');
+                  return;
+              }
+
+              const roomInput = this.$('[data-room-input]');
+              const roomId = roomInput.value.trim();
+
+              if (!roomId) {
+                  this.showNotification('Wprowadź ID pokoju', 'warning');
+                  return;
+              }
+
+              this.updateConnectionStatus('connecting');
+
+              try {
+                  const result = await this.collaborationCore.joinRoom(roomId);
+                  if (result) {
+                      this.showNotification(`Dołączono do pokoju: ${roomId}`, 'success');
+                  } else {
+                      this.showNotification('Nie udało się dołączyć do pokoju', 'error');
+                      this.updateConnectionStatus('disconnected');
+                  }
+              } catch (error) {
+                  console.error('❌ Error joining room:', error);
+                  this.showNotification('Błąd podczas dołączania do pokoju', 'error');
+                  this.updateConnectionStatus('disconnected');
+              }
+          }
+
+          /**
+           * Create new room
+           */
+          async createRoom() {
+              if (!this.collaborationCore) {
+                  this.showNotification('Współpraca nie jest dostępna', 'error');
+                  return;
+              }
+
+              this.updateConnectionStatus('connecting');
+
+              try {
+                  const roomId = await this.collaborationCore.joinRoom();
+                  if (roomId) {
+                      this.showNotification(`Utworzono pokój: ${roomId}`, 'success');
+
+                      // Update input with created room ID
+                      const roomInput = this.$('[data-room-input]');
+                      roomInput.value = roomId;
+                  } else {
+                      this.showNotification('Nie udało się utworzyć pokoju', 'error');
+                      this.updateConnectionStatus('disconnected');
+                  }
+              } catch (error) {
+                  console.error('❌ Error creating room:', error);
+                  this.showNotification('Błąd podczas tworzenia pokoju', 'error');
+                  this.updateConnectionStatus('disconnected');
+              }
+          }
+
+          /**
+           * Leave current room
+           */
+          leaveRoom() {
+              if (!this.collaborationCore) return;
+
+              this.collaborationCore.leaveRoom();
+              this.showNotification('Opuszczono pokój współpracy', 'info');
+          }
+
+          /**
+           * Handle room joined event
+           */
+          handleRoomJoined({ roomId, users }) {
+              this.updateConnectionStatus('connected');
+
+              // Update room info
+              this.$('[data-current-room-id]').textContent = roomId;
+              this.$('[data-user-role]').textContent = this.collaborationCore.isHost ? 'Host' : 'Gość';
+              this.$('[data-connection-status]').textContent = 'Połączony';
+
+              // Show room info, hide controls
+              this.$('[data-room-controls]').style.display = 'none';
+              this.$('[data-room-info]').style.display = 'block';
+
+              // Update room input
+              this.$('[data-room-input]').value = roomId;
+          }
+
+          /**
+           * Handle room left event
+           */
+          handleRoomLeft() {
+              this.updateConnectionStatus('disconnected');
+
+              // Hide room info, show controls
+              this.$('[data-room-controls]').style.display = 'block';
+              this.$('[data-room-info]').style.display = 'none';
+
+              // Clear room input
+              this.$('[data-room-input]').value = '';
+          }
+
+          /**
+           * Update connection status
+           */
+          updateConnectionStatus(status) {
+              this.connectionStatus = status;
+
+              const indicator = this.$('[data-status-indicator]');
+              const statusText = this.$('[data-status-text]');
+
+              indicator.className = 'status-indicator';
+
+              switch (status) {
+                  case 'connected':
+                      indicator.classList.add('connected');
+                      statusText.textContent = 'Połączony';
+                      break;
+                  case 'connecting':
+                      indicator.classList.add('connecting');
+                      statusText.textContent = 'Łączenie...';
+                      break;
+                  case 'error':
+                      indicator.classList.add('disconnected');
+                      statusText.textContent = 'Błąd';
+                      break;
+                  default:
+                      indicator.classList.add('disconnected');
+                      statusText.textContent = 'Rozłączony';
+              }
+          }
+
+          /**
+           * Update toggle button state
+           */
+          updateToggleButton(enabled) {
+              const toggleBtn = this.$('[data-toggle-collaboration]');
+              if (enabled) {
+                  toggleBtn.classList.add('active');
+                  toggleBtn.title = 'Współpraca włączona';
+              } else {
+                  toggleBtn.classList.remove('active');
+                  toggleBtn.title = 'Współpraca wyłączona';
+              }
+          }
+
+          /**
+           * Show notification
+           */
+          showNotification(message, type = 'info') {
+              // Remove existing notification
+              const existing = document.querySelector('.notification');
+              if (existing) {
+                  existing.remove();
+              }
+
+              // Create new notification
+              const notification = document.createElement('div');
+              notification.className = `notification ${type}`;
+              notification.textContent = message;
+
+              document.body.appendChild(notification);
+
+              // Show with animation
+              setTimeout(() => {
+                  notification.classList.add('visible');
+              }, 10);
+
+              // Hide after 3 seconds
+              setTimeout(() => {
+                  notification.classList.remove('visible');
+                  setTimeout(() => {
+                      notification.remove();
+                  }, 300);
+              }, 3000);
+          }
+
+          /**
+           * Get collaboration status
+           */
+          getStatus() {
+              return {
+                  visible: this.isVisible,
+                  connectionStatus: this.connectionStatus,
+                  enabled: this.collaborationCore?.getStatus().enabled || false
+              };
+          }
+
+          /**
+           * Wait for module to be available
+           */
+          async waitForModule(moduleName) {
+              return new Promise((resolve) => {
+                  const checkModule = () => {
+                      const moduleInstance = window.moduleRegistry?.get(moduleName);
+                      if (moduleInstance) {
+                          resolve(moduleInstance);
+                      } else {
+                          setTimeout(checkModule, 100);
+                      }
+                  };
+                  checkModule();
+              });
+          }
+      }
+
+      registerModule('collaboration-ui', CollaborationUI);
+  </script>
+  </template>

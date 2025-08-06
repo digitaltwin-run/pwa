@@ -1,0 +1,475 @@
+<!-- Error Detector Performance Module - Performance monitoring and analysis -->
+<template id="error-detector-performance-template">
+    <div class="error-detector-performance">
+        <!-- Performance monitoring logic - no visible UI -->
+    </div>
+
+    <style scoped>
+        .error-detector-performance {
+            display: none; /* Core module - no visible UI */
+        }
+    </style>
+
+    <script>
+        class ErrorDetectorPerformance extends ModuleBase {
+            constructor() {
+                super();
+                this.errorDetectorCore = null;
+                this.performanceObserver = null;
+                this.memoryCheckInterval = null;
+                this.performanceMetrics = {
+                    domNodes: 0,
+                    memoryUsage: 0,
+                    renderTime: 0,
+                    scriptTime: 0,
+                    lastCheck: null
+                };
+
+                console.log('📊 Error Detector Performance initialized');
+            }
+
+            async init() {
+                await super.init();
+
+                // Wait for error detector core
+                this.waitForModule('error-detector-core').then(core => {
+                    this.errorDetectorCore = core;
+                    this.setupPerformanceMonitoring();
+                });
+
+                console.log('✅ Error Detector Performance ready');
+            }
+
+            /**
+             * Setup performance monitoring
+             */
+            setupPerformanceMonitoring() {
+                // Setup Performance Observer if available
+                if ('PerformanceObserver' in window) {
+                    this.setupPerformanceObserver();
+                }
+
+                // Setup memory monitoring
+                this.setupMemoryMonitoring();
+
+                console.log('📊 Performance monitoring setup complete');
+            }
+
+            /**
+             * Setup Performance Observer for detailed metrics
+             */
+            setupPerformanceObserver() {
+                try {
+                    this.performanceObserver = new PerformanceObserver((list) => {
+                        const entries = list.getEntries();
+
+                        entries.forEach(entry => {
+                            if (entry.entryType === 'measure') {
+                                // Custom measurements
+                                if (entry.duration > 100) { // More than 100ms
+                                    this.addWarning('Slow operation detected',
+                                        `Operation "${entry.name}" took ${entry.duration.toFixed(2)}ms`);
+                                }
+                            } else if (entry.entryType === 'paint') {
+                                // Paint timing
+                                if (entry.name === 'first-contentful-paint' && entry.startTime > 3000) {
+                                    this.addWarning('Slow first paint',
+                                        `First contentful paint took ${entry.startTime.toFixed(2)}ms`);
+                                }
+                            } else if (entry.entryType === 'longtask') {
+                                // Long tasks (blocking main thread)
+                                this.addWarning('Long task detected',
+                                    `Main thread blocked for ${entry.duration.toFixed(2)}ms`);
+                            }
+                        });
+                    });
+
+                    // Observe different entry types
+                    try {
+                        this.performanceObserver.observe({
+                            entryTypes: ['measure', 'paint', 'longtask', 'navigation']
+                        });
+                    } catch (e) {
+                        // Fallback for browsers that don't support all entry types
+                        this.performanceObserver.observe({entryTypes: ['measure']});
+                    }
+
+                } catch (error) {
+                    console.warn('⚠️ Could not setup PerformanceObserver:', error);
+                }
+            }
+
+            /**
+             * Setup memory usage monitoring
+             */
+            setupMemoryMonitoring() {
+                // Check memory usage periodically
+                this.memoryCheckInterval = setInterval(() => {
+                    this.checkMemoryUsage();
+                }, 30000); // Every 30 seconds
+            }
+
+            /**
+             * 📊 Check for performance issues
+             */
+            async checkPerformanceIssues() {
+                try {
+                    const issues = [];
+                    const metrics = await this.collectPerformanceMetrics();
+
+                    // DOM size check
+                    if (metrics.domNodes > 5000) {
+                        issues.push(`Large DOM size: ${metrics.domNodes} nodes`);
+                        this.addWarning('Large DOM detected', `DOM has ${metrics.domNodes} nodes, may cause slow performance`);
+                    }
+
+                    // Memory usage check
+                    if (metrics.memoryUsage > 100) { // 100MB
+                        issues.push(`High memory usage: ${metrics.memoryUsage.toFixed(1)}MB`);
+                        this.addWarning('High memory usage', `Application using ${metrics.memoryUsage.toFixed(1)}MB of memory`);
+                    }
+
+                    // Check for memory leaks (increasing trend)
+                    if (this.detectMemoryLeak(metrics.memoryUsage)) {
+                        issues.push('Potential memory leak detected');
+                        this.addError('Memory leak detected', 'Memory usage is consistently increasing');
+                    }
+
+                    // Render performance check
+                    if (metrics.renderTime > 16) { // More than one frame at 60fps
+                        issues.push(`Slow rendering: ${metrics.renderTime.toFixed(2)}ms`);
+                        this.addWarning('Slow rendering detected', `Rendering taking ${metrics.renderTime.toFixed(2)}ms`);
+                    }
+
+                    // Script execution time check
+                    if (metrics.scriptTime > 50) {
+                        issues.push(`Slow scripts: ${metrics.scriptTime.toFixed(2)}ms`);
+                        this.addWarning('Slow script execution', `Scripts taking ${metrics.scriptTime.toFixed(2)}ms`);
+                    }
+
+                    // Canvas performance check
+                    const canvasIssues = await this.checkCanvasPerformance();
+                    issues.push(...canvasIssues);
+
+                    // Event listener performance check
+                    const listenerIssues = await this.checkEventListenerPerformance();
+                    issues.push(...listenerIssues);
+
+                    this.performanceMetrics = {...metrics, lastCheck: new Date().toISOString()};
+
+                    if (issues.length > 0) {
+                        return {
+                            name: 'Performance Issues',
+                            status: 'WARN',
+                            warning: 'Performance issues detected',
+                            issues,
+                            metrics
+                        };
+                    }
+
+                    return {
+                        name: 'Performance Issues',
+                        status: 'PASS',
+                        metrics
+                    };
+
+                } catch (error) {
+                    this.addError('Performance check failed', `Error checking performance: ${error.message}`);
+                    return {name: 'Performance Issues', status: 'FAIL', error: error.message};
+                }
+            }
+
+            /**
+             * Collect comprehensive performance metrics
+             */
+            async collectPerformanceMetrics() {
+                const metrics = {};
+
+                // DOM metrics
+                metrics.domNodes = document.querySelectorAll('*').length;
+
+                // Memory metrics
+                metrics.memoryUsage = this.getMemoryUsage();
+
+                // Timing metrics
+                if (performance.timing) {
+                    const timing = performance.timing;
+                    metrics.renderTime = timing.loadEventEnd - timing.navigationStart;
+                    metrics.scriptTime = timing.loadEventEnd - timing.domContentLoadedEventEnd;
+                } else {
+                    metrics.renderTime = 0;
+                    metrics.scriptTime = 0;
+                }
+
+                // Modern Performance API metrics
+                if (performance.getEntriesByType) {
+                    const paintEntries = performance.getEntriesByType('paint');
+                    const navigationEntries = performance.getEntriesByType('navigation');
+
+                    if (paintEntries.length > 0) {
+                        const fcp = paintEntries.find(entry => entry.name === 'first-contentful-paint');
+                        if (fcp) metrics.firstContentfulPaint = fcp.startTime;
+                    }
+
+                    if (navigationEntries.length > 0) {
+                        const nav = navigationEntries[0];
+                        metrics.domContentLoaded = nav.domContentLoadedEventEnd - nav.domContentLoadedEventStart;
+                        metrics.loadComplete = nav.loadEventEnd - nav.loadEventStart;
+                    }
+                }
+
+                return metrics;
+            }
+
+            /**
+             * Get current memory usage
+             */
+            getMemoryUsage() {
+                if (performance.memory) {
+                    // Chrome/Edge specific
+                    return performance.memory.usedJSHeapSize / (1024 * 1024); // Convert to MB
+                } else {
+                    // Fallback estimate based on DOM size
+                    return document.querySelectorAll('*').length * 0.001; // Rough estimate
+                }
+            }
+
+            /**
+             * Check memory usage trends
+             */
+            checkMemoryUsage() {
+                const currentMemory = this.getMemoryUsage();
+
+                if (currentMemory > 150) { // 150MB threshold
+                    this.addWarning('High memory usage', `Current memory usage: ${currentMemory.toFixed(1)}MB`);
+                }
+
+                // Store for trend analysis
+                if (!this.memoryHistory) {
+                    this.memoryHistory = [];
+                }
+
+                this.memoryHistory.push({
+                    timestamp: Date.now(),
+                    memory: currentMemory
+                });
+
+                // Keep only last 10 measurements
+                if (this.memoryHistory.length > 10) {
+                    this.memoryHistory = this.memoryHistory.slice(-10);
+                }
+            }
+
+            /**
+             * Detect potential memory leaks
+             */
+            detectMemoryLeak(currentMemory) {
+                if (!this.memoryHistory || this.memoryHistory.length < 5) {
+                    return false; // Not enough data
+                }
+
+                // Check if memory is consistently increasing
+                let increasingCount = 0;
+                for (let i = 1; i < this.memoryHistory.length; i++) {
+                    if (this.memoryHistory[i].memory > this.memoryHistory[i - 1].memory) {
+                        increasingCount++;
+                    }
+                }
+
+                // If more than 80% of measurements are increasing, likely a leak
+                return (increasingCount / (this.memoryHistory.length - 1)) > 0.8;
+            }
+
+            /**
+             * Check canvas-specific performance issues
+             */
+            async checkCanvasPerformance() {
+                const issues = [];
+
+                try {
+                    const canvas = document.getElementById('svg-canvas');
+                    if (!canvas) return issues;
+
+                    // Check canvas size
+                    const canvasRect = canvas.getBoundingClientRect();
+                    const canvasArea = canvasRect.width * canvasRect.height;
+
+                    if (canvasArea > 2000000) { // 2M pixels
+                        issues.push(`Large canvas area: ${Math.round(canvasArea / 1000)}K pixels`);
+                    }
+
+                    // Check number of canvas elements
+                    const elements = canvas.querySelectorAll('*');
+                    if (elements.length > 1000) {
+                        issues.push(`Many canvas elements: ${elements.length} elements`);
+                    }
+
+                    // Check for complex paths
+                    const complexPaths = canvas.querySelectorAll('path[d*="C"], path[d*="Q"], path[d*="A"]');
+                    if (complexPaths.length > 100) {
+                        issues.push(`Many complex paths: ${complexPaths.length} curves/arcs`);
+                    }
+
+                    // Check for large images
+                    const images = canvas.querySelectorAll('image');
+                    images.forEach((img, index) => {
+                        const width = parseFloat(img.getAttribute('width')) || 0;
+                        const height = parseFloat(img.getAttribute('height')) || 0;
+                        if (width * height > 250000) { // 250K pixels per image
+                            issues.push(`Large image ${index}: ${width}x${height}`);
+                        }
+                    });
+
+                } catch (error) {
+                    console.warn('⚠️ Error checking canvas performance:', error);
+                }
+
+                return issues;
+            }
+
+            /**
+             * Check event listener performance issues
+             */
+            async checkEventListenerPerformance() {
+                const issues = [];
+
+                try {
+                    // Check for excessive event listeners
+                    const elementsWithListeners = document.querySelectorAll('[onclick], [onmouseover], [onmouseout]');
+                    if (elementsWithListeners.length > 200) {
+                        issues.push(`Many inline event handlers: ${elementsWithListeners.length}`);
+                    }
+
+                    // Check for event delegation opportunities
+                    const buttonElements = document.querySelectorAll('button');
+                    const buttonsWithInlineHandlers = document.querySelectorAll('button[onclick]');
+
+                    if (buttonElements.length > 50 && buttonsWithInlineHandlers.length > 25) {
+                        issues.push('Consider event delegation for buttons');
+                    }
+
+                    // Check for potential memory leaks in listeners
+                    const iframes = document.querySelectorAll('iframe');
+                    if (iframes.length > 5) {
+                        issues.push(`Many iframes may cause listener leaks: ${iframes.length}`);
+                    }
+
+                } catch (error) {
+                    console.warn('⚠️ Error checking event listener performance:', error);
+                }
+
+                return issues;
+            }
+
+            /**
+             * Start performance measurement
+             */
+            startMeasurement(name) {
+                if (performance.mark) {
+                    performance.mark(`${name}-start`);
+                }
+            }
+
+            /**
+             * End performance measurement
+             */
+            endMeasurement(name) {
+                if (performance.mark && performance.measure) {
+                    performance.mark(`${name}-end`);
+                    performance.measure(name, `${name}-start`, `${name}-end`);
+                }
+            }
+
+            /**
+             * Get performance metrics for reporting
+             */
+            getPerformanceMetrics() {
+                return {...this.performanceMetrics};
+            }
+
+            /**
+             * Get memory history for analysis
+             */
+            getMemoryHistory() {
+                return this.memoryHistory ? [...this.memoryHistory] : [];
+            }
+
+            /**
+             * Clear performance data
+             */
+            clearPerformanceData() {
+                this.memoryHistory = [];
+                this.performanceMetrics = {
+                    domNodes: 0,
+                    memoryUsage: 0,
+                    renderTime: 0,
+                    scriptTime: 0,
+                    lastCheck: null
+                };
+
+                // Clear performance timeline
+                if (performance.clearMarks) {
+                    performance.clearMarks();
+                }
+                if (performance.clearMeasures) {
+                    performance.clearMeasures();
+                }
+            }
+
+            /**
+             * Cleanup method
+             */
+            cleanup() {
+                if (this.performanceObserver) {
+                    this.performanceObserver.disconnect();
+                    this.performanceObserver = null;
+                }
+
+                if (this.memoryCheckInterval) {
+                    clearInterval(this.memoryCheckInterval);
+                    this.memoryCheckInterval = null;
+                }
+
+                console.log('🧹 Performance monitoring cleanup complete');
+            }
+
+            /**
+             * Helper methods for error/warning reporting
+             */
+            addError(title, description, metadata = {}) {
+                if (this.errorDetectorCore) {
+                    this.errorDetectorCore.addError(title, description, {...metadata, source: 'performance'});
+                } else {
+                    console.error('🚨 Performance Error (no core):', title, '-', description);
+                }
+            }
+
+            addWarning(title, description, metadata = {}) {
+                if (this.errorDetectorCore) {
+                    this.errorDetectorCore.addWarning(title, description, {...metadata, source: 'performance'});
+                } else {
+                    console.warn('⚠️ Performance Warning (no core):', title, '-', description);
+                }
+            }
+
+            /**
+             * Wait for module to be available
+             */
+            async waitForModule(moduleName) {
+                return new Promise((resolve) => {
+                    const checkModule = () => {
+                        const moduleInstance = window.moduleRegistry?.get(moduleName);
+                        if (moduleInstance) {
+                            resolve(moduleInstance);
+                        } else {
+                            setTimeout(checkModule, 100);
+                        }
+                    };
+                    checkModule();
+                });
+            }
+        }
+
+        registerModule('error-detector-performance', ErrorDetectorPerformance);
+    </script>
+</template>

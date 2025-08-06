@@ -1,311 +1,312 @@
 <!-- properties-manager.html -->
 <template id="properties-manager-template">
-  <div class="properties-manager">
-    <div class="properties-manager__content">
-      <!-- Content managed by individual property modules -->
+    <div class="properties-manager">
+        <div class="properties-manager__content">
+            <!-- Content managed by individual property modules -->
+        </div>
     </div>
-  </div>
 
-  <style>
-    .properties-manager {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      background: var(--panel-bg, #ffffff);
-    }
-    .properties-manager__content {
-      flex: 1;
-      overflow-y: auto;
-    }
-  </style>
+    <style>
+        .properties-manager {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: var(--panel-bg, #ffffff);
+        }
 
-  <script type="module">
-    import { ModuleBase } from '../base/module-base.js';
-    import { PropertiesMapper } from '../../js/properties-mapper.js';
+        .properties-manager__content {
+            flex: 1;
+            overflow-y: auto;
+        }
+    </style>
 
-    /**
-     * Properties Manager Orchestrator
-     * Coordinates between different property modules and manages the overall properties system
-     */
-    class PropertiesManager extends ModuleBase {
-      constructor() {
-        super();
-        this.template = document.currentScript.parentElement;
-        this.componentManager = null;
-        this.propertiesMapper = null;
-        
-        // References to modular components
-        this.propertiesBase = null;
-        this.componentProperties = null;
-        this.canvasProperties = null;
-        this.multiSelectionProperties = null;
-        
-        this.init();
-      }
+    <script type="module">
+        import {ModuleBase} from '../base/module-base.js';
+        import {PropertiesMapper} from '../../js/properties-mapper.js';
 
-      async init() {
-        console.log('🎯 Properties Manager orchestrator initializing...');
-        
-        // Load required modules
-        await this.loadDependentModules();
-        
-        // Initialize properties mapper
-        this.initializePropertiesMapper();
-        
-        // Setup orchestration
-        this.setupOrchestration();
-        
-        // Make globally available
-        window.propertiesManager = this;
-        
-        console.log('✅ Properties Manager orchestrator initialized');
-      }
+        /**
+         * Properties Manager Orchestrator
+         * Coordinates between different property modules and manages the overall properties system
+         */
+        class PropertiesManager extends ModuleBase {
+            constructor() {
+                super();
+                this.template = document.currentScript.parentElement;
+                this.componentManager = null;
+                this.propertiesMapper = null;
 
-      async loadDependentModules() {
-        // Load all property-related modules
-        const modules = [
-          'properties-base',
-          'component-properties', 
-          'canvas-properties',
-          'multi-selection-properties'
-        ];
+                // References to modular components
+                this.propertiesBase = null;
+                this.componentProperties = null;
+                this.canvasProperties = null;
+                this.multiSelectionProperties = null;
 
-        try {
-          // Use ComponentLoader to load modules
-          if (window.ComponentLoader) {
-            for (const moduleName of modules) {
-              await window.ComponentLoader.loadComponent(moduleName);
+                this.init();
             }
-          }
-          
-          // Get references to loaded modules
-          this.propertiesBase = window.propertiesBase;
-          this.componentProperties = window.componentProperties;
-          this.canvasProperties = window.canvasProperties;
-          this.multiSelectionProperties = window.multiSelectionProperties;
-          
-        } catch (error) {
-          console.error('❌ Error loading property modules:', error);
+
+            async init() {
+                console.log('🎯 Properties Manager orchestrator initializing...');
+
+                // Load required modules
+                await this.loadDependentModules();
+
+                // Initialize properties mapper
+                this.initializePropertiesMapper();
+
+                // Setup orchestration
+                this.setupOrchestration();
+
+                // Make globally available
+                window.propertiesManager = this;
+
+                console.log('✅ Properties Manager orchestrator initialized');
+            }
+
+            async loadDependentModules() {
+                // Load all property-related modules
+                const modules = [
+                    'properties-base',
+                    'component-properties',
+                    'canvas-properties',
+                    'multi-selection-properties'
+                ];
+
+                try {
+                    // Use ComponentLoader to load modules
+                    if (window.ComponentLoader) {
+                        for (const moduleName of modules) {
+                            await window.ComponentLoader.loadComponent(moduleName);
+                        }
+                    }
+
+                    // Get references to loaded modules
+                    this.propertiesBase = window.propertiesBase;
+                    this.componentProperties = window.componentProperties;
+                    this.canvasProperties = window.canvasProperties;
+                    this.multiSelectionProperties = window.multiSelectionProperties;
+
+                } catch (error) {
+                    console.error('❌ Error loading property modules:', error);
+                }
+            }
+
+            initializePropertiesMapper() {
+                // Initialize properties mapper for metadata and variable management
+                if (this.componentManager) {
+                    this.propertiesMapper = new PropertiesMapper(this.componentManager);
+                    this.propertiesMapper.setupAutoRefresh();
+                } else {
+                    console.warn('⚠️ ComponentManager not available, mapper initialization delayed');
+                }
+            }
+
+            setupOrchestration() {
+                // Listen for selection changes from canvas
+                document.addEventListener('canvas-selection-changed', (event) => {
+                    this.handleSelectionChange(event.detail);
+                });
+
+                // Listen for component property changes
+                document.addEventListener('component-property-changed', (event) => {
+                    this.handlePropertyChange(event.detail);
+                });
+
+                // Listen for multi-selection property changes
+                document.addEventListener('multi-selection-property-changed', (event) => {
+                    this.handleMultiSelectionPropertyChange(event.detail);
+                });
+
+                // Listen for component actions
+                document.addEventListener('component-action', (event) => {
+                    this.handleComponentAction(event.detail);
+                });
+            }
+
+            handleSelectionChange(detail) {
+                const selectedComponents = detail.selectedComponents || [];
+                console.log('🎯 Properties Manager: Orchestrating selection change for', selectedComponents.length, 'components');
+
+                // Clear previous properties display
+                this.clearActiveProperties();
+
+                // Route to appropriate property module
+                if (selectedComponents.length === 0) {
+                    this.showCanvasProperties();
+                } else if (selectedComponents.length === 1) {
+                    this.showComponentProperties(selectedComponents[0]);
+                } else {
+                    this.showMultiSelectionProperties(selectedComponents);
+                }
+            }
+
+            handlePropertyChange(detail) {
+                console.log('🔧 Properties Manager: Property changed:', detail);
+
+                // Update properties mapper if available
+                if (this.propertiesMapper) {
+                    this.propertiesMapper.scanCanvasProperties();
+                }
+
+                // Notify other systems
+                this.notifyHMI('property-updated', detail);
+            }
+
+            handleMultiSelectionPropertyChange(detail) {
+                console.log('🔧 Properties Manager: Multi-selection property changed:', detail);
+
+                // Update properties mapper if available
+                if (this.propertiesMapper) {
+                    this.propertiesMapper.scanCanvasProperties();
+                }
+
+                // Notify other systems
+                this.notifyHMI('multi-selection-property-updated', detail);
+            }
+
+            handleComponentAction(detail) {
+                const {action, data} = detail;
+                console.log('🎯 Properties Manager: Handling action:', action);
+
+                switch (action) {
+                    case 'show-canvas-properties':
+                        this.showCanvasProperties();
+                        break;
+                    case 'show-component-properties':
+                        this.showComponentProperties(data.component);
+                        break;
+                    case 'show-multi-selection-properties':
+                        this.showMultiSelectionProperties(data.components);
+                        break;
+                    default:
+                        console.log('🤷 Unknown component action:', action);
+                }
+            }
+
+            showCanvasProperties() {
+                console.log('🖼️ Showing canvas properties');
+
+                if (this.canvasProperties) {
+                    // Canvas properties module handles its own display
+                    this.setActivePropertyModule('canvas');
+                } else {
+                    console.warn('⚠️ Canvas properties module not available');
+                }
+            }
+
+            showComponentProperties(component) {
+                console.log('🔧 Showing component properties for:', component);
+
+                if (this.componentProperties) {
+                    this.componentProperties.showProperties(component);
+                    this.setActivePropertyModule('component');
+                } else {
+                    console.warn('⚠️ Component properties module not available');
+                }
+            }
+
+            showMultiSelectionProperties(components) {
+                console.log('📋 Showing multi-selection properties for:', components.length, 'components');
+
+                if (this.multiSelectionProperties) {
+                    this.multiSelectionProperties.showMultiSelectionProperties(components);
+                    this.setActivePropertyModule('multi-selection');
+                } else {
+                    console.warn('⚠️ Multi-selection properties module not available');
+                }
+            }
+
+            setActivePropertyModule(moduleType) {
+                // This method could be used to manage visibility/activation of different property modules
+                // For now, we rely on each module to manage its own state
+                this.currentActiveModule = moduleType;
+            }
+
+            clearActiveProperties() {
+                // Clear all property modules
+                if (this.componentProperties) {
+                    this.componentProperties.clearContent();
+                }
+                if (this.multiSelectionProperties) {
+                    this.multiSelectionProperties.clearContent();
+                }
+                // Canvas properties typically don't need clearing as they're always available
+            }
+
+            // Public API methods that delegate to appropriate modules or mapper
+
+            /**
+             * Set component manager reference
+             */
+            setComponentManager(componentManager) {
+                this.componentManager = componentManager;
+
+                // Initialize mapper now that we have component manager
+                if (!this.propertiesMapper) {
+                    this.initializePropertiesMapper();
+                }
+
+                // Pass reference to modules that need it
+                if (this.propertiesBase) {
+                    this.propertiesBase.componentManager = componentManager;
+                }
+            }
+
+            /**
+             * Get available variables from properties mapper
+             */
+            getAvailableVariables() {
+                return this.propertiesMapper ? this.propertiesMapper.availableVariables : new Map();
+            }
+
+            /**
+             * Get available target components from properties mapper
+             */
+            getAvailableTargetComponents() {
+                return this.propertiesMapper ? this.propertiesMapper.getAvailableTargetComponents() : [];
+            }
+
+            /**
+             * Export properties to JSON
+             */
+            exportPropertiesToJson() {
+                return this.propertiesMapper ? this.propertiesMapper.exportToMetadataJson() : {};
+            }
+
+            /**
+             * Refresh properties mapping
+             */
+            refreshPropertiesMapping() {
+                if (this.propertiesMapper) {
+                    this.propertiesMapper.scanCanvasProperties();
+                    console.log('📊 Properties mapping refreshed:', {
+                        components: this.propertiesMapper.mappedProperties.size,
+                        variables: this.propertiesMapper.availableVariables.size
+                    });
+                }
+            }
+
+            /**
+             * Clear all properties displays
+             */
+            clearProperties() {
+                this.clearActiveProperties();
+            }
+
+            /**
+             * Select component (legacy compatibility method)
+             */
+            selectComponent(element) {
+                if (element) {
+                    // Trigger selection change event that will be handled by the orchestrator
+                    document.dispatchEvent(new CustomEvent('canvas-selection-changed', {
+                        detail: {selectedComponents: [element]}
+                    }));
+                }
+            }
         }
-      }
 
-      initializePropertiesMapper() {
-        // Initialize properties mapper for metadata and variable management
-        if (this.componentManager) {
-          this.propertiesMapper = new PropertiesMapper(this.componentManager);
-          this.propertiesMapper.setupAutoRefresh();
-        } else {
-          console.warn('⚠️ ComponentManager not available, mapper initialization delayed');
-        }
-      }
-
-      setupOrchestration() {
-        // Listen for selection changes from canvas
-        document.addEventListener('canvas-selection-changed', (event) => {
-          this.handleSelectionChange(event.detail);
-        });
-
-        // Listen for component property changes
-        document.addEventListener('component-property-changed', (event) => {
-          this.handlePropertyChange(event.detail);
-        });
-
-        // Listen for multi-selection property changes
-        document.addEventListener('multi-selection-property-changed', (event) => {
-          this.handleMultiSelectionPropertyChange(event.detail);
-        });
-
-        // Listen for component actions
-        document.addEventListener('component-action', (event) => {
-          this.handleComponentAction(event.detail);
-        });
-      }
-
-      handleSelectionChange(detail) {
-        const selectedComponents = detail.selectedComponents || [];
-        console.log('🎯 Properties Manager: Orchestrating selection change for', selectedComponents.length, 'components');
-        
-        // Clear previous properties display
-        this.clearActiveProperties();
-        
-        // Route to appropriate property module
-        if (selectedComponents.length === 0) {
-          this.showCanvasProperties();
-        } else if (selectedComponents.length === 1) {
-          this.showComponentProperties(selectedComponents[0]);
-        } else {
-          this.showMultiSelectionProperties(selectedComponents);
-        }
-      }
-
-      handlePropertyChange(detail) {
-        console.log('🔧 Properties Manager: Property changed:', detail);
-        
-        // Update properties mapper if available
-        if (this.propertiesMapper) {
-          this.propertiesMapper.scanCanvasProperties();
-        }
-        
-        // Notify other systems
-        this.notifyHMI('property-updated', detail);
-      }
-
-      handleMultiSelectionPropertyChange(detail) {
-        console.log('🔧 Properties Manager: Multi-selection property changed:', detail);
-        
-        // Update properties mapper if available
-        if (this.propertiesMapper) {
-          this.propertiesMapper.scanCanvasProperties();
-        }
-        
-        // Notify other systems
-        this.notifyHMI('multi-selection-property-updated', detail);
-      }
-
-      handleComponentAction(detail) {
-        const { action, data } = detail;
-        console.log('🎯 Properties Manager: Handling action:', action);
-        
-        switch (action) {
-          case 'show-canvas-properties':
-            this.showCanvasProperties();
-            break;
-          case 'show-component-properties':
-            this.showComponentProperties(data.component);
-            break;
-          case 'show-multi-selection-properties':
-            this.showMultiSelectionProperties(data.components);
-            break;
-          default:
-            console.log('🤷 Unknown component action:', action);
-        }
-      }
-
-      showCanvasProperties() {
-        console.log('🖼️ Showing canvas properties');
-        
-        if (this.canvasProperties) {
-          // Canvas properties module handles its own display
-          this.setActivePropertyModule('canvas');
-        } else {
-          console.warn('⚠️ Canvas properties module not available');
-        }
-      }
-
-      showComponentProperties(component) {
-        console.log('🔧 Showing component properties for:', component);
-        
-        if (this.componentProperties) {
-          this.componentProperties.showProperties(component);
-          this.setActivePropertyModule('component');
-        } else {
-          console.warn('⚠️ Component properties module not available');
-        }
-      }
-
-      showMultiSelectionProperties(components) {
-        console.log('📋 Showing multi-selection properties for:', components.length, 'components');
-        
-        if (this.multiSelectionProperties) {
-          this.multiSelectionProperties.showMultiSelectionProperties(components);
-          this.setActivePropertyModule('multi-selection');
-        } else {
-          console.warn('⚠️ Multi-selection properties module not available');
-        }
-      }
-
-      setActivePropertyModule(moduleType) {
-        // This method could be used to manage visibility/activation of different property modules
-        // For now, we rely on each module to manage its own state
-        this.currentActiveModule = moduleType;
-      }
-
-      clearActiveProperties() {
-        // Clear all property modules
-        if (this.componentProperties) {
-          this.componentProperties.clearContent();
-        }
-        if (this.multiSelectionProperties) {
-          this.multiSelectionProperties.clearContent();
-        }
-        // Canvas properties typically don't need clearing as they're always available
-      }
-
-      // Public API methods that delegate to appropriate modules or mapper
-
-      /**
-       * Set component manager reference
-       */
-      setComponentManager(componentManager) {
-        this.componentManager = componentManager;
-        
-        // Initialize mapper now that we have component manager
-        if (!this.propertiesMapper) {
-          this.initializePropertiesMapper();
-        }
-        
-        // Pass reference to modules that need it
-        if (this.propertiesBase) {
-          this.propertiesBase.componentManager = componentManager;
-        }
-      }
-
-      /**
-       * Get available variables from properties mapper
-       */
-      getAvailableVariables() {
-        return this.propertiesMapper ? this.propertiesMapper.availableVariables : new Map();
-      }
-
-      /**
-       * Get available target components from properties mapper
-       */
-      getAvailableTargetComponents() {
-        return this.propertiesMapper ? this.propertiesMapper.getAvailableTargetComponents() : [];
-      }
-
-      /**
-       * Export properties to JSON
-       */
-      exportPropertiesToJson() {
-        return this.propertiesMapper ? this.propertiesMapper.exportToMetadataJson() : {};
-      }
-
-      /**
-       * Refresh properties mapping
-       */
-      refreshPropertiesMapping() {
-        if (this.propertiesMapper) {
-          this.propertiesMapper.scanCanvasProperties();
-          console.log('📊 Properties mapping refreshed:', {
-            components: this.propertiesMapper.mappedProperties.size,
-            variables: this.propertiesMapper.availableVariables.size
-          });
-        }
-      }
-
-      /**
-       * Clear all properties displays
-       */
-      clearProperties() {
-        this.clearActiveProperties();
-      }
-
-      /**
-       * Select component (legacy compatibility method)
-       */
-      selectComponent(element) {
-        if (element) {
-          // Trigger selection change event that will be handled by the orchestrator
-          document.dispatchEvent(new CustomEvent('canvas-selection-changed', {
-            detail: { selectedComponents: [element] }
-          }));
-        }
-      }
-    }
-
-    // Register the orchestrator
-    window.PropertiesManager = PropertiesManager;
-    new PropertiesManager();
-  </script>
+        // Register the orchestrator
+        window.PropertiesManager = PropertiesManager;
+        new PropertiesManager();
+    </script>
 </template>
