@@ -301,7 +301,8 @@
  */
 class ComponentsLibrarySidebar {
     constructor() {
-        this.apiEndpoint = 'http://localhost:5006/api/components';
+        // Use static components.json instead of API endpoint
+        this.componentsJsonPath = '/components.json';
         this.components = [];
         this.filteredComponents = [];
         this.selectedCategory = 'all';
@@ -354,26 +355,45 @@ class ComponentsLibrarySidebar {
         try {
             this.showLoading();
 
-            console.log('📦 Loading components from API...');
-            const response = await fetch(this.apiEndpoint);
+            console.log('📦 Loading components from static JSON file...');
+            const response = await fetch(this.componentsJsonPath);
 
             if (!response.ok) {
-                throw new Error(`API responded with ${response.status}: ${response.statusText}`);
+                throw new Error(`Failed to load components.json: ${response.status}: ${response.statusText}`);
             }
 
             const data = await response.json();
             this.components = data.components || [];
-
-            // Preload SVG icons for faster rendering
-            console.log(`✅ Loaded ${this.components.length} components from API`);
-            console.log('🖼️ Preloading SVG icons...');
             
-            // Start async filtering and rendering
+            // Add default categories if not defined
+            this.components.forEach(comp => {
+                if (!comp.category) {
+                    // Try to infer category from component ID or name
+                    const id = comp.id?.toLowerCase() || '';
+                    const name = comp.name?.toLowerCase() || '';
+                    
+                    if (id.includes('gauge') || id.includes('display') || name.includes('gauge') || name.includes('display')) {
+                        comp.category = 'Indicators';
+                    } else if (id.includes('valve') || id.includes('pump') || id.includes('motor') || 
+                              name.includes('valve') || name.includes('pump') || name.includes('motor')) {
+                        comp.category = 'Actuators';
+                    } else if (id.includes('modbus') || id.includes('mqtt') || 
+                              name.includes('modbus') || name.includes('rtu')) {
+                        comp.category = 'Communication';
+                    } else if (id.includes('sensor') || name.includes('sensor')) {
+                        comp.category = 'Sensors';
+                    } else {
+                        comp.category = 'General';
+                    }
+                }
+            });
+
             await this.filterAndRenderComponents();
+            console.log(`✅ Loaded ${this.components.length} components from static JSON file`);
             
         } catch (error) {
             console.error('❌ Failed to load components:', error);
-            this.showError('Nie udało się załadować komponentów. Sprawdź połączenie z API.');
+            this.showError('Nie udało się załadować pliku komponentów components.json.');
         }
     }
 

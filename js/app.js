@@ -21,7 +21,8 @@ import './i18n/language-selector.js';
 import './hmi/input/keyboard-shortcuts-ui.js'; // Keyboard shortcuts UI component
 // Simple component loader now loaded as HTML module
 // import './hmi/ui/components-library-sidebar.js'; // Enhanced components library sidebar (disabled due to cache issues)
-import { ComponentScaler } from './component-scaler.js';
+// Component Scaler now loaded as HTML module
+// import { ComponentScaler } from './component-scaler.js';
 import { canvasSelectionManager } from './hmi/index.js';
 import { CanvasZoomManager } from './canvas-zoom-manager.js';
 import { CanvasPropertiesManager } from './canvas-properties-manager.js';

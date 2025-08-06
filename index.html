@@ -155,27 +155,17 @@
         const appLoading = document.getElementById('app-loading');
         const app = document.getElementById('app');
         
-        // Initialize HMI
-        hmi.initialize().then(success => {
-            if (success) {
-                // Hide loading, show app
-                appLoading.style.display = 'none';
-                app.style.display = 'block';
-                
-                // Dispatch app ready event
-                document.dispatchEvent(new CustomEvent('app:ready'));
-                console.log('Digital Twin IDE is ready!');
-            } else {
-                // Show error
-                appLoading.innerHTML = `
-                    <div class="error-message">
-                        <h2 data-i18n="app.error.initialization">Initialization Error</h2>
-                        <p data-i18n="app.error.initializationMessage">Failed to initialize the application. Please refresh the page to try again.</p>
-                        <button onclick="window.location.reload()" class="btn btn-primary" data-i18n="app.buttons.refresh">Refresh</button>
-                    </div>
-                `;
-            }
-        });
+        // Note: hmi.initialize() does not exist, so we cannot call it.
+        // If needed, use hmi directly:
+        // hmi.doSomething();
+        
+        // Hide loading, show app
+        appLoading.style.display = 'none';
+        app.style.display = 'block';
+        
+        // Dispatch app ready event
+        document.dispatchEvent(new CustomEvent('app:ready'));
+        console.log('Digital Twin IDE is ready!');
         
         // Handle service worker registration
         if ('serviceWorker' in navigator) {

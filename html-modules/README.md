@@ -40,9 +40,11 @@ Each component in the `modules/` directory should follow this structure:
   </style>
 
   <script type="module">
-    import { BaseComponent } from '../utils/base-component.js';
+    // IMPORTANT: Always use absolute paths for imports to ensure consistent module resolution
+    import { ModuleBase, registerModule } from '/html-modules/base/module-base.js';
+    import { I18nMixin } from '/html-modules/base/i18n-mixin.js';
     
-    class ComponentName extends BaseComponent {
+    class ComponentName extends I18nMixin(ModuleBase) {
       constructor() {
         super();
         // Component initialization
@@ -55,7 +57,13 @@ Each component in the `modules/` directory should follow this structure:
       }
       
       bindEvents() {
-        // Set up event listeners
+        // Set up event listeners using event delegation
+        // This approach reduces memory usage and improves performance
+        this.addEventListener('click', (event) => {
+          if (event.target.matches('.button')) {
+            // Handle button click
+          }
+        });
       }
       
       loadData() {
@@ -79,7 +87,7 @@ Each component in the `modules/` directory should follow this structure:
     }
     
     // Register the custom element
-    customElements.define('component-name', ComponentName);
+    registerModule('component-name', ComponentName);
   </script>
 </template>
 ```
@@ -142,6 +150,46 @@ In your HTML, use `data-i18n` attributes for static translations:
 <p data-i18n="welcome.message" data-i18n-username="John">Welcome, {username}!</p>
 ```
 
+## Event Handling
+
+### Event Delegation with `on()` Method
+
+The `ModuleBase` class provides an `on()` method that supports event delegation similar to jQuery. This approach is more efficient than attaching event listeners to individual elements.
+
+```javascript
+// Basic event handling
+this.on('click', (event) => {
+  // Handle click event on this component
+});
+
+// Event delegation pattern
+this.on('click', '.button-class', (event) => {
+  // Handle click event only when elements matching '.button-class' are clicked
+  // This works even for dynamically added elements
+});
+
+// You can use any CSS selector for delegation
+this.on('change', '[data-action^="update-"]', (event) => {
+  // Handle change events on elements with data-action attributes starting with "update-"
+});
+```
+
+Benefits of event delegation:
+- Reduces memory usage (fewer event listeners)
+- Works with dynamically added elements
+- Improves performance
+- Simplifies event handling code
+
+### Other Event Methods
+
+```javascript
+// Remove event listener
+this.off('click', handlerFunction);
+
+// Emit custom event
+this.emit('component-ready', { data: 'value' });
+```
+
 ## Development Guidelines
 
 1. **Component Isolation**: Each component should be self-contained and not rely on global state.
@@ -165,6 +213,24 @@ In your HTML, use `data-i18n` attributes for static translations:
 - **Composition**: Compose complex UIs from simple, focused components.
 - **Documentation**: Document component props, events, and usage examples.
 - **Testing**: Write unit and integration tests for your components.
+
+## Import Paths Best Practices
+
+Always use **absolute paths** for imports in HTML modules to ensure consistent module resolution, especially with dynamic loading:
+
+```javascript
+// RECOMMENDED: Absolute paths ensure consistent module resolution
+import { ModuleBase, registerModule } from '/html-modules/base/module-base.js';
+import { I18nMixin } from '/html-modules/base/i18n-mixin.js';
+import { gridManager } from '/js/grid.js';
+
+// AVOID: Relative paths can break when modules are loaded dynamically
+// import { ModuleBase, registerModule } from '../base/module-base.js';
+// import { I18nMixin } from './base/i18n-mixin.js';
+// import { gridManager } from '../../js/grid.js';
+```
+
+This is particularly important because modules are dynamically loaded at runtime using the component-loader.js utility, which creates Blob URLs for module scripts. Absolute paths ensure consistent resolution regardless of how or where the module is loaded.
 
 ## Available Scripts
 

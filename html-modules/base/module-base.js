@@ -142,9 +142,38 @@ export class ModuleBase extends HTMLElement {
 
     /**
      * Listen to custom events
+     * @param {string} eventName - Event name to listen for
+     * @param {string|Function} selectorOrHandler - CSS selector for delegation or handler function
+     * @param {Function} [handler] - Handler function (required if selector is provided)
      */
-    on(eventName, handler) {
-        this.addEventListener(eventName, handler);
+    on(eventName, selectorOrHandler, handler) {
+        // Check if this is delegation pattern (3 arguments) or direct listener (2 arguments)
+        if (typeof selectorOrHandler === 'string' && typeof handler === 'function') {
+            // Event delegation pattern
+            const selector = selectorOrHandler;
+            this.addEventListener(eventName, (e) => {
+                // Find all matching elements in shadow DOM
+                const targets = this.shadowRoot.querySelectorAll(selector);
+                // Check if the event target or any of its ancestors match the selector
+                let currentElement = e.target;
+                while (currentElement) {
+                    if (Array.from(targets).includes(currentElement)) {
+                        // Call handler with original event
+                        handler.call(this, e);
+                        return;
+                    }
+                    // Move up the DOM tree
+                    currentElement = currentElement.parentElement;
+                    // Stop when we reach shadowRoot
+                    if (!currentElement || currentElement === this.shadowRoot) break;
+                }
+            });
+        } else if (typeof selectorOrHandler === 'function') {
+            // Standard event listener pattern
+            this.addEventListener(eventName, selectorOrHandler);
+        } else {
+            console.error('Invalid arguments for on() method');
+        }
     }
 
     /**

@@ -63,8 +63,20 @@ export class ComponentLoader {
         
         if (isModule) {
           // For module scripts, we need to handle them differently
-          // Create a blob URL for the module script to preserve its context
-          const blob = new Blob([script.textContent], { type: 'text/javascript' });
+          // First, update any relative imports to absolute paths
+          let scriptContent = script.textContent;
+          
+          // Get base URL for proper path resolution
+          const baseUrl = window.location.origin;
+          
+          // Replace common relative import patterns with proper absolute URLs
+          scriptContent = scriptContent.replace(/from\s+['"]\.\.\/base\/module-base\.js['"]/g, `from '${baseUrl}/html-modules/base/module-base.js'`);
+          scriptContent = scriptContent.replace(/from\s+['"]\.\/base\/i18n-mixin\.js['"]/g, `from '${baseUrl}/html-modules/base/i18n-mixin.js'`);
+          scriptContent = scriptContent.replace(/from\s+['"]\.\.\/base\/i18n-mixin\.js['"]/g, `from '${baseUrl}/html-modules/base/i18n-mixin.js'`);
+          scriptContent = scriptContent.replace(/from\s+['"]\.\.\/\.\.\/js\/grid\.js['"]/g, `from '${baseUrl}/js/grid.js'`);
+          
+          // Create a blob URL for the module script with fixed imports
+          const blob = new Blob([scriptContent], { type: 'text/javascript' });
           const scriptUrl = URL.createObjectURL(blob);
           
           // Create a new script element with module type
@@ -154,6 +166,7 @@ export class ComponentLoader {
       'canvas-placement-helper',     // Smart component positioning
       'hmi-integration',            // HMI integration module for multi-modal interactions
       'svg-text-editor',            // In-place text editing for SVG elements
+      'component-scaler',           // SVG component scaling with aspect ratio preservation
 
       // UI Components
       'header',                      // Navbar and controls
