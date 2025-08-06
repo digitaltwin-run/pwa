@@ -67,6 +67,14 @@ export class ComponentLoader {
         this._createDefaultComponent(tagName, template, style);
       }
       
+      // For safety, also add the template to document.body
+      // This ensures templates are available in the document
+      if (template && !document.querySelector(`template[data-component="${componentName}"]`)) {
+        const clonedTemplate = template.cloneNode(true);
+        clonedTemplate.setAttribute('data-component', componentName);
+        document.body.appendChild(clonedTemplate);
+      }
+      
       console.log(`[ComponentLoader] ${componentName} (${tagName}) loaded successfully`);
       return true;
     } catch (error) {
@@ -123,11 +131,18 @@ export class ComponentLoader {
   static async initializeHMI() {
     // This would be called from the main HMI initialization
     const requiredComponents = [
+      // Core utilities (load first)
+      'canvas-placement-helper',     // Smart component positioning
+      'hmi-integration',            // HMI integration module for multi-modal interactions
+      'svg-text-editor',            // In-place text editing for SVG elements
+
+      // UI Components
       'header',                      // Navbar and controls
+      'menu',                        // Menu interactions and panel visibility
+      'simple-component-loader',     // Simple component loader for left sidebar
       'components-library-sidebar',  // Component library sidebar
       'properties-panel',           // Properties panel for editing
       'simulation-panel',           // Simulation controls
-      // Add other core components here
     ];
     
     return this.loadComponents(requiredComponents);

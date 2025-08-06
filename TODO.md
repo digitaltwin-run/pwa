@@ -338,3 +338,47 @@ Udokumentować API dla przyszłych deweloperów
 
 
 zrob rtefaktoryzacje duzychjh plikow js , js/hmi/ui/components-library-sidebar.js
+
+
+
+
+## Migration Guide
+
+When migrating existing code to the new architecture:
+
+1. Move UI logic from `.js` files to component modules
+2. Update imports to use the new component structure
+3. Replace direct DOM manipulation with component methods
+4. Use events for cross-component communication
+
+
+# 1. Zaktualizowany CEL REFRAKTORYZACJI
+
+- Wprowadzenie i utrzymanie paradygmatu: **każdy komponent UI w `html-modules/components` to samodzielny, zwartym moduł** zawierający:
+    - szablon HTML (``)
+    - style CSS (zagnieżdżone w ``)
+    - logikę JS (w `` albo ``)
+- **Separacja warstw:**
+    - `html-modules/components/` — komponenty UI (HTML+CSS+JS)
+    - `hmi/` — warstwa sterująca, integrująca urządzenia i moduły, zarządzająca interakcjami globalnymi
+- Rezygnacja z „luźnych” plików JS związanych bezpośrednio z UI na korzyść modularnych HTML+JS
+- Usunięcie duplikatów i niepotrzebnych plików
+- Dokumentacja zawierająca jasne zasady i przykłady modularności
+
+
+
+## 2.1. Przeniesienie i reorganizacja folderów
+
+- **W `html-modules/components/` każdy moduł to pojedynczy plik `.html`** z zawartością:
+    - `` z szablonem
+    - `` z CSS
+    - `` lub `` z logiką JS komponentu (zgodnie z przykładem `font-editor.html`)
+- **Usuwanie plików JS powielających logikę modułów HTML**
+    - Przegląd `js/` i usunięcie skryptów, które są już zawarte lub zastępowane przez moduły HTML+JS
+    - Funkcje pomocnicze i utilsy, które są współdzielone między modułami trzymamy w `html-modules/utils/`
+
+- Zachowaj `index.html` jako lekki, deklaratywny punkt wejścia, który:
+    - Importuje i osadza moduły z `html-modules/components/`
+    - Inicjuje i steruje logiką z `hmi/index.js`
+    - Nie zawiera luźnych `` z `js/` związanych z logiką UI
+- Przykład z dynamicznym importem lub statyczną deklaracją komponentów HTML jako web components lub modułów ES

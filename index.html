@@ -28,9 +28,9 @@
         // Load core UI components
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                // Load header component
-                await ComponentLoader.loadComponent('header');
-                console.log('Header component loaded');
+                // Load core components
+                await ComponentLoader.initializeHMI();
+                console.log('Core components loaded');
                 
                 // Listen for header events
                 document.addEventListener('language-change', (e) => {

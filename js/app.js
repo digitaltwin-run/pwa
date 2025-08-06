@@ -19,15 +19,15 @@ import { CollaborationManager } from './collaboration-manager.js';
 import { I18nManager } from './i18n-manager.js';
 import './i18n/language-selector.js';
 import './hmi/input/keyboard-shortcuts-ui.js'; // Keyboard shortcuts UI component
-import './simple-component-loader.js'; // Simple component loader for left sidebar
+// Simple component loader now loaded as HTML module
 // import './hmi/ui/components-library-sidebar.js'; // Enhanced components library sidebar (disabled due to cache issues)
 import { ComponentScaler } from './component-scaler.js';
 import { canvasSelectionManager } from './hmi/index.js';
 import { CanvasZoomManager } from './canvas-zoom-manager.js';
 import { CanvasPropertiesManager } from './canvas-properties-manager.js';
 import { ComponentsColumnManager } from './components-column-manager.js';
-// loadHTMLModules - removed as file doesn't exist
-import { integrateHMIWithApp } from './hmi/app-hmi-integration-new.js';
+// Import statement removed - HMI integration now handled via HTML module in ComponentLoader
+// The integrateHMIWithApp function is now available globally via the hmi-integration.html module
 import { SelectionListManager } from './properties/selection-list-manager.js';
 import './utils/advanced-logger.js'; // Advanced JSON logging & error analysis
 // Conditional imports for development tools

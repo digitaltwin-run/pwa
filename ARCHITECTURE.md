@@ -107,11 +107,62 @@ document.addEventListener('component:selected', (event) => {
 - **Testing**: Write unit tests for component logic
 - **Documentation**: Document component props, events, and usage examples
 
-## Migration Guide
+# Architektura Frontendu
 
-When migrating existing code to the new architecture:
+## Modularne Komponenty UI (`html-modules/components/`)
 
-1. Move UI logic from `.js` files to component modules
-2. Update imports to use the new component structure
-3. Replace direct DOM manipulation with component methods
-4. Use events for cross-component communication
+- Każdy plik `.html` zawiera kompletnego komponenta:
+  - `template` — struktura HTML
+  - `style` — style CSS (zależności tematyczne, osadzone lub importowane)
+  - `script` — logika JS związana z komponentem
+  
+- Komponenty rejestrowane i wykorzystywane niezależnie, samowystarczalne
+- Pola i zdarzenia emitowane przez komponenty służą do komunikacji z warstwą HMI
+
+## Warstwa HMI (`hmi/`)
+
+- Moduły odpowiedzialne za sterowanie, integrację z urządzeniami, kontrolę i koordynację komponentów UI
+- Zapewniają ustandaryzowane API do komunikacji i wymiany danych między modułami UI
+
+## `index.html`
+
+- Punkt startowy aplikacji
+- Ładuje i osadza komponenty z `html-modules/components/`
+- Inicjuje warstwę sterowania z `hmi/`
+- Brak luźnych skryptów JS poza `hmi` i utils
+
+## Zasady Modularności
+
+- Unikaj duplikatów funkcji między modułami
+- Używaj `html-modules/utils/` do wspólnych funkcji i helperów
+- Stosuj jednolite nazwy i konwencje importów
+```
+
+## 3.3. TODO.md
+
+# TODO – Refaktoryzacja i optymalizacja projektu
+
+2. Refaktoryzować wszystkie UI związane skrypty JS w modularne pliki `.html` w `html-modules/components/`
+3. Usunąć duplikaty i zastąpić je modułami HTML+JS
+4. Zmodyfikować `index.html` do ładowania wyłącznie modułów HTML i inicjalizacji `hmi/`
+5. Zaktualizować dokumentację (`README.md`, `ARCHITECTURE.md`), opisując modularność i wzorce
+6. Wdrożyć ESLint i testy jednostkowe dla `hmi/` i komponentów
+7. Przygotować skrypt do wykrywania i usuwania duplikatów JS
+8. Monitorować i usuwać stare, nieużywane pliki (np. `.bak`, duplikaty)
+```
+
+# 4. Dodatkowe rekomendacje i optymalizacje
+
+- Rozważ wykorzystanie **Web Components** lub natywnego mechanizmu Shadow DOM dla izolacji stylów i logiki komponentów.
+- Automatyzuj budowanie i testowanie dzięki `npm scripts` lub systemowi CI.
+- Używaj standardu eventów CustomEvent do komunikacji komponentów z warstwą HMI.
+- Dokumentuj standardy kodowania i modularności, by ułatwić onboarding nowych deweloperów.
+- Jeśli rozmiar aplikacji rośnie, rozważ zastosowanie bundlera z obsługą ES Modules (Rollup, Vite itp.).
+
+Jeśli potrzebujesz mogę pomóc przygotować:
+
+- Dynamiczny loader modułów HTML w `index.html`.
+- Szablon modularnego komponentu HTML+CSS+JS (zgodnego z Twoim wzorcem).
+- Konfigurację ESLint dla takiego projektu.
+- Przykładowy plik `hmi/index.js` do zarządzania modułami i ich komunikacją.
+

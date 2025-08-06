@@ -4,7 +4,8 @@
  * @module hmi/input/clipboard
  */
 
-import { canvasPlacementHelper } from '../../canvas-placement-helper.js';
+// Using canvas-placement-helper from HTML module (globally available via window)
+// The HTML module is loaded by ComponentLoader.initializeHMI()
 
 export class ClipboardManager {
     constructor() {

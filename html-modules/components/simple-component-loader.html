@@ -1,0 +1,342 @@
+<!--
+  Simple Component Loader - HTML Module
+  
+  This module provides a simple component loader for the left sidebar.
+  It loads components from components.json and renders them in a list with SVG icons.
+  
+  Usage:
+  <simple-component-loader></simple-component-loader>
+-->
+
+<template id="simple-component-loader-template">
+  <div class="simple-component-loader">
+    <div class="loading-state">Loading components...</div>
+    <div class="components-list"></div>
+  </div>
+  
+  <style>
+    :host {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+    }
+    
+    .simple-component-loader {
+      padding: 8px;
+    }
+    
+    .simple-component-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      margin: 4px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      background: white;
+      transition: all 0.2s;
+    }
+    
+    .simple-component-item:hover {
+      background: #f5f5f5;
+      transform: translateX(2px);
+    }
+    
+    .loading-icon {
+      position: relative;
+      opacity: 0.5;
+    }
+    
+    .loading-icon::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 10px;
+      height: 10px;
+      margin-top: -5px;
+      margin-left: -5px;
+      border: 2px solid #4CAF50;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .loading-state {
+      padding: 20px;
+      text-align: center;
+      color: #666;
+      font-style: italic;
+    }
+    
+    .component-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+    
+    .component-icon {
+      font-size: 16px;
+    }
+    
+    .component-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+    }
+    
+    .component-actions {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .add-btn {
+      background: none;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 3px;
+      transition: background 0.2s;
+    }
+    
+    .add-btn:hover {
+      background: rgba(76, 175, 80, 0.1);
+    }
+    
+    .error-state {
+      padding: 20px;
+      text-align: center;
+      color: #666;
+    }
+    
+    .error-state p {
+      margin: 0 0 8px 0;
+    }
+    
+    .error-state small {
+      font-size: 11px;
+      color: #999;
+    }
+  </style>
+</template>
+
+<script type="module">
+  /**
+   * Simple Component Loader - Self-contained Web Component
+   * Loads components from components.json and renders them in a list.
+   */
+  class SimpleComponentLoader extends HTMLElement {
+    constructor() {
+      super();
+      
+      // Create shadow DOM
+      this.attachShadow({ mode: 'open' });
+      
+      // Clone and attach template content
+      const template = document.getElementById('simple-component-loader-template');
+      this.shadowRoot.appendChild(template.content.cloneNode(true));
+      
+      // Component state
+      this.components = [];
+      this.iconLoader = null;
+    }
+    
+    async connectedCallback() {
+      console.log('[SimpleComponentLoader] Component connected');
+      
+      // Dynamically import the ComponentIconLoader
+      try {
+        const module = await import('/js/utils/component-icon-loader.js');
+        this.iconLoader = module.ComponentIconLoader;
+      } catch (error) {
+        console.error('[SimpleComponentLoader] Failed to load icon loader:', error);
+      }
+      
+      // Initialize component
+      this.init();
+      
+      // Dispatch connected event
+      this.dispatchEvent(new CustomEvent('component:connected', { 
+        bubbles: true, 
+        composed: true 
+      }));
+    }
+    
+    disconnectedCallback() {
+      console.log('[SimpleComponentLoader] Component disconnected');
+      
+      // Dispatch disconnected event
+      this.dispatchEvent(new CustomEvent('component:disconnected', { 
+        bubbles: true, 
+        composed: true 
+      }));
+    }
+    
+    async init() {
+      console.log('[SimpleComponentLoader] Starting simple component loading...');
+      
+      // Reference to components list
+      this.componentsList = this.shadowRoot.querySelector('.components-list');
+      
+      try {
+        // Load components from components.json
+        const response = await fetch('/components.json');
+        const data = await response.json();
+        
+        if (data.components && Array.isArray(data.components)) {
+          this.components = data.components;
+          console.log(`[SimpleComponentLoader] Loaded ${this.components.length} components`);
+          
+          // Render components
+          await this.renderComponents();
+        } else {
+          throw new Error('Invalid components.json format');
+        }
+      } catch (error) {
+        console.error('[SimpleComponentLoader] Error loading components:', error);
+        this.showError(`Error loading components: ${error.message}`);
+      }
+    }
+    
+    async renderComponents() {
+      console.log('[SimpleComponentLoader] Rendering components...');
+      
+      // Show loading state
+      this.shadowRoot.querySelector('.loading-state').style.display = 'block';
+      this.componentsList.innerHTML = '';
+      
+      try {
+        // Create all component items (in parallel)
+        const itemPromises = this.components.map(component => this.createComponentItem(component));
+        const items = await Promise.all(itemPromises);
+        
+        // Add all created items to the list
+        items.forEach(item => this.componentsList.appendChild(item));
+        
+        // Hide loading state
+        this.shadowRoot.querySelector('.loading-state').style.display = 'none';
+        
+        console.log(`[SimpleComponentLoader] Rendered ${this.components.length} components`);
+      } catch (error) {
+        console.error('[SimpleComponentLoader] Error rendering components:', error);
+        this.showError(`Error rendering components: ${error.message}`);
+      }
+    }
+    
+    async createComponentItem(component) {
+      const item = document.createElement('div');
+      item.className = 'simple-component-item';
+      item.dataset.componentId = component.id;
+      item.dataset.componentName = component.name;
+      item.dataset.svgPath = component.svg || '';
+      item.draggable = true;
+      
+      // Get component icon (asynchronously)
+      const icon = await this.getComponentIcon(component);
+      
+      // Create component HTML
+      item.innerHTML = `
+        <div class="component-header">
+          <span class="component-icon">${icon}</span>
+          <span class="component-name">${component.name}</span>
+        </div>
+        <div class="component-actions">
+          <button class="add-btn" title="Add to canvas">➕</button>
+        </div>
+      `;
+      
+      // Add event listeners
+      item.addEventListener('dragstart', (event) => {
+        event.dataTransfer.setData('text/plain', component.id);
+        event.dataTransfer.setData('application/component', JSON.stringify(component));
+        
+        // Dispatch drag start event
+        this.dispatchEvent(new CustomEvent('component:dragstart', {
+          bubbles: true,
+          composed: true,
+          detail: { component }
+        }));
+      });
+      
+      // Add button click handler
+      item.querySelector('.add-btn').addEventListener('click', () => {
+        this.addComponentToCanvas(component);
+      });
+      
+      return item;
+    }
+    
+    async getComponentIcon(component) {
+      if (!this.iconLoader) {
+        return '🔲'; // Fallback emoji if icon loader not available
+      }
+      
+      try {
+        const iconContent = await this.iconLoader.getComponentIcon(component);
+        return iconContent;
+      } catch (error) {
+        console.warn(`[SimpleComponentLoader] Failed to load icon for ${component.name}:`, error);
+        return component.emoji || '🔲'; // Fallback to component emoji or default
+      }
+    }
+    
+    addComponentToCanvas(component) {
+      console.log(`[SimpleComponentLoader] Adding component to canvas:`, component);
+      
+      // Dispatch add component event
+      const addComponentEvent = new CustomEvent('component:add', {
+        bubbles: true,
+        composed: true,
+        detail: { component }
+      });
+      
+      this.dispatchEvent(addComponentEvent);
+      this.showNotification(`Added ${component.name} to canvas`);
+    }
+    
+    showNotification(message) {
+      const notification = document.createElement('div');
+      notification.className = 'simple-notification';
+      notification.textContent = message;
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 4px;
+        z-index: 1000;
+        font-size: 14px;
+      `;
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
+    }
+    
+    showError(message) {
+      this.shadowRoot.querySelector('.loading-state').style.display = 'none';
+      this.componentsList.innerHTML = `
+        <div class="error-state">
+          <p>❌ Error</p>
+          <small>${message}</small>
+        </div>
+      `;
+    }
+  }
+  
+  // Register the component
+  customElements.define('simple-component-loader', SimpleComponentLoader);
+  console.log('[SimpleComponentLoader] Web component registered');
+</script>

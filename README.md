@@ -315,8 +315,19 @@ make backup             # Create project backup
 
 ## 🏗️ Architecture
 
-### Core System
-- **`app.js`** - Main application initialization and module coordination
+### Modular Structure
+
+#### HTML Modules
+- **`html-modules/components/`** - Self-contained HTML+CSS+JS modules for UI components
+- **`html-modules/utils/`** - Utility modules and helper functions for HTML modules
+- **`html-modules/base/`** - Base classes and core functionality for the module system
+
+#### HMI Layer
+- **`hmi/`** - Generic HMI device interaction logic, decoupled from project specifics
+- **`hmi/input/`** - Input handling and gesture recognition
+- **`hmi/core/`** - Core HMI functionality and base classes
+
+#### Core System
 - **`properties-core.js`** - Central properties management system
 - **`properties-mapper.js`** - Automatic SVG property extraction and heuristic mapping
 - **`properties-colors.js`** - Advanced color management with CSS class targeting

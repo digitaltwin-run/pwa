@@ -1,14 +1,16 @@
-<!-- Simulation Panel (initially hidden) -->
-<div class="simulation-panel" id="simulation-panel" style="display: none;">
-    <div class="simulation-header">
-        <h3 data-i18n="ui.simulation.title">📊 Data Simulation</h3>
-        <button id="close-sim-panel" class="btn btn-text" aria-label="Close" data-i18n="ui.buttons.close">×</button>
+<template id="simulation-panel-template">
+    <!-- Simulation Panel (initially hidden) -->
+    <div class="simulation-panel" id="simulation-panel" style="display: none;">
+        <div class="simulation-header">
+            <h3 data-i18n="ui.simulation.title">📊 Data Simulation</h3>
+            <button id="close-sim-panel" class="btn btn-text" aria-label="Close" data-i18n="ui.buttons.close">×</button>
+        </div>
+        <div class="simulation-controls">
+            <button id="start-sim-btn" class="btn btn-success" data-i18n="ui.buttons.start">▶️ Start</button>
+            <button id="stop-sim-btn" class="btn btn-danger" data-i18n="ui.buttons.stop">⏸️ Stop</button>
+        </div>
+        <div id="simulation-list" class="simulation-list">
+            <p><i data-i18n="ui.simulation.noComponents">No components available for simulation</i></p>
+        </div>
     </div>
-    <div class="simulation-controls">
-        <button id="start-sim-btn" class="btn btn-success" data-i18n="ui.buttons.start">▶️ Start</button>
-        <button id="stop-sim-btn" class="btn btn-danger" data-i18n="ui.buttons.stop">⏸️ Stop</button>
-    </div>
-    <div id="simulation-list" class="simulation-list">
-        <p><i data-i18n="ui.simulation.noComponents">No components available for simulation</i></p>
-    </div>
-</div>
+</template>

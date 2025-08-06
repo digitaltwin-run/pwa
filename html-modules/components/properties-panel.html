@@ -1,174 +1,176 @@
-<!-- Properties Panel Component for Digital Twin IDE PWA -->
-<template>
-    <div class="properties-panel">
-        <!-- Component Header -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="mb-0">
-                <span data-bind="componentIcon">📦</span>
-                <span data-bind="componentName">Component</span>
-            </h4>
-            <span class="badge bg-secondary" data-bind="componentType">default</span>
-        </div>
-        
-        <!-- Component ID -->
-        <div class="mb-3">
-            <label class="form-label" data-i18n="properties.componentId">Component ID</label>
-            <div class="input-group input-group-sm">
-                <input type="text" class="form-control" data-bind="componentId" readonly>
-                <button class="btn btn-outline-dark" type="button" data-action="copy-id">
-                    <i class="bi bi-clipboard"></i>
-                    <span data-i18n="common.copy">Copy</span>
+<template id="properties-panel-template">
+    <!-- Properties Panel Component for Digital Twin IDE PWA -->
+    <template>
+        <div class="properties-panel">
+            <!-- Component Header -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">
+                    <span data-bind="componentIcon">📦</span>
+                    <span data-bind="componentName">Component</span>
+                </h4>
+                <span class="badge bg-secondary" data-bind="componentType">default</span>
+            </div>
+            
+            <!-- Component ID -->
+            <div class="mb-3">
+                <label class="form-label" data-i18n="properties.componentId">Component ID</label>
+                <div class="input-group input-group-sm">
+                    <input type="text" class="form-control" data-bind="componentId" readonly>
+                    <button class="btn btn-outline-dark" type="button" data-action="copy-id">
+                        <i class="bi bi-clipboard"></i>
+                        <span data-i18n="common.copy">Copy</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Position Controls -->
+            <div class="property-category">
+                <h5 data-i18n="properties.position">Position</h5>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label small">X</label>
+                        <input type="number" class="form-control form-control-sm" 
+                               data-bind="positionX"
+                               data-action="update-position-x">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small">Y</label>
+                        <input type="number" class="form-control form-control-sm" 
+                               data-bind="positionY"
+                               data-action="update-position-y">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Scale Control -->
+            <scale-control id="component-scale-control"></scale-control>
+            
+            <!-- Dynamic Sections -->
+            <div id="component-properties-container"></div>
+            <div id="parameters-container"></div>
+            <div id="svg-text-editor-container"></div>
+            <div id="colors-container"></div>
+            
+            <!-- Actions -->
+            <div class="d-grid gap-2 mt-3">
+                <button class="btn btn-danger btn-sm" data-action="remove-component">
+                    <i class="bi bi-trash"></i>
+                    <span data-i18n="properties.removeComponent">Remove Component</span>
                 </button>
             </div>
         </div>
+    </template>
+
+    <style>
+        .properties-panel {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 1rem;
+            height: 100%;
+            overflow-y: auto;
+        }
         
-        <!-- Position Controls -->
-        <div class="property-category">
-            <h5 data-i18n="properties.position">Position</h5>
-            <div class="row g-2">
-                <div class="col-6">
-                    <label class="form-label small">X</label>
-                    <input type="number" class="form-control form-control-sm" 
-                           data-bind="positionX"
-                           data-action="update-position-x">
-                </div>
-                <div class="col-6">
-                    <label class="form-label small">Y</label>
-                    <input type="number" class="form-control form-control-sm" 
-                           data-bind="positionY"
-                           data-action="update-position-y">
-                </div>
-            </div>
-        </div>
+        .property-category {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
         
-        <!-- Scale Control -->
-        <scale-control id="component-scale-control"></scale-control>
-        
-        <!-- Dynamic Sections -->
-        <div id="component-properties-container"></div>
-        <div id="parameters-container"></div>
-        <div id="svg-text-editor-container"></div>
-        <div id="colors-container"></div>
-        
-        <!-- Actions -->
-        <div class="d-grid gap-2 mt-3">
-            <button class="btn btn-danger btn-sm" data-action="remove-component">
-                <i class="bi bi-trash"></i>
-                <span data-i18n="properties.removeComponent">Remove Component</span>
-            </button>
-        </div>
-    </div>
-</template>
+        .property-category h5 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 1rem;
+        }
+    </style>
 
-<style>
-    .properties-panel {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        padding: 1rem;
-        height: 100%;
-        overflow-y: auto;
-    }
-    
-    .property-category {
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid #e9ecef;
-    }
-    
-    .property-category h5 {
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 1rem;
-    }
-</style>
+    <script type="module">
+    import { ModuleBase, registerModule } from '../base/module-base.js';
+    import { I18nMixin } from '../base/i18n-mixin.js';
 
-<script type="module">
-import { ModuleBase, registerModule } from '../base/module-base.js';
-import { I18nMixin } from '../base/i18n-mixin.js';
+    class PropertiesPanel extends I18nMixin(ModuleBase) {
+        constructor() {
+            super();
+            this.componentId = null;
+            this.componentData = null;
+        }
 
-class PropertiesPanel extends I18nMixin(ModuleBase) {
-    constructor() {
-        super();
-        this.componentId = null;
-        this.componentData = null;
-    }
+        static get observedAttributes() {
+            return ['component-id'];
+        }
 
-    static get observedAttributes() {
-        return ['component-id'];
-    }
+        async init() {
+            await super.init();
+            await this.loadModuleTranslations('properties-panel');
+            this.setupEventListeners();
+        }
 
-    async init() {
-        await super.init();
-        await this.loadModuleTranslations('properties-panel');
-        this.setupEventListeners();
-    }
+        setupEventListeners() {
+            // Position updates
+            this.on('change', '[data-action^="update-position-"]', (e) => {
+                const coord = e.target.dataset.action.split('-')[2]; // x or y
+                this.updatePosition(coord, parseFloat(e.target.value));
+            });
+            
+            // Copy ID
+            this.on('click', '[data-action="copy-id"]', () => {
+                if (this.componentId) {
+                    navigator.clipboard.writeText(this.componentId);
+                }
+            });
+            
+            // Remove component
+            this.on('click', '[data-action="remove-component"]', () => {
+                if (this.componentId) {
+                    this.dispatchEvent(new CustomEvent('remove-component', {
+                        detail: { componentId: this.componentId }
+                    }));
+                }
+            });
+        }
 
-    setupEventListeners() {
-        // Position updates
-        this.on('change', '[data-action^="update-position-"]', (e) => {
-            const coord = e.target.dataset.action.split('-')[2]; // x or y
-            this.updatePosition(coord, parseFloat(e.target.value));
-        });
-        
-        // Copy ID
-        this.on('click', '[data-action="copy-id"]', () => {
-            if (this.componentId) {
-                navigator.clipboard.writeText(this.componentId);
+        updatePosition(coord, value) {
+            if (!this.componentId) return;
+            
+            this.dispatchEvent(new CustomEvent('update-position', {
+                detail: { componentId: this.componentId, coord, value }
+            }));
+        }
+
+        attributeChangedCallback(name, oldValue, newValue) {
+            if (name === 'component-id' && oldValue !== newValue) {
+                this.componentId = newValue;
+                this.loadComponentData();
             }
-        });
-        
-        // Remove component
-        this.on('click', '[data-action="remove-component"]', () => {
-            if (this.componentId) {
-                this.dispatchEvent(new CustomEvent('remove-component', {
-                    detail: { componentId: this.componentId }
-                }));
-            }
-        });
-    }
+        }
 
-    updatePosition(coord, value) {
-        if (!this.componentId) return;
-        
-        this.dispatchEvent(new CustomEvent('update-position', {
-            detail: { componentId: this.componentId, coord, value }
-        }));
-    }
+        async loadComponentData() {
+            if (!this.componentId) return;
+            
+            // In a real implementation, fetch component data here
+            this.componentData = {
+                id: this.componentId,
+                type: 'component',
+                name: 'Component ' + this.componentId,
+                position: { x: 0, y: 0 }
+            };
+            
+            this.updateUI();
+        }
 
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (name === 'component-id' && oldValue !== newValue) {
-            this.componentId = newValue;
-            this.loadComponentData();
+        updateUI() {
+            if (!this.componentData) return;
+            
+            this.updateBindings({
+                componentId: this.componentData.id,
+                componentType: this.componentData.type,
+                componentName: this.componentData.name,
+                componentIcon: '📦',
+                positionX: this.componentData.position?.x || 0,
+                positionY: this.componentData.position?.y || 0
+            });
         }
     }
 
-    async loadComponentData() {
-        if (!this.componentId) return;
-        
-        // In a real implementation, fetch component data here
-        this.componentData = {
-            id: this.componentId,
-            type: 'component',
-            name: 'Component ' + this.componentId,
-            position: { x: 0, y: 0 }
-        };
-        
-        this.updateUI();
-    }
-
-    updateUI() {
-        if (!this.componentData) return;
-        
-        this.updateBindings({
-            componentId: this.componentData.id,
-            componentType: this.componentData.type,
-            componentName: this.componentData.name,
-            componentIcon: '📦',
-            positionX: this.componentData.position?.x || 0,
-            positionY: this.componentData.position?.y || 0
-        });
-    }
-}
-
-registerModule('properties-panel', PropertiesPanel);
-</script>
+    registerModule('properties-panel', PropertiesPanel);
+    </script>
+</template>
