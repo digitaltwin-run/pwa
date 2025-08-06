@@ -395,7 +395,17 @@
                         }
                     });
 
-                    await this.filterAndRenderComponents();
+                    console.log('🚀 About to call filterAndRenderComponents...');
+                    
+                    try {
+                        await this.filterAndRenderComponents();
+                        console.log('✅ filterAndRenderComponents completed successfully');
+                    } catch (filterError) {
+                        console.error('❌ Error in filterAndRenderComponents:', filterError);
+                        console.error('❌ Error stack:', filterError.stack);
+                        throw filterError;
+                    }
+                    
                     console.log(`✅ Loaded ${this.components.length} components from static JSON file`);
 
                 } catch (error) {
@@ -405,6 +415,11 @@
             }
 
             async filterAndRenderComponents() {
+                console.log('🔍 Starting filterAndRenderComponents...');
+                console.log('🔍 Total components:', this.components.length);
+                console.log('🔍 Selected category:', this.selectedCategory);
+                console.log('🔍 Search query:', this.searchQuery);
+                
                 this.filteredComponents = this.components.filter(component => {
                     // Category filter
                     const categoryMatch = this.selectedCategory === 'all' || component.category === this.selectedCategory;
@@ -417,51 +432,75 @@
                     return categoryMatch && searchMatch;
                 });
 
+                console.log('🔍 About to call renderComponents...');
                 await this.renderComponents();
+                console.log('🔍 renderComponents completed, updating count...');
                 this.updateComponentCount();
+                console.log('✅ filterAndRenderComponents completed');
             }
 
             async renderComponents() {
-                if (!this.componentList) return;
+                console.log('🔄 Starting renderComponents, componentList exists:', !!this.componentList);
+                console.log('🔄 Filtered components count:', this.filteredComponents.length);
+                
+                if (!this.componentList) {
+                    console.error('❌ ComponentList element not found!');
+                    return;
+                }
 
                 if (this.filteredComponents.length === 0) {
+                    console.log('📦 No filtered components, showing empty state');
                     this.showEmpty();
                     return;
                 }
 
                 // Group components by category
                 const groupedComponents = this.groupComponentsByCategory(this.filteredComponents);
+                console.log('📂 Grouped components by category:', Object.keys(groupedComponents));
 
                 // Show loading state while generating HTML
                 this.showLoading();
 
                 try {
+                    console.log('🔧 Starting HTML generation...');
+                    
                     // Process each category and its components
                     const categoryHTMLPromises = Object.entries(groupedComponents).map(async ([category, components]) => {
+                        console.log(`🏷️ Processing category: ${category} with ${components.length} components`);
+                        
                         // Generate header for the category if showing all categories
                         const header = this.selectedCategory === 'all' ?
                             `<div class="category-header">${this.translateCategory(category)}</div>` : '';
 
                         // Generate component HTML items in parallel
-                        const componentPromises = components.map(component =>
-                            this.createComponentItemHTML(component)
-                        );
+                        const componentPromises = components.map(async (component, index) => {
+                            console.log(`🔨 Generating HTML for component ${index + 1}/${components.length}: ${component.name}`);
+                            return await this.createComponentItemHTML(component);
+                        });
 
                         const componentItems = await Promise.all(componentPromises);
+                        console.log(`✅ Generated ${componentItems.length} component items for category: ${category}`);
                         return header + componentItems.join('');
                     });
 
                     // Wait for all category HTML to be generated
+                    console.log('⏳ Waiting for all categories HTML...');
                     const categoriesHTML = await Promise.all(categoryHTMLPromises);
                     const html = categoriesHTML.join('');
+                    console.log('📝 Final HTML length:', html.length);
+                    console.log('📝 Final HTML preview:', html.substring(0, 200) + '...');
 
                     // Update the DOM
+                    console.log('🔄 Updating DOM with generated HTML...');
                     this.componentList.innerHTML = html;
+                    console.log('✅ DOM updated, attaching events...');
                     this.attachComponentEvents();
+                    console.log('🎯 Component rendering completed successfully!');
 
                 } catch (error) {
-                    console.error('Error rendering components:', error);
-                    this.showError('Problem z renderowaniem komponentów');
+                    console.error('❌ Error rendering components:', error);
+                    console.error('❌ Error stack:', error.stack);
+                    this.showError('Problem z renderowaniem komponentów: ' + error.message);
                 }
             }
 

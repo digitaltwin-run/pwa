@@ -1,52 +1,50 @@
 <template id="header-template">
-    <!--
-      Digital Twin IDE Header Component
-      Provides top navigation, language selector and toolbar functionality
-    -->
+  <!--
+    Digital Twin IDE Header Component
+    Provides top navigation, language selector and toolbar functionality
+  -->
+  <header class="header-container">
+    <!-- Language Selector -->
+    <div class="language-switcher">
+      <select id="language-select" aria-label="Select language">
+        <option value="en">🇺🇸 English</option>
+        <option value="pl">🇵🇱 Polski</option>
+        <option value="de">🇩🇪 Deutsch</option>
+        <option value="es">🇪🇸 Español</option>
+        <option value="fr">🇫🇷 Français</option>
+        <option value="it">🇮🇹 Italiano</option>
+      </select>
+    </div>
 
-    <header class="header-container">
-        <!-- Language Selector -->
-        <div id="language-switcher" class="language-switcher">
-            <select id="language-select" aria-label="Select language">
-                <option value="en">🇺🇸 English</option>
-                <option value="pl">🇵🇱 Polski</option>
-                <option value="de">🇩🇪 Deutsch</option>
-                <option value="es">🇪🇸 Español</option>
-                <option value="fr">🇫🇷 Français</option>
-                <option value="it">🇮🇹 Italiano</option>
-            </select>
-        </div>
+    <!-- Top Menu -->
+    <nav class="top-menu">
+      <ul>
+        <li><a href="#" class="menu-item" data-action="file-menu" data-i18n="ui.menu.file">File</a></li>
+        <li><a href="#" class="menu-item" data-action="tools-menu" data-i18n="ui.menu.tools">Tools</a></li>
+        <li><a href="#" class="menu-item" data-action="view-menu" data-i18n="ui.menu.view">View</a></li>
+        <li><a href="#" class="menu-item" data-action="help-menu" data-i18n="ui.menu.help">Help</a></li>
+      </ul>
+    </nav>
 
-        <!-- Top Menu -->
-        <nav class="top-menu">
-            <ul>
-                <li><a href="#" class="menu-item" data-action="file-menu" data-i18n="ui.menu.file">File</a></li>
-                <li><a href="#" class="menu-item" id="simulation-menu" data-action="tools-menu"
-                       data-i18n="ui.menu.tools">Tools</a></li>
-                <li><a href="#" class="menu-item" data-action="view-menu" data-i18n="ui.menu.view">View</a></li>
-                <li><a href="#" class="menu-item" data-action="help-menu" data-i18n="ui.menu.help">Help</a></li>
-            </ul>
-        </nav>
-
-        <!-- Toolbar -->
-        <div class="toolbar">
-            <button id="export-btn" class="btn btn-success" data-action="export-project" data-i18n="ui.buttons.export">
-                Export (.dtwin)
-            </button>
-            <button id="import-btn" class="btn btn-primary" data-action="import-project" data-i18n="ui.buttons.import">
-                Import (.dtwin)
-            </button>
-            <button id="export-png-btn" class="btn btn-warning" data-action="export-png"
-                    data-i18n="ui.buttons.exportPng">Export PNG
-            </button>
-            <button id="export-svg-btn" class="btn btn-primary" data-action="export-svg"
-                    data-i18n="ui.buttons.exportSvg">Export SVG
-            </button>
-            <button id="connection-mode-btn" class="btn btn-purple" data-action="toggle-connection-mode"
-                    data-i18n="ui.buttons.connect">Connect Components
-            </button>
-        </div>
-    </header>
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <button class="btn btn-success" data-action="export-project" data-i18n="ui.buttons.export">
+        Export (.dtwin)
+      </button>
+      <button class="btn btn-primary" data-action="import-project" data-i18n="ui.buttons.import">
+        Import (.dtwin)
+      </button>
+      <button class="btn btn-warning" data-action="export-png" data-i18n="ui.buttons.exportPng">
+        Export PNG
+      </button>
+      <button class="btn btn-primary" data-action="export-svg" data-i18n="ui.buttons.exportSvg">
+        Export SVG
+      </button>
+      <button class="btn btn-purple" data-action="toggle-connection-mode" data-i18n="ui.buttons.connect">
+        Connect Components
+      </button>
+    </div>
+  </header>
 
     <style>
         /* Header styling */
@@ -162,111 +160,139 @@
         }
     </style>
 
-    <script>
+    <script type="module">
+        import { I18nMixin } from '../base/i18n-mixin.js';
+        import { ModuleBase } from '../base/module-base.js';
+
         /**
          * Header Component for Digital Twin IDE
          * Handles top menu actions, language selection and toolbar buttons
          */
-        class HeaderComponent extends HTMLElement {
+        class HeaderComponent extends I18nMixin(ModuleBase) {
             constructor() {
                 super();
-                this.attachShadow({mode: 'open'});
+                this.attachShadow({ mode: 'open' });
+                
+                // Bind methods
+                this.handleLanguageChange = this.handleLanguageChange.bind(this);
+                this.handleAction = this.handleAction.bind(this);
             }
 
-            connectedCallback() {
-                // Get the template from the document or from a template with data-component="header"
-                const template = document.querySelector('template[data-component="header"]');
-
-                if (template) {
-                    this.shadowRoot.appendChild(template.content.cloneNode(true));
-
-                    // Initialize component
-                    this._initEventListeners();
-                    this._initLanguageSelector();
-
-                    // Dispatch ready event
-                    this.dispatchEvent(new CustomEvent('header-ready', {
-                        bubbles: true,
-                        composed: true
-                    }));
-                } else {
-                    console.error('Header component template not found');
+            async connectedCallback() {
+                await super.connectedCallback();
+                
+                // Initialize i18n
+                await this.loadModuleTranslations('header');
+                
+                // Set up event listeners
+                this.setupEventListeners();
+                
+                // Apply translations
+                await this.applyTranslations();
+                
+                // Initialize language selector
+                this.initializeLanguageSelector();
+            }
+            
+            initializeLanguageSelector() {
+                const select = this.shadowRoot.getElementById('language-select');
+                if (select) {
+                    select.addEventListener('change', this.handleLanguageChange);
+                    
+                    // Set initial language if available
+                    if (window.i18nManager) {
+                        select.value = window.i18nManager.currentLanguage || 'en';
+                    }
                 }
             }
-
-            /**
-             * Initialize event listeners for buttons and menu items
-             * @private
-             */
-            _initEventListeners() {
-                // Menu item clicks
-                this.shadowRoot.querySelectorAll('[data-action]').forEach(el => {
-                    el.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        const action = el.dataset.action;
-                        this._handleAction(action, el);
-                    });
+            
+            async handleLanguageChange(event) {
+                const langCode = event.target.value;
+                if (window.i18nManager) {
+                    try {
+                        await window.i18nManager.changeLanguage(langCode);
+                        // Language changed successfully, update UI
+                        await this.applyTranslations();
+                        
+                        // Dispatch event to update other components
+                        document.dispatchEvent(new CustomEvent('language-changed', {
+                            detail: { language: langCode }
+                        }));
+                    } catch (error) {
+                        console.error('Error changing language:', error);
+                    }
+                }
+            }
+            
+            setupEventListeners() {
+                // Delegate click events for toolbar buttons and menu items
+                this.shadowRoot.addEventListener('click', (event) => {
+                    const button = event.target.closest('[data-action]');
+                    if (button) {
+                        const action = button.dataset.action;
+                        this.handleAction(action, button);
+                    }
                 });
-
-                // Connection mode toggle
-                const connectionBtn = this.shadowRoot.querySelector('#connection-mode-btn');
-                if (connectionBtn) {
-                    connectionBtn.addEventListener('click', () => {
-                        connectionBtn.classList.toggle('active');
-                        this._dispatchEvent('toggle-connection-mode', {
-                            active: connectionBtn.classList.contains('active')
-                        });
-                    });
+                
+                // Listen for language changes from other components
+                document.addEventListener('language-changed', (event) => {
+                    if (event.detail?.language) {
+                        const select = this.shadowRoot.getElementById('language-select');
+                        if (select) {
+                            select.value = event.detail.language;
+                        }
+                        this.applyTranslations();
+                    }
+                });
+            }
+            
+            handleAction(action, element) {
+                console.log(`[Header] Action: ${action}`);
+                
+                switch (action) {
+                    case 'export-project':
+                        this.emit('export-project');
+                        break;
+                        
+                    case 'import-project':
+                        this.emit('import-project');
+                        break;
+                        
+                    case 'export-png':
+                        this.emit('export-png');
+                        break;
+                        
+                    case 'export-svg':
+                        this.emit('export-svg');
+                        break;
+                        
+                    case 'toggle-connection-mode':
+                        this.emit('toggle-connection-mode');
+                        break;
+                        
+                    case 'file-menu':
+                    case 'tools-menu':
+                    case 'view-menu':
+                    case 'help-menu':
+                        this.emit('menu-selected', { menu: action });
+                        break;
+                        
+                    default:
+                        console.warn(`[Header] Unknown action: ${action}`);
                 }
             }
-
-            /**
-             * Initialize language selector
-             * @private
-             */
-            _initLanguageSelector() {
-                const langSelect = this.shadowRoot.querySelector('#language-select');
-                if (langSelect) {
-                    // Set current language
-                    const currentLang = localStorage.getItem('app-language') || 'en';
-                    langSelect.value = currentLang;
-
-                    // Handle language changes
-                    langSelect.addEventListener('change', () => {
-                        const newLang = langSelect.value;
-                        this._dispatchEvent('language-change', {language: newLang});
-                        localStorage.setItem('app-language', newLang);
-                    });
+            
+            disconnectedCallback() {
+                // Clean up event listeners
+                const select = this.shadowRoot.getElementById('language-select');
+                if (select) {
+                    select.removeEventListener('change', this.handleLanguageChange);
                 }
-            }
-
-            /**
-             * Handle action based on data-action attribute
-             * @private
-             */
-            _handleAction(action, element) {
-                // Dispatch appropriate event based on the action
-                this._dispatchEvent(action, {source: element});
-
-                console.log(`Header action: ${action}`);
-            }
-
-            /**
-             * Helper to dispatch custom events
-             * @private
-             */
-            _dispatchEvent(name, detail = {}) {
-                this.dispatchEvent(new CustomEvent(name, {
-                    bubbles: true,
-                    composed: true,
-                    detail
-                }));
+                super.disconnectedCallback();
             }
         }
-
-        // Define the custom element
-        if (!customElements.get('app-header')) {
-            customElements.define('app-header', HeaderComponent);
-        }
-    </script>
+        
+        // Register the component
+        registerModule('app-header', HeaderComponent);
+  </script>
 </template>

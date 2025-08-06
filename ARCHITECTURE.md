@@ -170,8 +170,93 @@ Components are loaded dynamically using `ComponentLoader`:
 // Load a single component
 await ComponentLoader.loadComponent('component-name');
 
-// Load multiple components
-await ComponentLoader.loadComponents(['comp1', 'comp2']);
+## Component Lifecycle
+
+1. **Registration**
+   - Components are registered using `registerModule()`
+   - Automatically initialized when added to the DOM
+   - Can be lazy-loaded as needed
+
+2. **Initialization**
+   - `constructor()`: Sets up the component instance
+   - `initialize()`: Async initialization of component state
+   - `bindElements()`: Caches DOM references
+   - `bindEvents()`: Sets up event listeners
+
+3. **Rendering**
+   - `loadData()`: Fetches required data
+   - `render()`: Updates the DOM based on component state
+
+4. **Cleanup**
+   - `disconnectedCallback()`: Cleans up resources
+   - Event listeners are automatically removed
+
+## Communication Between Components
+
+Components communicate through:
+
+1. **Custom Events**
+   - Use `this.emit('event-name', data)` to fire events
+   - Listen with `this.on('event-name', handler)`
+
+2. **EventBus**
+   - Global event bus for application-wide communication
+   - Import from `/html-modules/utils/event-bus.js`
+   - `EventBus.on('event', handler)`
+   - `EventBus.emit('event', data)`
+
+3. **Properties and Methods**
+   - Public API methods can be called directly on the component instance
+   - Properties can be observed with getters/setters
+
+## Best Practices
+
+1. **Component Design**
+   - Keep components small and focused
+   - Use composition over inheritance
+   - Follow the Single Responsibility Principle
+
+2. **Styling**
+   - Use CSS custom properties for theming
+   - Scope styles to the component
+   - Follow BEM naming convention
+
+3. **Performance**
+   - Debounce expensive operations
+   - Use requestAnimationFrame for animations
+   - Implement virtualization for large lists
+
+4. **Accessibility**
+   - Use semantic HTML
+   - Add ARIA attributes where appropriate
+   - Ensure keyboard navigation works
+
+## Development Workflow
+
+1. Create a new component by copying `_component-template.html`
+2. Implement the component's functionality
+3. Register the component using `registerModule()`
+4. Test in isolation
+5. Integrate with other components
+6. Document the component's API and usage
+
+## Example Component Integration
+
+```javascript
+// Load and initialize a component
+await ComponentLoader.loadComponent('component-name');
+
+// Get a reference to the component
+const component = document.createElement('component-name');
+document.body.appendChild(component);
+
+// Interact with the component
+component.update({ /* data */ });
+
+// Listen for events
+component.on('action-triggered', (data) => {
+  console.log('Action triggered:', data);
+});
 ```
 
 ### 3. HMI Layer (`hmi/`)
