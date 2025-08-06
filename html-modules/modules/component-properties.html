@@ -1,0 +1,408 @@
+<!-- component-properties.html -->
+<template id="component-properties-template">
+  <div class="component-properties">
+    <div class="component-properties__header">
+      <h4 data-i18n="properties.component.title">Właściwości Komponentu</h4>
+    </div>
+    <div class="component-properties__content">
+      <!-- Dynamic content will be inserted here -->
+    </div>
+  </div>
+
+  <style>
+    .component-properties {
+      margin-bottom: 20px;
+    }
+    .component-properties__header h4 {
+      margin: 0 0 10px 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary, #333);
+    }
+    .component-properties__content {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .property-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .property-group label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary, #666);
+    }
+    .property-group input,
+    .property-group select {
+      padding: 6px 8px;
+      border: 1px solid var(--border-color, #ddd);
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .property-group input:focus,
+    .property-group select:focus {
+      outline: none;
+      border-color: var(--primary-color, #3498db);
+      box-shadow: 0 0 0 2px var(--primary-color-alpha, rgba(52, 152, 219, 0.1));
+    }
+    .color-picker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .color-picker input[type="color"] {
+      width: 32px;
+      height: 24px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+
+  <script type="module">
+    import { ModuleBase } from '../base/module-base.js';
+    import { PropertyUIGenerator } from '../../js/properties/property-ui-generator.js';
+
+    class ComponentProperties extends ModuleBase {
+      constructor() {
+        super();
+        this.template = document.currentScript.parentElement;
+        this.currentComponent = null;
+        this.propertyUIGenerator = new PropertyUIGenerator();
+        this.init();
+      }
+
+      init() {
+        this.registerEventListeners();
+        
+        // Listen for HMI events to show component properties
+        document.addEventListener('component-action', (event) => {
+          if (event.detail.action === 'show-component-properties') {
+            this.showProperties(event.detail.data.component);
+          }
+        });
+
+        // Make this instance globally available
+        window.componentProperties = this;
+      }
+
+      registerEventListeners() {
+        // Handle property updates
+        document.addEventListener('change', (event) => {
+          if (event.target.matches('.component-property-input')) {
+            this.handlePropertyChange(event);
+          }
+        });
+      }
+
+      showProperties(svgElement) {
+        if (!svgElement) {
+          this.clearContent();
+          return;
+        }
+
+        this.currentComponent = svgElement;
+        
+        try {
+          const componentData = this.extractComponentData(svgElement);
+          const propertiesHTML = this.generatePropertiesHTML(componentData);
+          
+          this.updateContent(propertiesHTML);
+          
+          // Apply translations
+          if (window.i18nManager) {
+            window.i18nManager.applyTranslations();
+          }
+          
+        } catch (error) {
+          console.error('❌ Error showing component properties:', error);
+          this.clearContent();
+        }
+      }
+
+      extractComponentData(svgElement) {
+        const id = svgElement.id || 'unknown';
+        const tagName = svgElement.tagName;
+        
+        // Get basic properties
+        const data = {
+          id: id,
+          type: tagName,
+          element: svgElement,
+          properties: {}
+        };
+
+        // Extract common SVG properties
+        const commonProps = ['x', 'y', 'width', 'height', 'fill', 'stroke', 'stroke-width'];
+        commonProps.forEach(prop => {
+          const value = svgElement.getAttribute(prop);
+          if (value !== null) {
+            data.properties[prop] = value;
+          }
+        });
+
+        // Extract transform
+        const transform = svgElement.getAttribute('transform');
+        if (transform) {
+          data.properties.transform = transform;
+        }
+
+        // Extract metadata
+        try {
+          const metadataElement = svgElement.querySelector('metadata');
+          if (metadataElement) {
+            data.metadata = JSON.parse(metadataElement.textContent);
+          }
+        } catch (e) {
+          // Metadata parsing failed, continue without it
+        }
+
+        return data;
+      }
+
+      generatePropertiesHTML(componentData) {
+        let html = '';
+
+        // Basic properties section
+        html += this.generateBasicPropertiesSection(componentData);
+        
+        // Position and size section
+        html += this.generatePositionSizeSection(componentData);
+        
+        // Color properties section
+        html += this.generateColorPropertiesSection(componentData);
+        
+        // Transform/Scale section
+        html += this.generateTransformSection(componentData);
+        
+        // Custom parameters section
+        if (componentData.metadata && componentData.metadata.parameters) {
+          html += this.generateParametersSection(componentData);
+        }
+
+        return html;
+      }
+
+      generateBasicPropertiesSection(componentData) {
+        return `
+          <div class="property-group">
+            <label data-i18n="properties.id">ID:</label>
+            <input type="text" value="${componentData.id}" 
+                   class="component-property-input" 
+                   data-property="id" readonly>
+          </div>
+          <div class="property-group">
+            <label data-i18n="properties.type">Typ:</label>
+            <input type="text" value="${componentData.type}" 
+                   class="component-property-input" 
+                   data-property="type" readonly>
+          </div>
+        `;
+      }
+
+      generatePositionSizeSection(componentData) {
+        const x = componentData.properties.x || '0';
+        const y = componentData.properties.y || '0';
+        const width = componentData.properties.width || '';
+        const height = componentData.properties.height || '';
+
+        return `
+          <div class="property-group">
+            <label data-i18n="properties.position.x">Pozycja X:</label>
+            <input type="number" value="${x}" 
+                   class="component-property-input" 
+                   data-property="x" step="1">
+          </div>
+          <div class="property-group">
+            <label data-i18n="properties.position.y">Pozycja Y:</label>
+            <input type="number" value="${y}" 
+                   class="component-property-input" 
+                   data-property="y" step="1">
+          </div>
+          ${width ? `
+          <div class="property-group">
+            <label data-i18n="properties.size.width">Szerokość:</label>
+            <input type="number" value="${width}" 
+                   class="component-property-input" 
+                   data-property="width" step="1">
+          </div>
+          ` : ''}
+          ${height ? `
+          <div class="property-group">
+            <label data-i18n="properties.size.height">Wysokość:</label>
+            <input type="number" value="${height}" 
+                   class="component-property-input" 
+                   data-property="height" step="1">
+          </div>
+          ` : ''}
+        `;
+      }
+
+      generateColorPropertiesSection(componentData) {
+        const fill = componentData.properties.fill || '#000000';
+        const stroke = componentData.properties.stroke || '#000000';
+        const strokeWidth = componentData.properties['stroke-width'] || '1';
+
+        return `
+          <div class="property-group">
+            <label data-i18n="properties.color.fill">Wypełnienie:</label>
+            <div class="color-picker">
+              <input type="color" value="${fill}" 
+                     class="component-property-input" 
+                     data-property="fill">
+              <input type="text" value="${fill}" 
+                     class="component-property-input" 
+                     data-property="fill" placeholder="#000000">
+            </div>
+          </div>
+          <div class="property-group">
+            <label data-i18n="properties.color.stroke">Obramowanie:</label>
+            <div class="color-picker">
+              <input type="color" value="${stroke}" 
+                     class="component-property-input" 
+                     data-property="stroke">
+              <input type="text" value="${stroke}" 
+                     class="component-property-input" 
+                     data-property="stroke" placeholder="#000000">
+            </div>
+          </div>
+          <div class="property-group">
+            <label data-i18n="properties.color.strokeWidth">Grubość obramowania:</label>
+            <input type="number" value="${strokeWidth}" 
+                   class="component-property-input" 
+                   data-property="stroke-width" step="0.1" min="0">
+          </div>
+        `;
+      }
+
+      generateTransformSection(componentData) {
+        // Extract scale from transform if present
+        let scaleValue = 1;
+        const transform = componentData.properties.transform || '';
+        const scaleMatch = transform.match(/scale\(([^)]+)\)/);
+        if (scaleMatch) {
+          scaleValue = parseFloat(scaleMatch[1]) || 1;
+        }
+
+        return `
+          <div class="property-group">
+            <label data-i18n="properties.scale">Skala (%):</label>
+            <input type="number" value="${Math.round(scaleValue * 100)}" 
+                   class="component-property-input" 
+                   data-property="scale" step="10" min="10" max="500">
+          </div>
+        `;
+      }
+
+      generateParametersSection(componentData) {
+        const parameters = componentData.metadata.parameters;
+        let html = '<div class="parameters-section"><h5>Parametry:</h5>';
+        
+        for (const [key, value] of Object.entries(parameters)) {
+          html += `
+            <div class="property-group">
+              <label>${key}:</label>
+              <input type="text" value="${value}" 
+                     class="component-property-input" 
+                     data-property="param-${key}">
+            </div>
+          `;
+        }
+        
+        html += '</div>';
+        return html;
+      }
+
+      handlePropertyChange(event) {
+        if (!this.currentComponent) return;
+
+        const property = event.target.getAttribute('data-property');
+        const value = event.target.value;
+
+        console.log('🔧 Property changed:', property, '=', value);
+
+        try {
+          this.updateComponentProperty(this.currentComponent, property, value);
+          
+          // Notify other systems about the change
+          this.notifyHMI('component-property-changed', {
+            component: this.currentComponent,
+            property: property,
+            value: value
+          });
+          
+        } catch (error) {
+          console.error('❌ Error updating property:', error);
+        }
+      }
+
+      updateComponentProperty(element, property, value) {
+        switch (property) {
+          case 'x':
+          case 'y':
+          case 'width':
+          case 'height':
+          case 'fill':
+          case 'stroke':
+          case 'stroke-width':
+            element.setAttribute(property, value);
+            break;
+            
+          case 'scale':
+            const scaleValue = parseFloat(value) / 100;
+            const currentTransform = element.getAttribute('transform') || '';
+            const newTransform = currentTransform.replace(/scale\([^)]+\)/, '').trim();
+            element.setAttribute('transform', `${newTransform} scale(${scaleValue})`.trim());
+            break;
+            
+          default:
+            if (property.startsWith('param-')) {
+              const paramKey = property.replace('param-', '');
+              this.updateCustomParameter(element, paramKey, value);
+            }
+            break;
+        }
+      }
+
+      updateCustomParameter(element, paramKey, value) {
+        let metadataElement = element.querySelector('metadata');
+        if (!metadataElement) {
+          metadataElement = document.createElementNS('http://www.w3.org/2000/svg', 'metadata');
+          element.appendChild(metadataElement);
+        }
+
+        let metadata = {};
+        try {
+          metadata = JSON.parse(metadataElement.textContent);
+        } catch (e) {
+          metadata = {};
+        }
+
+        if (!metadata.parameters) {
+          metadata.parameters = {};
+        }
+        
+        metadata.parameters[paramKey] = value;
+        metadataElement.textContent = JSON.stringify(metadata);
+      }
+
+      updateContent(html) {
+        const content = this.template.querySelector('.component-properties__content');
+        if (content) {
+          content.innerHTML = html;
+        }
+      }
+
+      clearContent() {
+        this.updateContent('');
+        this.currentComponent = null;
+      }
+    }
+
+    // Register the component
+    window.ComponentProperties = ComponentProperties;
+    new ComponentProperties();
+  </script>
+</template>

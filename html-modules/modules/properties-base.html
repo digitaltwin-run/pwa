@@ -1,0 +1,130 @@
+<!-- properties-base.html -->
+<template id="properties-base-template">
+  <div class="properties-base">
+    <div class="properties-base__header">
+      <h3 data-i18n="properties.title">Właściwości</h3>
+    </div>
+    <div class="properties-base__content">
+      <slot></slot>
+    </div>
+  </div>
+
+  <style>
+    .properties-base {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .properties-base__header {
+      background-color: var(--header-bg, #f5f5f5);
+      padding: 10px;
+      border-bottom: 1px solid var(--border-color, #ddd);
+    }
+    .properties-base__header h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .properties-base__content {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+    }
+  </style>
+
+  <script type="module">
+    import { ModuleBase } from '../base/module-base.js';
+    import { ColorsManager } from '../../js/properties/colors-manager.js';
+    import { MetadataManager } from '../../js/properties-metadata.js';
+    import { ScalingManager } from '../../js/properties/scaling-manager.js';
+    import { SVGTextManager } from '../../js/properties/svg-text-manager.js';
+
+    class PropertiesBase extends ModuleBase {
+      constructor() {
+        super();
+        this.template = document.currentScript.parentElement;
+        this.componentManager = null;
+        this.selectedComponents = [];
+        this.init();
+      }
+
+      init() {
+        // Initialize sub-managers when componentManager is available
+        this.initializeSubManagers();
+        this.setupEventListeners();
+        
+        // Make this instance globally available
+        window.propertiesBase = this;
+      }
+
+      initializeSubManagers() {
+        // Initialize managers with lazy loading
+        this.colorsManager = new ColorsManager();
+        this.scalingManager = new ScalingManager();
+        this.svgTextManager = new SVGTextManager();
+        
+        // Make managers globally available for UI interactions
+        window.colorsManager = this.colorsManager;
+        window.scalingManager = this.scalingManager;
+        window.svgTextManager = this.svgTextManager;
+      }
+
+      setupEventListeners() {
+        // Listen for selection changes
+        document.addEventListener('canvas-selection-changed', (event) => {
+          this.handleSelectionChange(event.detail);
+        });
+
+        // Listen for component updates
+        document.addEventListener('components-batch-updated', (event) => {
+          this.handleComponentsUpdate(event.detail);
+        });
+      }
+
+      handleSelectionChange(detail) {
+        const selectedComponents = detail.selectedComponents || [];
+        console.log('🎯 Properties Base: Selection changed:', selectedComponents.length, 'components');
+        
+        this.selectedComponents = selectedComponents;
+        
+        if (selectedComponents.length === 0) {
+          this.showCanvasProperties();
+        } else if (selectedComponents.length === 1) {
+          this.showSingleComponentProperties(selectedComponents[0]);
+        } else {
+          this.showMultiSelectionProperties(selectedComponents);
+        }
+      }
+
+      handleComponentsUpdate(detail) {
+        if (this.selectedComponents.length > 1) {
+          // Refresh multi-selection display after batch update
+          this.showMultiSelectionProperties(this.selectedComponents);
+        }
+      }
+
+      showCanvasProperties() {
+        this.notifyHMI('show-canvas-properties', {});
+      }
+
+      showSingleComponentProperties(component) {
+        this.notifyHMI('show-component-properties', { component });
+      }
+
+      showMultiSelectionProperties(components) {
+        this.notifyHMI('show-multi-selection-properties', { components });
+      }
+
+      clearProperties() {
+        const contentSlot = this.template.querySelector('.properties-base__content slot');
+        if (contentSlot) {
+          contentSlot.innerHTML = '';
+        }
+      }
+    }
+
+    // Register the component
+    window.PropertiesBase = PropertiesBase;
+    new PropertiesBase();
+  </script>
+</template>

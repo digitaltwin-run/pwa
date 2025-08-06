@@ -1,0 +1,450 @@
+<!-- multi-selection-properties.html -->
+<template id="multi-selection-properties-template">
+  <div class="multi-selection-properties">
+    <div class="multi-selection-properties__header">
+      <h4 data-i18n="properties.multiSelection.title">Właściwości Wielokrotnej Selekcji</h4>
+      <span class="selection-count" data-i18n="properties.multiSelection.count"></span>
+    </div>
+    <div class="multi-selection-properties__content">
+      <!-- Dynamic content will be inserted here -->
+    </div>
+    <div class="multi-selection-properties__actions">
+      <button class="btn btn-sm btn-primary" data-action="copy-multiple" data-i18n="properties.multiSelection.copy">
+        Kopiuj Wszystkie
+      </button>
+      <button class="btn btn-sm btn-danger" data-action="delete-multiple" data-i18n="properties.multiSelection.delete">
+        Usuń Wszystkie
+      </button>
+    </div>
+  </div>
+
+  <style>
+    .multi-selection-properties {
+      margin-bottom: 20px;
+    }
+    .multi-selection-properties__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .multi-selection-properties__header h4 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary, #333);
+    }
+    .selection-count {
+      font-size: 11px;
+      color: var(--text-secondary, #666);
+      background: var(--badge-bg, #f0f0f0);
+      padding: 2px 6px;
+      border-radius: 10px;
+    }
+    .multi-selection-properties__content {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+    .shared-property-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .shared-property-group label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary, #666);
+    }
+    .shared-property-group input,
+    .shared-property-group select {
+      padding: 6px 8px;
+      border: 1px solid var(--border-color, #ddd);
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .shared-property-group input:focus,
+    .shared-property-group select:focus {
+      outline: none;
+      border-color: var(--primary-color, #3498db);
+      box-shadow: 0 0 0 2px var(--primary-color-alpha, rgba(52, 152, 219, 0.1));
+    }
+    .multi-selection-properties__actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .btn-primary {
+      background-color: var(--primary-color, #3498db);
+      color: white;
+    }
+    .btn-primary:hover {
+      background-color: var(--primary-color-dark, #2980b9);
+    }
+    .btn-danger {
+      background-color: var(--danger-color, #e74c3c);
+      color: white;
+    }
+    .btn-danger:hover {
+      background-color: var(--danger-color-dark, #c0392b);
+    }
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+    .mixed-value {
+      font-style: italic;
+      color: var(--text-secondary, #999);
+    }
+  </style>
+
+  <script type="module">
+    import { ModuleBase } from '../base/module-base.js';
+
+    class MultiSelectionProperties extends ModuleBase {
+      constructor() {
+        super();
+        this.template = document.currentScript.parentElement;
+        this.selectedComponents = [];
+        this.sharedProperties = {};
+        this.init();
+      }
+
+      init() {
+        this.registerEventListeners();
+        
+        // Listen for HMI events to show multi-selection properties
+        document.addEventListener('component-action', (event) => {
+          if (event.detail.action === 'show-multi-selection-properties') {
+            this.showMultiSelectionProperties(event.detail.data.components);
+          }
+        });
+
+        // Make this instance globally available
+        window.multiSelectionProperties = this;
+      }
+
+      registerEventListeners() {
+        // Handle action buttons
+        document.addEventListener('click', (event) => {
+          if (event.target.matches('[data-action="copy-multiple"]')) {
+            this.copyMultipleComponents();
+          } else if (event.target.matches('[data-action="delete-multiple"]')) {
+            this.deleteMultipleComponents();
+          }
+        });
+
+        // Handle property changes
+        document.addEventListener('change', (event) => {
+          if (event.target.matches('.multi-selection-property-input')) {
+            this.handleSharedPropertyChange(event);
+          }
+        });
+      }
+
+      showMultiSelectionProperties(selectedComponents) {
+        this.selectedComponents = selectedComponents || [];
+        
+        if (this.selectedComponents.length < 2) {
+          this.clearContent();
+          return;
+        }
+
+        console.log('📋 Showing multi-selection properties for', this.selectedComponents.length, 'components');
+        
+        // Update selection count
+        this.updateSelectionCount(this.selectedComponents.length);
+        
+        // Find shared properties
+        this.sharedProperties = this.findSharedProperties(this.selectedComponents);
+        
+        // Generate and display shared properties UI
+        const propertiesHTML = this.generateSharedPropertiesHTML(this.sharedProperties);
+        this.updateContent(propertiesHTML);
+        
+        // Apply translations
+        if (window.i18nManager) {
+          window.i18nManager.applyTranslations();
+        }
+      }
+
+      updateSelectionCount(count) {
+        const countElement = this.template.querySelector('.selection-count');
+        if (countElement) {
+          countElement.textContent = `${count} komponentów`;
+        }
+      }
+
+      findSharedProperties(selectedComponents) {
+        if (selectedComponents.length === 0) return {};
+
+        const sharedProperties = {};
+        const firstComponent = selectedComponents[0];
+        
+        // Get all properties from the first component
+        const firstProps = this.extractComponentProperties(firstComponent);
+        
+        // Check which properties are shared across all components
+        for (const [propKey, propValue] of Object.entries(firstProps)) {
+          let isShared = true;
+          let hasConsistentValue = true;
+          let consistentValue = propValue;
+
+          // Check if this property exists in all other components with the same value
+          for (let i = 1; i < selectedComponents.length; i++) {
+            const otherProps = this.extractComponentProperties(selectedComponents[i]);
+            
+            if (!otherProps.hasOwnProperty(propKey)) {
+              isShared = false;
+              break;
+            }
+            
+            if (otherProps[propKey] !== consistentValue) {
+              hasConsistentValue = false;
+              consistentValue = '<mixed>';
+            }
+          }
+
+          if (isShared) {
+            sharedProperties[propKey] = {
+              value: consistentValue,
+              hasConsistentValue: hasConsistentValue,
+              type: this.detectPropertyType(propKey, consistentValue)
+            };
+          }
+        }
+
+        return sharedProperties;
+      }
+
+      extractComponentProperties(element) {
+        const properties = {};
+        
+        // Common SVG properties
+        const commonProps = ['x', 'y', 'width', 'height', 'fill', 'stroke', 'stroke-width'];
+        commonProps.forEach(prop => {
+          const value = element.getAttribute(prop);
+          if (value !== null) {
+            properties[prop] = value;
+          }
+        });
+
+        // Transform properties
+        const transform = element.getAttribute('transform');
+        if (transform) {
+          properties.transform = transform;
+          
+          // Extract scale from transform
+          const scaleMatch = transform.match(/scale\(([^)]+)\)/);
+          if (scaleMatch) {
+            properties.scale = scaleMatch[1];
+          }
+        }
+
+        return properties;
+      }
+
+      detectPropertyType(propKey, value) {
+        if (propKey.includes('color') || propKey === 'fill' || propKey === 'stroke') {
+          return 'color';
+        }
+        if (['x', 'y', 'width', 'height', 'stroke-width', 'scale'].includes(propKey)) {
+          return 'number';
+        }
+        return 'text';
+      }
+
+      generateSharedPropertiesHTML(sharedProperties) {
+        let html = '';
+
+        for (const [propKey, propData] of Object.entries(sharedProperties)) {
+          const displayName = this.getPropertyDisplayName(propKey);
+          const inputType = this.getInputType(propData.type);
+          const value = propData.hasConsistentValue ? propData.value : '';
+          const placeholder = propData.hasConsistentValue ? '' : 'Mixed values';
+          const cssClass = propData.hasConsistentValue ? '' : 'mixed-value';
+
+          html += `
+            <div class="shared-property-group">
+              <label>${displayName}:</label>
+              ${this.generateInputHTML(propKey, propData, inputType, value, placeholder, cssClass)}
+            </div>
+          `;
+        }
+
+        if (Object.keys(sharedProperties).length === 0) {
+          html = '<p class="no-shared-properties">Brak wspólnych właściwości do edycji</p>';
+        }
+
+        return html;
+      }
+
+      generateInputHTML(propKey, propData, inputType, value, placeholder, cssClass) {
+        if (propData.type === 'color') {
+          return `
+            <div class="color-picker">
+              <input type="color" value="${value || '#000000'}" 
+                     class="multi-selection-property-input ${cssClass}" 
+                     data-property="${propKey}">
+              <input type="text" value="${value}" 
+                     class="multi-selection-property-input ${cssClass}" 
+                     data-property="${propKey}" 
+                     placeholder="${placeholder}">
+            </div>
+          `;
+        }
+
+        return `
+          <input type="${inputType}" value="${value}" 
+                 class="multi-selection-property-input ${cssClass}" 
+                 data-property="${propKey}" 
+                 placeholder="${placeholder}"
+                 ${inputType === 'number' ? 'step="1"' : ''}>
+        `;
+      }
+
+      getPropertyDisplayName(propKey) {
+        const displayNames = {
+          'x': 'Pozycja X',
+          'y': 'Pozycja Y',
+          'width': 'Szerokość',
+          'height': 'Wysokość',
+          'fill': 'Wypełnienie',
+          'stroke': 'Obramowanie',
+          'stroke-width': 'Grubość obramowania',
+          'scale': 'Skala'
+        };
+        return displayNames[propKey] || propKey;
+      }
+
+      getInputType(type) {
+        switch (type) {
+          case 'number': return 'number';
+          case 'color': return 'color';
+          default: return 'text';
+        }
+      }
+
+      handleSharedPropertyChange(event) {
+        const property = event.target.getAttribute('data-property');
+        const value = event.target.value;
+
+        console.log('🔧 Multi-selection property changed:', property, '=', value);
+
+        try {
+          this.updateMultipleComponents(property, value);
+          
+          // Update shared properties to reflect the change
+          this.sharedProperties[property] = {
+            value: value,
+            hasConsistentValue: true,
+            type: this.sharedProperties[property].type
+          };
+          
+          // Notify other systems about the change
+          this.notifyHMI('multi-selection-property-changed', {
+            components: this.selectedComponents,
+            property: property,
+            value: value
+          });
+          
+        } catch (error) {
+          console.error('❌ Error updating multi-selection property:', error);
+        }
+      }
+
+      updateMultipleComponents(property, value) {
+        this.selectedComponents.forEach(element => {
+          this.updateSingleComponentProperty(element, property, value);
+        });
+
+        // Dispatch batch update event
+        document.dispatchEvent(new CustomEvent('components-batch-updated', {
+          detail: {
+            components: this.selectedComponents,
+            property: property,
+            value: value
+          }
+        }));
+      }
+
+      updateSingleComponentProperty(element, property, value) {
+        switch (property) {
+          case 'x':
+          case 'y':
+          case 'width':
+          case 'height':
+          case 'fill':
+          case 'stroke':
+          case 'stroke-width':
+            element.setAttribute(property, value);
+            break;
+            
+          case 'scale':
+            const scaleValue = parseFloat(value);
+            const currentTransform = element.getAttribute('transform') || '';
+            const newTransform = currentTransform.replace(/scale\([^)]+\)/, '').trim();
+            element.setAttribute('transform', `${newTransform} scale(${scaleValue})`.trim());
+            break;
+        }
+      }
+
+      copyMultipleComponents() {
+        console.log('📋 Copying', this.selectedComponents.length, 'components');
+        
+        if (window.componentManager && window.componentManager.copyMultiple) {
+          window.componentManager.copyMultiple(this.selectedComponents);
+        }
+        
+        this.notifyHMI('multi-selection-copy', {
+          components: this.selectedComponents
+        });
+      }
+
+      deleteMultipleComponents() {
+        console.log('🗑️ Deleting', this.selectedComponents.length, 'components');
+        
+        if (confirm(`Czy na pewno chcesz usunąć ${this.selectedComponents.length} komponentów?`)) {
+          if (window.componentManager && window.componentManager.deleteMultiple) {
+            window.componentManager.deleteMultiple(this.selectedComponents);
+          }
+          
+          this.notifyHMI('multi-selection-delete', {
+            components: this.selectedComponents
+          });
+          
+          // Clear the selection after deletion
+          this.selectedComponents = [];
+          this.clearContent();
+        }
+      }
+
+      updateContent(html) {
+        const content = this.template.querySelector('.multi-selection-properties__content');
+        if (content) {
+          content.innerHTML = html;
+        }
+      }
+
+      clearContent() {
+        this.updateContent('');
+        this.selectedComponents = [];
+        this.sharedProperties = {};
+        this.updateSelectionCount(0);
+      }
+    }
+
+    // Register the component
+    window.MultiSelectionProperties = MultiSelectionProperties;
+    new MultiSelectionProperties();
+  </script>
+</template>
