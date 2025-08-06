@@ -1,0 +1,70 @@
+<!-- Component Name: [Component Name] -->
+<template id="[component-name]-template">
+  <!-- HTML Structure -->
+  <div class="[component-name]">
+    <!-- Component content goes here -->
+  </div>
+
+  <style>
+    /* Component-specific styles */
+    .[component-name] {
+      /* Base styles */
+    }
+    
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      .[component-name] {
+        /* Mobile styles */
+      }
+    }
+  </style>
+
+  <script type="module">
+    class [ComponentName] extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+        this.shadowRoot.appendChild(
+          document.getElementById('[component-name]-template')
+            .content.cloneNode(true)
+        );
+        
+        // Initialize component
+        this.initialize();
+      }
+      
+      async initialize() {
+        // Component initialization logic
+        this.bindEvents();
+        await this.loadData();
+        this.render();
+      }
+      
+      bindEvents() {
+        // Event bindings
+      }
+      
+      async loadData() {
+        // Data loading logic
+      }
+      
+      render() {
+        // Rendering logic
+      }
+      
+      // Lifecycle callbacks
+      connectedCallback() {
+        console.log('[ComponentName] Component connected');
+      }
+      
+      disconnectedCallback() {
+        // Cleanup
+      }
+    }
+    
+    // Register the component
+    if (!customElements.get('[component-name]')) {
+      customElements.define('[component-name]', [ComponentName]);
+    }
+  </script>
+</template>

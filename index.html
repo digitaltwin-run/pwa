@@ -8,6 +8,7 @@
     <!-- External Stylesheets -->
     <link rel="stylesheet" href="css/app.css"/>
     <link rel="stylesheet" href="css/advanced-features.css"/>
+    <link rel="stylesheet" href="css/components.css"/>
 
     <!-- PWA Manifest and Icons -->
     <link rel="manifest" href="manifest.json"/>
@@ -18,134 +19,181 @@
     <meta name="theme-color" content="#2c3e50"/>
     <meta name="mobile-web-app-capable" content="yes"/>
     <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    
+    <!-- Component templates will be added here by the ComponentLoader -->
+    
+    <!-- Inline styles for critical loading states -->
+    <style>
+        /* Loading animation */
+        .app-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #f8f9fa;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        .loading-text {
+            font-size: 1.2em;
+            color: #333;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            text-align: center;
+            max-width: 500px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .error-message h2 {
+            color: #e74c3c;
+            margin-top: 0;
+        }
+        
+        /* Hide app until fully loaded */
+        .app-container {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-    <!-- Header with Top Menu and Toolbar -->
-    <div class="header-container">
-        <!-- Language Selector -->
-        <div id="language-switcher" class="language-switcher">
-            <select id="language-select" aria-label="Select language">
-                <option value="en">🇺🇸 English</option>
-                <option value="pl">🇵🇱 Polski</option>
-                <option value="de">🇩🇪 Deutsch</option>
-                <option value="es">🇪🇸 Español</option>
-            </select>
-        </div>
-        
-        <!-- Top Menu -->
-        <nav class="top-menu">
-            <ul>
-                <li><a href="#" class="menu-item" data-i18n="ui.menu.file">File</a></li>
-                <li><a href="#" class="menu-item" id="simulation-menu" data-i18n="ui.menu.tools">Tools</a></li>
-                <li><a href="#" class="menu-item" data-i18n="ui.menu.view">View</a></li>
-                <li><a href="#" class="menu-item" data-i18n="ui.menu.help">Help</a></li>
-            </ul>
-        </nav>
-
-        <!-- Toolbar -->
-        <div class="toolbar">
-            <button id="export-btn" class="btn btn-success">📤 Eksportuj (.dtwin)</button>
-            <button id="import-btn" class="btn btn-primary">📥 Importuj (.dtwin)</button>
-            <button id="export-png-btn" class="btn btn-warning">🖼️ PNG</button>
-            <button id="export-svg-btn" class="btn btn-primary">🟩 SVG</button>
-            <button id="connection-mode-btn" class="btn btn-purple">🔗 Łącz komponenty</button>
-        </div>
+    <!-- Loading Indicator -->
+    <div id="app-loading" class="app-loading">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" data-i18n="app.loading">Loading Digital Twin IDE...</div>
     </div>
+
+    <!-- Main App Container -->
+    <div id="app" class="app-container">
+        <!-- Header with Top Menu and Toolbar -->
+        <header class="header-container">
+            <!-- Language Selector -->
+            <div id="language-switcher" class="language-switcher">
+                <select id="language-select" aria-label="Select language">
+                    <option value="en">🇺🇸 English</option>
+                    <option value="pl">🇵🇱 Polski</option>
+                    <option value="de">🇩🇪 Deutsch</option>
+                    <option value="es">🇪🇸 Español</option>
+                </select>
+            </div>
+            
+            <!-- Top Menu -->
+            <nav class="top-menu">
+                <ul>
+                    <li><a href="#" class="menu-item" data-i18n="ui.menu.file">File</a></li>
+                    <li><a href="#" class="menu-item" id="simulation-menu" data-i18n="ui.menu.tools">Tools</a></li>
+                    <li><a href="#" class="menu-item" data-i18n="ui.menu.view">View</a></li>
+                    <li><a href="#" class="menu-item" data-i18n="ui.menu.help">Help</a></li>
+                </ul>
+            </nav>
+
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <button id="export-btn" class="btn btn-success" data-i18n="ui.buttons.export">Export (.dtwin)</button>
+                <button id="import-btn" class="btn btn-primary" data-i18n="ui.buttons.import">Import (.dtwin)</button>
+                <button id="export-png-btn" class="btn btn-warning" data-i18n="ui.buttons.exportPng">Export PNG</button>
+                <button id="export-svg-btn" class="btn btn-primary" data-i18n="ui.buttons.exportSvg">Export SVG</button>
+                <button id="connection-mode-btn" class="btn btn-purple" data-i18n="ui.buttons.connect">Connect Components</button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Left Sidebar: Components Library -->
+            <components-library-sidebar id="components-library-sidebar" class="sidebar left"></components-library-sidebar>
+            
+            <!-- Canvas Area -->
+            <div class="canvas-container">
+                <div id="svg-canvas" class="svg-canvas">
+                    <!-- SVG content will be loaded here -->
+                </div>
+            </div>
+            
+            <!-- Right Sidebar: Properties Panel -->
+            <properties-panel id="properties-panel" class="sidebar right"></properties-panel>
+        </main>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <div class="status-message" id="status-message" data-i18n="app.ready">Ready</div>
+            <div class="status-indicators">
+                <span id="connection-status" class="status-indicator" data-i18n="app.status.connected">Connected</span>
+                <span id="auto-save-status" class="status-indicator" data-i18n="app.status.autoSave">Auto-save: ON</span>
+            </div>
+        </footer>
+    </div> <!-- End of #app -->
 
     <!-- Simulation Panel (initially hidden) -->
-    <div class="simulation-panel" id="simulation-panel" style="display: none;">
-        <div class="simulation-header">
-            <h3 data-i18n="ui.simulation.title">📊 Data Simulation</h3>
-            <button id="close-sim-panel" class="btn btn-text" aria-label="Close">×</button>
-        </div>
-        <div class="simulation-controls">
-            <button id="start-sim-btn" class="btn btn-success" data-i18n="ui.buttons.start">▶️ Start</button>
-            <button id="stop-sim-btn" class="btn btn-danger" data-i18n="ui.buttons.stop">⏸️ Stop</button>
-        </div>
-        <div id="simulation-list" class="simulation-list">
-            <p><i data-i18n="ui.simulation.noComponents">No components available for simulation</i></p>
-        </div>
-    </div>
-
-    <!-- Main Layout -->
-    <div class="container">
-        <!-- Left Sidebar: Components Library -->
-        <aside class="sidebar left">
-            <h3>🔧 Komponenty</h3>
-            <div class="component-list" id="component-library">
-                <!-- Components will be loaded dynamically -->
-                <div class="loading">Ładowanie komponentów...</div>
-            </div>
-        </aside>
-
-        <!-- Center: Workspace Canvas -->
-        <div class="workspace" id="workspace">
-            <svg id="svg-canvas" xmlns="http://www.w3.org/2000/svg">
-                <!-- SVG Definitions -->
-                <defs>
-                    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5"
-                            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#2c3e50"/>
-                    </marker>
-                    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#ddd" stroke-width="0.5"/>
-                    </pattern>
-                </defs>
-
-                <!-- Grid Background -->
-                <rect width="100%" height="100%" fill="url(#grid)"/>
-
-                <!-- Components and connections will be added dynamically here -->
-            </svg>
-        </div>
-
-        <!-- Components Selection Column -->
-        <aside class="sidebar components-column">
-            <h3>📋 Komponenty Canvas</h3>
-            <div id="components-selection-panel">
-                <div class="selection-controls mb-2">
-                    <button class="btn btn-sm btn-outline-primary" onclick="window.componentsColumnManager?.selectAll()" title="Zaznacz wszystkie">
-                        ✓ Wszystkie
-                    </button>
-                    <button class="btn btn-sm btn-outline-dark" onclick="window.componentsColumnManager?.clearAll()" title="Odznacz wszystkie">
-                        ✗ Wyczyść
-                    </button>
-                </div>
-                <div id="components-list" class="components-list">
-                    <p class="text-muted small">Brak komponentów na canvas</p>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Right Sidebar: Properties Panel -->
-        <aside class="sidebar right">
-            <h3>⚙️ Właściwości</h3>
-            <div id="properties-panel">
-                <p>Wybierz komponent, aby edytować właściwości.</p>
-            </div>
-        </aside>
-    </div>
-
-    <!-- JavaScript Modules -->
-    <script type="module" src="js/app.js"></script>
-    <script src="js/menu.js"></script>
-
-
-    <!-- Noscript fallback -->
-    <noscript>
-        <div class="noscript-fallback">
-            <h2>JavaScript Required</h2>
-            <p>Aplikacja Digital Twin IDE wymaga włączonej obsługi JavaScript w przeglądarce.</p>
-            <p>Proszę włączyć JavaScript i odświeżyć stronę.</p>
-        </div>
-    </noscript>
-
-    <!-- Main Application Module -->
-    <script type="module" src="js/app.js"></script>
-
-    <!-- UI Tests (only in development) -->
-    <script type="module" src="tests/ui-tests.js"></script>
-
+    <simulation-panel id="simulation-panel" class="simulation-panel" style="display: none;">
+        <!-- Simulation panel content will be loaded here -->
+    </simulation-panel>
+    
+    <!-- App Initialization -->
+    <script type="module">
+        import { hmi } from './hmi/index.js';
+        
+        // Show loading state
+        const appLoading = document.getElementById('app-loading');
+        const app = document.getElementById('app');
+        
+        // Initialize HMI
+        hmi.initialize().then(success => {
+            if (success) {
+                // Hide loading, show app
+                appLoading.style.display = 'none';
+                app.style.display = 'block';
+                
+                // Dispatch app ready event
+                document.dispatchEvent(new CustomEvent('app:ready'));
+                console.log('Digital Twin IDE is ready!');
+            } else {
+                // Show error
+                appLoading.innerHTML = `
+                    <div class="error-message">
+                        <h2 data-i18n="app.error.initialization">Initialization Error</h2>
+                        <p data-i18n="app.error.initializationMessage">Failed to initialize the application. Please refresh the page to try again.</p>
+                        <button onclick="window.location.reload()" class="btn btn-primary" data-i18n="app.buttons.refresh">Refresh</button>
+                    </div>
+                `;
+            }
+        });
+        
+        // Handle service worker registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(err => {
+                        console.error('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>
-

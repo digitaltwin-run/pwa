@@ -3,6 +3,7 @@
 
 import { componentRegistry } from './component-registry.js';
 import { componentInitializer } from './component-initializer.js';
+import { ComponentIconLoader } from './utils/component-icon-loader.js';
 
 /**
  * Component Loader - Handles dynamic loading of component modules
@@ -189,6 +190,20 @@ export class ComponentLoader {
     }
 
     /**
+     * Get icon for a component type
+     * @param {string} componentId - Component type ID
+     * @returns {Promise<string>} SVG content or emoji fallback
+     */
+    async getComponentIcon(componentId) {
+        try {
+            return await ComponentIconLoader.loadIcon(componentId);
+        } catch (error) {
+            console.warn(`[ComponentLoader] Error loading icon for ${componentId}:`, error);
+            return '🔧'; // Default fallback
+        }
+    }
+
+    /**
      * Format component type as a readable name
      * @param {string} type - Component type identifier
      * @returns {string} Formatted component name
@@ -208,7 +223,15 @@ export class ComponentLoader {
      * @returns {string} Extracted component type or 'unknown'
      */
     getComponentType(component) {
-        return componentRegistry.extractComponentType(component);
+        // Use the ComponentIconLoader's extraction method for consistency
+        const extractedId = ComponentIconLoader.extractComponentId(component);
+        
+        // If ComponentIconLoader couldn't extract a valid ID, fallback to registry
+        if (extractedId === 'unknown') {
+            return componentRegistry.extractComponentType(component);
+        }
+        
+        return extractedId;
     }
 
     /**

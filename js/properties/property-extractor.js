@@ -91,57 +91,98 @@ export class PropertyExtractor {
         const dataType = svgElement.getAttribute('data-type');
         if (dataType) return dataType;
         
-        // Priority 3: Class name and ID inference (synchronous)
-        const syncType = this.inferTypeFromClasses(svgElement) || 
-                        this.inferTypeFromId(svgElement);
-        if (syncType) return syncType;
-        
-        // Priority 4: Content-based inference (asynchronous)
+        // Priority 3: Class name and ID inference (asynchronous)
         try {
+            const [classType, idType] = await Promise.all([
+                this.inferTypeFromClasses(svgElement),
+                this.inferTypeFromId(svgElement)
+            ]);
+            
+            if (classType) return classType;
+            if (idType) return idType;
+            
+            // Priority 4: Content-based inference (asynchronous)
             const contentType = await this.inferTypeFromContent(svgElement);
             if (contentType) return contentType;
+            
+            console.log(`[PropertyExtractor] Could not determine type for component, using 'unknown'`);
+            return 'unknown';
+            
         } catch (error) {
-            console.warn('[PropertyExtractor] Error inferring type from content:', error);
+            console.error('[PropertyExtractor] Error detecting component type:', error);
+            return 'unknown';
         }
-        
-        // Fallback to element ID or 'unknown'
-        const elementId = svgElement.id || 'unknown';
-        console.log(`[PropertyExtractor] Could not determine type for ${elementId}`);
-        return 'unknown';
     }
 
     /**
+     * Get component types from manifest
+     * @returns {Promise<Array<string>>} Array of component types
+     */
+    static async getComponentTypes() {
+        // Default component types as fallback
+        const defaultTypes = ['pump', 'valve', 'sensor', 'display', 'led', 'tank', 'pipe'];
+        
+        try {
+            const response = await fetch('/js/components/manifest.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const manifest = await response.json();
+            if (manifest.components && Array.isArray(manifest.components)) {
+                return manifest.components.map(comp => comp.type);
+            }
+        } catch (error) {
+            console.warn('[PropertyExtractor] Error loading component types from manifest, using defaults:', error);
+        }
+        
+        return defaultTypes;
+    }
+    
+    /**
      * Infer component type from CSS classes
      * @param {Element} svgElement - SVG element
-     * @returns {string|null} Inferred type or null
+     * @returns {Promise<string|null>} Inferred type or null
      */
-    static inferTypeFromClasses(svgElement) {
-        const componentTypes = ['pump', 'valve', 'sensor', 'display', 'led', 'tank', 'pipe'];
-        
-        for (let className of svgElement.classList) {
-            for (let type of componentTypes) {
-                if (className.toLowerCase().includes(type)) {
-                    return type;
+    static async inferTypeFromClasses(svgElement) {
+        try {
+            const componentTypes = await this.getComponentTypes();
+            
+            for (let className of svgElement.classList) {
+                const lowerClassName = className.toLowerCase();
+                for (let type of componentTypes) {
+                    if (lowerClassName.includes(type)) {
+                        return type;
+                    }
                 }
             }
+        } catch (error) {
+            console.warn('[PropertyExtractor] Error inferring type from classes:', error);
         }
+        
         return null;
     }
 
     /**
      * Infer component type from ID
      * @param {Element} svgElement - SVG element
-     * @returns {string|null} Inferred type or null
+     * @returns {Promise<string|null>} Inferred type or null
      */
-    static inferTypeFromId(svgElement) {
+    static async inferTypeFromId(svgElement) {
         const id = (svgElement.id || svgElement.getAttribute('data-id') || '').toLowerCase();
-        const componentTypes = ['pump', 'valve', 'sensor', 'display', 'led', 'tank', 'pipe'];
         
-        for (let type of componentTypes) {
-            if (id.includes(type)) {
-                return type;
+        try {
+            const componentTypes = await this.getComponentTypes();
+            
+            for (let type of componentTypes) {
+                if (id.includes(type)) {
+                    return type;
+                }
             }
+        } catch (error) {
+            console.warn('[PropertyExtractor] Error inferring type from ID:', error);
         }
+        
         return null;
     }
 

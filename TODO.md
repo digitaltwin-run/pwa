@@ -335,3 +335,6 @@ Zintegrować te moduły z głównym panelem właściwości IDE
 Stworzyć dodatkowe moduły (slider, toggle, itp.)
 Przetestować system na żywym IDE
 Udokumentować API dla przyszłych deweloperów
+
+
+zrob rtefaktoryzacje duzychjh plikow js , js/hmi/ui/components-library-sidebar.js

@@ -18,7 +18,9 @@ import pwaConfig from '../config/pwa-config.js';
 import { CollaborationManager } from './collaboration-manager.js';
 import { I18nManager } from './i18n-manager.js';
 import './i18n/language-selector.js';
-import './hmi/input/keyboard-shortcuts-ui.js'; // Dynamic language selector UI component
+import './hmi/input/keyboard-shortcuts-ui.js'; // Keyboard shortcuts UI component
+import './simple-component-loader.js'; // Simple component loader for left sidebar
+// import './hmi/ui/components-library-sidebar.js'; // Enhanced components library sidebar (disabled due to cache issues)
 import { ComponentScaler } from './component-scaler.js';
 import { canvasSelectionManager } from './hmi/index.js';
 import { CanvasZoomManager } from './canvas-zoom-manager.js';
@@ -154,44 +156,58 @@ class DigitalTwinApp {
             // interactionsManager moved to ../interactions project
             this.componentScaler = new ComponentScaler(this.componentManager);
 
-            // Expose managers globally for HTML calls
+            // First, expose all managers to window object at once
             console.log('🌍 Exposing managers globally...');
-            window.componentManager = this.componentManager;
-            window.propertiesManager = this.propertiesManager;
-            window.propertiesMapper = this.propertiesMapper;
-            window.exportManager = this.exportManager;
+            const managers = {
+                // Core managers
+                componentManager: this.componentManager,
+                propertiesManager: this.propertiesManager,
+                propertiesMapper: this.propertiesMapper,
+                exportManager: this.exportManager,
+                simulationManager: this.simulationManager,
+                connectionManager: this.connectionManager,
+                componentScaler: this.componentScaler,
+                actionManager: this.actionManager,
+                canvasSelectionManager: this.canvasSelectionManager
+            };
+            
+            // Assign to window
+            Object.assign(window, managers);
             
             // Verify global exposure with detailed debugging
-            const globalManagersStatus = {
-                componentManager: !!window.componentManager,
-                propertiesManager: !!window.propertiesManager,
-                propertiesMapper: !!window.propertiesMapper,
-                exportManager: !!window.exportManager
-            };
+            const globalManagersStatus = Object.entries(managers).reduce((acc, [key, manager]) => {
+                acc[key] = !!manager;
+                return acc;
+            }, {});
+            
             console.log('✅ Managers exposed globally:', globalManagersStatus);
             
-            // Additional verification to ensure they persist
-            setTimeout(() => {
-                const persistenceCheck = {
-                    componentManager: !!window.componentManager,
-                    propertiesManager: !!window.propertiesManager,
-                    propertiesMapper: !!window.propertiesMapper,
-                    exportManager: !!window.exportManager
-                };
-                console.log('🔍 Global managers persistence check (500ms later):', persistenceCheck);
-                
-                // Set flag to indicate managers are ready
+            // Notify that managers are ready
+            const notifyManagersReady = () => {
+                console.log('🚀 All managers ready and exposed');
                 window.globalManagersReady = true;
                 document.dispatchEvent(new CustomEvent('globalManagersReady', {
-                    detail: persistenceCheck
+                    detail: globalManagersStatus
                 }));
-            }, 500);
-            window.simulationManager = this.simulationManager;
-            window.connectionManager = this.connectionManager;
-            // window.interactionsManager moved to ../interactions project
-            window.componentScaler = this.componentScaler;
-            window.actionManager = this.actionManager; // Expose actionManager for interactions
-            window.canvasSelectionManager = this.canvasSelectionManager; // Expose canvas selection manager
+            };
+            
+            // Double-check after a short delay to ensure they persist
+            setTimeout(() => {
+                const persistenceCheck = Object.entries(managers).reduce((acc, [key]) => {
+                    acc[key] = !!window[key];
+                    return acc;
+                }, {});
+                
+                console.log('🔍 Global managers persistence check:', persistenceCheck);
+                
+                // If we haven't already notified, do it now
+                if (!window.globalManagersReady) {
+                    notifyManagersReady();
+                }
+            }, 100);
+            
+            // Notify immediately (timeout is just a fallback)
+            notifyManagersReady();
 
             // Initialize canvas managers with references
             this.canvasSelectionManager.setReferences(svgCanvas, this.componentManager);

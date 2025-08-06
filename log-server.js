@@ -60,6 +60,8 @@ class LogServer {
                 await this.handleStatus(req, res);
             } else if (pathname === '/files' && req.method === 'GET') {
                 await this.handleListFiles(req, res);
+            } else if (pathname === '/api/components' && req.method === 'GET') {
+                await this.handleComponentsAPI(req, res);
             } else {
                 res.writeHead(404, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ error: 'Not found' }));
@@ -196,6 +198,124 @@ class LogServer {
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Failed to list files' }));
         }
+    }
+
+    async handleComponentsAPI(req, res) {
+        try {
+            // Scan components/*.svg directory dynamically
+            const componentsDir = path.join(__dirname, 'components');
+            const svgFiles = await fs.readdir(componentsDir);
+            const components = [];
+            
+            // Process each SVG file
+            for (const filename of svgFiles) {
+                if (filename.endsWith('.svg') && !filename.includes('.bak')) {
+                    const componentId = filename.replace('.svg', '').toLowerCase();
+                    const componentName = this.formatComponentName(componentId);
+                    const svgPath = `components/${filename}`;
+                    
+                    components.push({
+                        id: componentId,
+                        name: componentName,
+                        svg: svgPath,
+                        category: this.getComponentCategory(componentId),
+                        description: `${componentName} component`,
+                        draggable: true,
+                        clickable: true
+                    });
+                }
+            }
+            
+            // Sort components alphabetically
+            components.sort((a, b) => a.name.localeCompare(b.name));
+            
+            const responseData = {
+                components: components,
+                generated: new Date().toISOString(),
+                count: components.length,
+                source: 'components/*.svg'
+            };
+            
+            // Set strong cache-busting headers
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+            res.setHeader('Last-Modified', new Date().toUTCString());
+            res.setHeader('ETag', `"${Date.now()}"`);
+            
+            console.log(`📦 Generated ${components.length} components from components/*.svg with cache-busting headers`);
+            
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(responseData, null, 2));
+        } catch (error) {
+            console.error('Failed to scan components directory:', error);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Failed to scan components directory' }));
+        }
+    }
+
+    // Helper method to format component names from filenames
+    formatComponentName(componentId) {
+        const nameMap = {
+            'gauge': 'Analog Gauge',
+            'led': 'Animated LED',
+            'pump': 'Centrifugal Pump',
+            'valve': 'Control Valve',
+            'motor': 'Electric Motor',
+            'display': 'HTML Display',
+            'modbus8adc': 'Modbus RTU Analog Input 8CH',
+            'modbus8i8o': 'Modbus RTU IO 8CH',
+            'counter': 'Numeric Counter',
+            'button': 'Push Button',
+            'button-new': 'Push Button (New)',
+            'button2': 'Push Button Alt',
+            'rpi3b': 'Raspberry Pi 3B',
+            'rpi4b': 'Raspberry Pi 4 Model B',
+            'rpi5b': 'Raspberry Pi 5',
+            'rpizero2w': 'Raspberry Pi Zero 2 W',
+            'relay': 'Relay',
+            'sensor': 'Temperature Sensor',
+            'knob': 'Rotary Knob',
+            'slider': 'Slider',
+            'switch': 'Switch',
+            'toggle': 'Toggle Switch',
+            'usb2rs485': 'USB to RS485 Converter'
+        };
+        
+        return nameMap[componentId] || componentId.split(/[_-]/).map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ');
+    }
+    
+    // Helper method to categorize components
+    getComponentCategory(componentId) {
+        const categoryMap = {
+            'gauge': 'Indicators',
+            'led': 'Indicators', 
+            'display': 'Indicators',
+            'counter': 'Indicators',
+            'pump': 'Actuators',
+            'valve': 'Actuators',
+            'motor': 'Actuators',
+            'relay': 'Actuators',
+            'button': 'Controls',
+            'button-new': 'Controls',
+            'button2': 'Controls',
+            'knob': 'Controls',
+            'slider': 'Controls',
+            'switch': 'Controls',
+            'toggle': 'Controls',
+            'sensor': 'Sensors',
+            'rpi3b': 'Hardware',
+            'rpi4b': 'Hardware',
+            'rpi5b': 'Hardware',
+            'rpizero2w': 'Hardware',
+            'modbus8adc': 'Communication',
+            'modbus8i8o': 'Communication',
+            'usb2rs485': 'Communication'
+        };
+        
+        return categoryMap[componentId] || 'General';
     }
 
     async saveLogFile(sessionHash) {
