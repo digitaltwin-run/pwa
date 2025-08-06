@@ -1,53 +1,57 @@
-# Digital Twin IDE PWA - Development Roadmap & TODO
+# Digital Twin IDE PWA - Modular Refactoring TODO
 
 ## 🎯 PROJECT VISION
-Standardized Digital Twin IDE PWA for modular SVG canvas design with native HTML modules, i18n support, and clean architecture using modern design patterns.
+Modular, maintainable Digital Twin IDE PWA with self-contained HTML+JS components, clear separation of UI and HMI layers, and elimination of duplicate code through consistent architectural patterns.
 
 ---
 
-## 🔥 CRITICAL BUGS & ISSUES
+## 🏗️ MODULAR ARCHITECTURE REFACTORING
 
-### High Priority (P0)
-- [ ] **🎯 MOUSE SELECTION BUG** - Components don't have `data-id` attributes visible at click time
-  - Root cause: `document.elementsFromPoint()` finds elements but none have `data-id`
-  - Need to verify component placement adds `data-id` correctly
-  - Enhanced debug logs added to `selection-core.js`
-  - **Status: DEBUGGING IN PROGRESS**
-- [ ] **SVG Canvas Resize Testing** - Test width/height changes in UI
-- [x] **Grid Color Change Validation** - ✅ FIXED - All grid color controls work correctly
-- [ ] **SVG Export Validation** - Ensure all exported SVGs work standalone
-- [ ] **Component Copy-Paste Errors** - Fix "Nieprawidłowy format SVG" for multi-level copies
-- [ ] **Multi-Selection Synchronization** - Verify batch parameter changes work correctly
+### Completed Refactoring Tasks ✅
+- [x] **Module Structure Standardization** - Established convention for self-contained HTML+CSS+JS modules
+- [x] **Async SVG Icon Loading** - Implemented async loading for component icons in sidebar
+- [x] **ComponentIconLoader Utility** - Created shared utility for icon loading with fallbacks
+- [x] **Directory Structure Organization** - Established `html-modules/modules/` for UI and `hmi/` for device logic
+- [x] **Simple Component Loader Migration** - Moved to HTML module from legacy JS file
+- [x] **SVG Text Editor Migration** - Moved to self-contained HTML module with encapsulated logic
+- [x] **Menu Component Migration** - Converted menu.js to modular HTML component
+- [x] **Header Component Migration** - Extracted from index.html to separate module
+- [x] **Canvas Placement Helper Migration** - Created HTML module version and removed JS duplicate
+- [x] **HMI Integration Consolidation** - Unified multiple integration approaches into single module
+- [x] **Documentation Updates** - Enhanced README.md and ARCHITECTURE.md with modular standards
 
-### Medium Priority (P1)
-- [ ] **Canvas Background Color** - Test and validate background color changes
-- [ ] **Component Overlap Handling** - Fix inability to move overlapping components
-- [ ] **LED Blinking Regression** - Ensure color changes don't break animations
-- [ ] **Error Detection Auto-refresh** - Optimize to prevent excessive re-renders
-- [ ] **Missing i18n Translation Keys** - Add all missing translation keys listed below
+### Current Tasks In Progress 🔄
+- [ ] **Remove Remaining Duplicate Files** - Identify and consolidate or remove redundant JS files
+- [ ] **Update Import References** - Ensure all imports point to new module locations
+- [ ] **Validation Testing** - Test all refactored modules to ensure functionality parity
 
----
+### Upcoming Tasks 📋
+- [ ] **Large Files Refactoring** - Split large JS files (>350 lines) into more manageable modules
+  - [ ] **properties-core.js (679 lines)** → Split into properties-base, component-properties, canvas-properties
+  - [ ] **i18n-manager.js (706 lines)** → Split into translation-loader, formatter, language-detector
+  - [ ] **properties-mapper.js (751 lines)** → Split into mapper-core, component-detector, metadata-extractor
+  - [ ] **canvas-selection-manager.js (884 lines)** → Split into selection-core, marquee-selection, drag-manager
+- [ ] **Duplicate Code Elimination** - Remove duplicate implementations and consolidate
+  - [ ] **InteractionsManager** - Consolidate the two implementations (interactions.js and properties-interactions.js)
+  - [ ] **Color Management** - Unify the four different implementations into a single module
+  - [ ] **SVG Manipulation** - Centralize common SVG utilities
+  - [ ] **DOM Utilities** - Extract and standardize common DOM operations
 
-## 🎮 HMI (HUMAN-MACHINE INTERFACE) SYSTEM
+### Files to Refactor or Remove 📄
 
-### Completed HMI Features ✅
-- [x] **Advanced Gesture Recognition System** - 15+ gesture patterns implemented
-  - Circle detection (delete, select all, clear selection)
-  - Swipe detection (save right, export down, undo left, redo up)
-  - Zigzag detection (properties panel)
-  - Line detection (copy horizontal, connect components diagonal)
-  - Double tap detection (alternative delete method)
-  - Pinch detection (zoom in/out for touch devices)
-  - Spiral detection (scale/resize components)
-  - Custom pattern detection (grid toggle with cross pattern)
-  - Sequence detection (advanced multi-modal gestures)
-- [x] **Voice Control Integration** - Speech recognition and text-to-speech
-- [x] **Multi-Modal Gesture System** - Combined voice + gesture interactions
-- [x] **Priority-Based Processing** - Prevents gesture conflicts
-- [x] **Area Bounds Constraints** - Gesture recognition within defined areas
-- [x] **Polish Language Voice Feedback** - Integrated with i18n system
-- [x] **Debug System** - Comprehensive logging with emoji indicators
-- [x] **Fluent API Design** - Chainable gesture registration system
+#### Files Successfully Migrated to HTML Modules
+- [x] `js/menu.js` → `html-modules/modules/menu.html`
+- [x] `js/svg-text-editor.js` → `html-modules/modules/svg-text-editor.html`
+- [x] `js/simple-component-loader.js` → `html-modules/modules/simple-component-loader.html`
+- [x] `js/canvas-placement-helper.js` → `html-modules/modules/canvas-placement-helper.html`
+- [x] `js/app-hmi-integration.js` → `html-modules/modules/hmi-integration.html`
+- [x] `js/app-hmi-integration-new.js` → `html-modules/modules/hmi-integration.html`
+
+#### Files Pending Migration
+- [ ] `js/component-loader.js` → To be updated to use `html-modules/utils/component-loader.js`
+- [ ] `js/property-ui-generator.js` → To be migrated as HTML module
+- [ ] `js/components.js` → To be refactored as modular components
+- [ ] `js/dragdrop.js` → To be migrated as a utility module
 
 ### HMI Integration Tasks
 - [ ] **Main IDE Integration** - Integrate HMI system with main Digital Twin IDE
@@ -331,54 +335,123 @@ ui.buttons.stop
 *Last Updated: 2025-01-05*
 *Next Review: Weekly during active development*
 
-Zintegrować te moduły z głównym panelem właściwości IDE
-Stworzyć dodatkowe moduły (slider, toggle, itp.)
-Przetestować system na żywym IDE
-Udokumentować API dla przyszłych deweloperów
+---
 
+## 📌 REFACTORING GUIDELINES & BEST PRACTICES
 
-zrob rtefaktoryzacje duzychjh plikow js , js/hmi/ui/components-library-sidebar.js
+### HTML Module Structure Standards
 
+```html
+<!-- html-modules/modules/component-name.html -->  
+<template id="component-name-template">
+  <!-- HTML Structure -->
+  <div class="component-name">
+    <div class="component-name__header">Component Title</div>
+    <div class="component-name__content">
+      <!-- Component content here -->
+    </div>
+  </div>
+  
+  <!-- CSS with proper namespacing -->
+  <style>
+    .component-name {
+      /* Base styles */
+    }
+    .component-name__header {
+      /* Header styles */
+    }
+    .component-name__content {
+      /* Content styles */
+    }
+  </style>
+  
+  <!-- JavaScript with proper module pattern -->
+  <script type="module">
+    class ComponentName {
+      constructor() {
+        this.template = document.currentScript.parentElement;
+        this.init();
+      }
+      
+      init() {
+        // Setup code
+      }
+      
+      // Public API methods
+      doSomething() {
+        // Implementation
+      }
+    }
+    
+    // Register the component
+    window.componentName = new ComponentName();
+  </script>
+</template>
+```
 
+### Module Migration Process
 
+When migrating an existing JS file to a self-contained HTML module:
 
-## Migration Guide
+1. **Create the HTML structure**
+   - Create a new file in `html-modules/modules/`
+   - Set up the template with proper ID
+   - Add any necessary HTML markup
 
-When migrating existing code to the new architecture:
+2. **Extract and encapsulate CSS**
+   - Move styles from global CSS or inline styles
+   - Use proper namespacing (BEM-like)
+   - Use CSS custom properties for theming
 
-1. Move UI logic from `.js` files to component modules
-2. Update imports to use the new component structure
-3. Replace direct DOM manipulation with component methods
-4. Use events for cross-component communication
+3. **Migrate JavaScript logic**
+   - Convert the JS class/functions to work within the module
+   - Use `document.currentScript.parentElement` to access the template
+   - Update references to external dependencies
+   - Export functionality via window object or register with module system
 
+4. **Update references**
+   - Find all files importing the old JS file
+   - Update to use the new HTML module
+   - Test functionality thoroughly
 
-# 1. Zaktualizowany CEL REFRAKTORYZACJI
+5. **Remove the old file**
+   - Only after confirming the new module works correctly
 
-- Wprowadzenie i utrzymanie paradygmatu: **każdy komponent UI w `html-modules/components` to samodzielny, zwartym moduł** zawierający:
-    - szablon HTML (``)
-    - style CSS (zagnieżdżone w ``)
-    - logikę JS (w `` albo ``)
-- **Separacja warstw:**
-    - `html-modules/components/` — komponenty UI (HTML+CSS+JS)
-    - `hmi/` — warstwa sterująca, integrująca urządzenia i moduły, zarządzająca interakcjami globalnymi
-- Rezygnacja z „luźnych” plików JS związanych bezpośrednio z UI na korzyść modularnych HTML+JS
-- Usunięcie duplikatów i niepotrzebnych plików
-- Dokumentacja zawierająca jasne zasady i przykłady modularności
+### Communication Between Modules
 
+- Use custom events for communication between components:
+```javascript
+// Publishing an event
+document.dispatchEvent(new CustomEvent('component-action', {
+  detail: { action: 'update', data: { /* relevant data */ } }
+}));
 
+// Listening for events
+document.addEventListener('component-action', (event) => {
+  const { action, data } = event.detail;
+  // Handle the event
+});
+```
 
-## 2.1. Przeniesienie i reorganizacja folderów
+### Code Quality Standards
 
-- **W `html-modules/components/` każdy moduł to pojedynczy plik `.html`** z zawartością:
-    - `` z szablonem
-    - `` z CSS
-    - `` lub `` z logiką JS komponentu (zgodnie z przykładem `font-editor.html`)
-- **Usuwanie plików JS powielających logikę modułów HTML**
-    - Przegląd `js/` i usunięcie skryptów, które są już zawarte lub zastępowane przez moduły HTML+JS
-    - Funkcje pomocnicze i utilsy, które są współdzielone między modułami trzymamy w `html-modules/utils/`
+- **Line Count**: Keep modules under 350 lines
+- **Responsibility**: Each module should have a single responsibility
+- **Coupling**: Minimize dependencies between modules
+- **Naming**: Use clear, descriptive names
+- **Documentation**: Document public APIs and component usage
+- **Testing**: Write tests for critical functionality
 
-- Zachowaj `index.html` jako lekki, deklaratywny punkt wejścia, który:
-    - Importuje i osadza moduły z `html-modules/components/`
-    - Inicjuje i steruje logiką z `hmi/index.js`
-    - Nie zawiera luźnych `` z `js/` związanych z logiką UI
-- Przykład z dynamicznym importem lub statyczną deklaracją komponentów HTML jako web components lub modułów ES
+---
+
+## 📌 COMPLETION CHECKLIST
+
+### Before Considering Refactoring Complete
+
+- [ ] All UI components migrated to HTML modules
+- [ ] No duplicate files between `js/` and `html-modules/modules/`
+- [ ] All import references updated to point to new module locations
+- [ ] Large files (>350 lines) have been split into smaller modules
+- [ ] Documentation accurately reflects the new architecture
+- [ ] All tests pass with the new modular structure
+- [ ] No console errors when running the application

@@ -318,7 +318,7 @@ make backup             # Create project backup
 ### Modular Structure
 
 #### HTML Modules
-- **`html-modules/components/`** - Self-contained HTML+CSS+JS modules for UI components
+- **`html-modules/modules/`** - Self-contained HTML+CSS+JS modules for UI components
 - **`html-modules/utils/`** - Utility modules and helper functions for HTML modules
 - **`html-modules/base/`** - Base classes and core functionality for the module system
 
@@ -376,6 +376,29 @@ make backup             # Create project backup
 - **Nodemon** - Development server with hot reload
 - **Git Hooks** - Pre-commit validation
 - **NPM Scripts** - Task automation and dependency management
+
+### Modular Component Standards
+
+#### HTML Module Structure
+- Each component is a self-contained HTML module in `html-modules/modules/`
+- Modules contain their HTML, CSS (in `<style>` tags), and JS (in `<script>` tags)
+- Components export a class or are registered via `registerModule`
+- Minimal external dependencies except for utilities in `html-modules/utils/`
+
+#### Naming Conventions
+- File names use kebab-case: `component-name.html`
+- JavaScript classes use PascalCase: `ComponentName`
+- CSS classes use component namespaces: `.component-name__element`
+
+#### Resource Loading
+- Relative paths for imports: `import {ModuleBase} from '../base/module-base.js';`
+- SVG icons loaded asynchronously from the components directory
+- Component templates use HTML `<template>` tags for encapsulation
+
+#### HMI Integration
+- Generic HMI logic belongs in the `hmi/` directory
+- UI components communicate with HMI layer via events and callbacks
+- HMI modules should be decoupled from project-specific implementation
 
 ## 🔧 Configuration
 

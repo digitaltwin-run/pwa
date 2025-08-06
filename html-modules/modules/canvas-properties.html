@@ -1,5 +1,5 @@
 <!-- Canvas Properties HTML Module for Digital Twin IDE PWA -->
-<template>
+<template id="canvas-properties-template">
     <div class="canvas-properties">
         <div class="properties-header">
             <h3 class="properties-title" data-i18n="canvas.properties.title">Canvas Properties</h3>
@@ -15,15 +15,15 @@
             <!-- Canvas Size Section -->
             <div class="property-section">
                 <h4 class="section-title" data-i18n="canvas.size.title">Canvas Size</h4>
-                
+
                 <div class="property-row">
                     <label class="property-label" data-i18n="canvas.size.width">Width:</label>
                     <div class="property-input-group">
-                        <input type="number" 
-                               class="property-input" 
-                               id="canvas-width" 
-                               min="100" 
-                               max="4000" 
+                        <input type="number"
+                               class="property-input"
+                               id="canvas-width"
+                               min="100"
+                               max="4000"
                                step="50">
                         <span class="property-unit">px</span>
                     </div>
@@ -32,11 +32,11 @@
                 <div class="property-row">
                     <label class="property-label" data-i18n="canvas.size.height">Height:</label>
                     <div class="property-input-group">
-                        <input type="number" 
-                               class="property-input" 
-                               id="canvas-height" 
-                               min="100" 
-                               max="4000" 
+                        <input type="number"
+                               class="property-input"
+                               id="canvas-height"
+                               min="100"
+                               max="4000"
                                step="50">
                         <span class="property-unit">px</span>
                     </div>
@@ -54,7 +54,7 @@
             <!-- Background Section -->
             <div class="property-section">
                 <h4 class="section-title" data-i18n="canvas.background.title">Background</h4>
-                
+
                 <div class="property-row">
                     <label class="property-label" data-i18n="canvas.background.color">Background Color:</label>
                     <div class="color-input-group">
@@ -66,11 +66,11 @@
                 <div class="property-row">
                     <label class="property-label" data-i18n="canvas.background.opacity">Opacity:</label>
                     <div class="range-input-group">
-                        <input type="range" 
-                               id="canvas-background-opacity" 
-                               class="range-input" 
-                               min="0" 
-                               max="100" 
+                        <input type="range"
+                               id="canvas-background-opacity"
+                               class="range-input"
+                               min="0"
+                               max="100"
                                value="100">
                         <span class="range-value">100%</span>
                     </div>
@@ -88,7 +88,7 @@
             <!-- Grid Section -->
             <div class="property-section">
                 <h4 class="section-title" data-i18n="canvas.grid.title">Grid Settings</h4>
-                
+
                 <div class="property-row">
                     <label class="checkbox-container">
                         <input type="checkbox" id="canvas-grid-enabled">
@@ -100,11 +100,11 @@
                 <div class="property-row">
                     <label class="property-label" data-i18n="canvas.grid.size">Grid Size:</label>
                     <div class="property-input-group">
-                        <input type="number" 
-                               class="property-input" 
-                               id="canvas-grid-size" 
-                               min="5" 
-                               max="100" 
+                        <input type="number"
+                               class="property-input"
+                               id="canvas-grid-size"
+                               min="5"
+                               max="100"
                                value="20">
                         <span class="property-unit">px</span>
                     </div>
@@ -130,7 +130,7 @@
             <!-- Export Section -->
             <div class="property-section">
                 <h4 class="section-title" data-i18n="canvas.export.title">Export Settings</h4>
-                
+
                 <div class="property-row">
                     <label class="property-label" data-i18n="canvas.export.format">Format:</label>
                     <select class="property-select" id="canvas-export-format">
@@ -144,11 +144,11 @@
                 <div class="property-row">
                     <label class="property-label" data-i18n="canvas.export.quality">Quality:</label>
                     <div class="range-input-group">
-                        <input type="range" 
-                               id="canvas-export-quality" 
-                               class="range-input" 
-                               min="1" 
-                               max="100" 
+                        <input type="range"
+                               id="canvas-export-quality"
+                               class="range-input"
+                               min="1"
+                               max="100"
                                value="90">
                         <span class="range-value">90%</span>
                     </div>
@@ -423,7 +423,7 @@
     class CanvasProperties extends I18nMixin(ModuleBase) {
         constructor() {
             super();
-            
+
             this.canvasElement = null;
             this.defaultValues = {
                 width: 800,
@@ -438,7 +438,7 @@
                 exportFormat: 'svg',
                 exportQuality: 90
             };
-            
+
             this.currentValues = { ...this.defaultValues };
         }
 
@@ -579,7 +579,7 @@
 
         updateCanvasSize(dimension, value) {
             this.currentValues[dimension] = value;
-            
+
             this.emit('canvas-size-changed', {
                 width: this.currentValues.width,
                 height: this.currentValues.height,
@@ -590,11 +590,11 @@
 
         updateBackgroundColor(color) {
             this.currentValues.backgroundColor = color;
-            
+
             // Update both color and hex inputs
             this.$('#canvas-background-color').value = color;
             this.$('#canvas-background-hex').value = color;
-            
+
             this.emit('canvas-background-changed', {
                 color,
                 opacity: this.currentValues.backgroundOpacity,
@@ -604,7 +604,7 @@
 
         updateBackgroundOpacity(opacity) {
             this.currentValues.backgroundOpacity = opacity;
-            
+
             this.emit('canvas-background-changed', {
                 color: this.currentValues.backgroundColor,
                 opacity,
@@ -614,7 +614,7 @@
 
         updateTransparency(transparent) {
             this.currentValues.transparent = transparent;
-            
+
             this.emit('canvas-background-changed', {
                 color: this.currentValues.backgroundColor,
                 opacity: this.currentValues.backgroundOpacity,
@@ -624,7 +624,7 @@
 
         updateGridEnabled(enabled) {
             this.currentValues.gridEnabled = enabled;
-            
+
             this.emit('canvas-grid-changed', {
                 enabled,
                 size: this.currentValues.gridSize,
@@ -635,7 +635,7 @@
 
         updateGridSize(size) {
             this.currentValues.gridSize = size;
-            
+
             this.emit('canvas-grid-changed', {
                 enabled: this.currentValues.gridEnabled,
                 size,
@@ -646,11 +646,11 @@
 
         updateGridColor(color) {
             this.currentValues.gridColor = color;
-            
+
             // Update both color and hex inputs
             this.$('#canvas-grid-color').value = color;
             this.$('#canvas-grid-hex').value = color;
-            
+
             this.emit('canvas-grid-changed', {
                 enabled: this.currentValues.gridEnabled,
                 size: this.currentValues.gridSize,
@@ -661,7 +661,7 @@
 
         updateSnapToGrid(snapToGrid) {
             this.currentValues.snapToGrid = snapToGrid;
-            
+
             this.emit('canvas-grid-changed', {
                 enabled: this.currentValues.gridEnabled,
                 size: this.currentValues.gridSize,
@@ -672,7 +672,7 @@
 
         updateExportFormat(format) {
             this.currentValues.exportFormat = format;
-            
+
             this.emit('canvas-export-changed', {
                 format,
                 quality: this.currentValues.exportQuality
@@ -681,7 +681,7 @@
 
         updateExportQuality(quality) {
             this.currentValues.exportQuality = quality;
-            
+
             this.emit('canvas-export-changed', {
                 format: this.currentValues.exportFormat,
                 quality
@@ -697,7 +697,7 @@
         resetToDefaults() {
             this.currentValues = { ...this.defaultValues };
             this.updateUI();
-            
+
             this.emit('canvas-properties-reset', {
                 values: { ...this.currentValues }
             });

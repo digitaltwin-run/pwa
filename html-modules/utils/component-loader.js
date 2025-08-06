@@ -38,7 +38,7 @@ export class ComponentLoader {
       }
 
       // Load the component HTML
-      const response = await fetch(`/html-modules/components/${componentName}.html`);
+      const response = await fetch(`/html-modules/modules/${componentName}.html`);
       if (!response.ok) {
         throw new Error(`Failed to load component: ${componentName}`);
       }
@@ -58,10 +58,29 @@ export class ComponentLoader {
       
       // Execute the component's script
       if (script) {
-        // Create a new script element to ensure proper execution
-        const newScript = document.createElement('script');
-        newScript.textContent = script.textContent;
-        document.head.appendChild(newScript);
+        // Check if the script is a module
+        const isModule = script.type === 'module';
+        
+        if (isModule) {
+          // For module scripts, we need to handle them differently
+          // Create a blob URL for the module script to preserve its context
+          const blob = new Blob([script.textContent], { type: 'text/javascript' });
+          const scriptUrl = URL.createObjectURL(blob);
+          
+          // Create a new script element with module type
+          const newScript = document.createElement('script');
+          newScript.type = 'module';
+          newScript.src = scriptUrl;
+          document.head.appendChild(newScript);
+          
+          // Clean up the URL object after the script has loaded
+          newScript.onload = () => URL.revokeObjectURL(scriptUrl);
+        } else {
+          // For regular scripts, use the standard approach
+          const newScript = document.createElement('script');
+          newScript.textContent = script.textContent;
+          document.head.appendChild(newScript);
+        }
       } else {
         // If no script is found, create a default Web Component class
         this._createDefaultComponent(tagName, template, style);

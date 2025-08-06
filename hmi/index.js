@@ -136,13 +136,17 @@ export const createHMI = (target = document, options = {}) => {
   return new HMIManager(target, options);
 };
 
+// Create main HMI instance for global use
+const hmi = createHMI();
+
 // Export everything for individual use
 export { 
   GestureDetector, 
   VoiceHMI, 
   PatternDetectors, 
   canvasZoomManager, 
-  canvasSelectionManager 
+  canvasSelectionManager,
+  hmi // Export named hmi instance
 };
 
 /**

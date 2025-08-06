@@ -3,42 +3,42 @@
   "components": {
     "components-library-sidebar": {
       "name": "ComponentsLibrarySidebar",
-      "path": "/html-modules/components/components-library-sidebar.html",
+      "path": "/html-modules/modules/components-library-sidebar.html",
       "dependencies": [],
       "category": "core",
       "description": "Sidebar for browsing and adding components to the canvas"
     },
     "properties-panel": {
       "name": "PropertiesPanel",
-      "path": "/html-modules/components/properties-panel.html",
+      "path": "/html-modules/modules/properties-panel.html",
       "dependencies": [],
       "category": "core",
       "description": "Panel for editing component properties"
     },
     "simulation-panel": {
       "name": "SimulationPanel",
-      "path": "/html-modules/components/simulation-panel.html",
+      "path": "/html-modules/modules/simulation-panel.html",
       "dependencies": [],
       "category": "simulation",
       "description": "Panel for controlling simulations"
     },
     "color-picker": {
       "name": "ColorPicker",
-      "path": "/html-modules/components/color-picker.html",
+      "path": "/html-modules/modules/color-picker.html",
       "dependencies": [],
       "category": "ui",
       "description": "Color picker component"
     },
     "font-editor": {
       "name": "FontEditor",
-      "path": "/html-modules/components/font-editor.html",
+      "path": "/html-modules/modules/font-editor.html",
       "dependencies": [],
       "category": "ui",
       "description": "Font selection and styling component"
     },
     "scale-control": {
       "name": "ScaleControl",
-      "path": "/html-modules/components/scale-control.html",
+      "path": "/html-modules/modules/scale-control.html",
       "dependencies": [],
       "category": "ui",
       "description": "Canvas zoom/scale control component"

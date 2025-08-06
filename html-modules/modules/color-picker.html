@@ -1,10 +1,10 @@
+<template id="color-picker-template">
 <!-- Color Picker HTML Module for Digital Twin IDE PWA -->
-<template>
     <div class="color-picker">
         <div class="color-picker-header">
             <h4 class="color-picker-title" data-i18n="color.title">Color Picker</h4>
         </div>
-        
+
         <div class="color-picker-content">
             <!-- Current Color Display -->
             <div class="color-group">
@@ -187,9 +187,9 @@
         content: '';
         position: absolute;
         inset: -2px;
-        background: linear-gradient(45deg, #ccc 25%, transparent 25%), 
-                    linear-gradient(-45deg, #ccc 25%, transparent 25%), 
-                    linear-gradient(45deg, transparent 75%, #ccc 75%), 
+        background: linear-gradient(45deg, #ccc 25%, transparent 25%),
+                    linear-gradient(-45deg, #ccc 25%, transparent 25%),
+                    linear-gradient(45deg, transparent 75%, #ccc 75%),
                     linear-gradient(-45deg, transparent 75%, #ccc 75%);
         background-size: 8px 8px;
         background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
@@ -312,9 +312,9 @@
     }
 
     .hue-slider {
-        background: linear-gradient(to right, 
-            hsl(0, 100%, 50%), hsl(60, 100%, 50%), hsl(120, 100%, 50%), 
-            hsl(180, 100%, 50%), hsl(240, 100%, 50%), hsl(300, 100%, 50%), 
+        background: linear-gradient(to right,
+            hsl(0, 100%, 50%), hsl(60, 100%, 50%), hsl(120, 100%, 50%),
+            hsl(180, 100%, 50%), hsl(240, 100%, 50%), hsl(300, 100%, 50%),
             hsl(360, 100%, 50%));
     }
 
@@ -414,14 +414,14 @@
     class ColorPicker extends I18nMixin(ModuleBase) {
         constructor() {
             super();
-            
+
             this.currentColor = {
                 hex: '#000000',
                 rgb: { r: 0, g: 0, b: 0 },
                 hsl: { h: 0, s: 0, l: 0 },
                 opacity: 100
             };
-            
+
             this.customColors = [];
         }
 
@@ -435,7 +435,7 @@
             const template = document.querySelector('template').content.cloneNode(true);
             this.shadowRoot.innerHTML = '';
             this.shadowRoot.appendChild(template);
-            
+
             this.updateColorDisplay();
             this.renderCustomColors();
             this.applyTranslations();
@@ -537,7 +537,7 @@
             this.currentColor.hex = hex;
             this.currentColor.rgb = this.hexToRgb(hex);
             this.currentColor.hsl = this.rgbToHsl(this.currentColor.rgb);
-            
+
             this.updateColorDisplay();
             this.emit('color-changed', { color: this.currentColor });
         }
@@ -721,3 +721,4 @@
 
     registerModule('color-picker', ColorPicker);
 </script>
+</template>

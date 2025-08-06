@@ -1,5 +1,5 @@
 <!-- Notification System HTML Module for Digital Twin IDE PWA -->
-<template>
+<template id="notification-system-template">
     <div class="notification-system">
         <div class="notifications-container">
             <!-- Notifications will be dynamically inserted here -->
@@ -177,11 +177,11 @@
     class NotificationSystem extends I18nMixin(ModuleBase) {
         constructor() {
             super();
-            
+
             this.notifications = new Map();
             this.defaultDuration = 5000;
             this.maxNotifications = 5;
-            
+
             // Load notification translations
             this.loadTranslations('notifications');
         }
@@ -221,8 +221,8 @@
             return this.show({
                 type: 'error',
                 title: this.t('notification.error'),
-                message: typeof message === 'string' ? message : 
-                         message instanceof Error ? message.message : 
+                message: typeof message === 'string' ? message :
+                         message instanceof Error ? message.message :
                          JSON.stringify(message),
                 icon: this.getErrorIcon(),
                 duration: 0, // Don't auto-dismiss errors
@@ -410,7 +410,7 @@
                     notification.element.parentElement.removeChild(notification.element);
                 }
                 this.notifications.delete(id);
-                
+
                 this.emit('notification-dismissed', { id });
             }, 300);
         }

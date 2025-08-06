@@ -6,8 +6,8 @@ This directory contains the modular UI components for the Digital Twin IDE, foll
 
 ```
 html-modules/
-├── components/           # Self-contained UI components
-│   ├── _component-template.html  # Template for new components
+├── modules/           # Self-contained UI modules
+│   ├── _module-template.html  # Template for new modules
 │   ├── components-library-sidebar.html
 │   ├── properties-panel.html
 │   ├── simulation-panel.html
@@ -23,7 +23,7 @@ html-modules/
 
 ### Component Structure
 
-Each component in the `components/` directory should follow this structure:
+Each component in the `modules/` directory should follow this structure:
 
 ```html
 <template id="component-name-template">
@@ -93,7 +93,7 @@ All components must be registered in the `manifest.json` file with their metadat
   "components": {
     "component-name": {
       "name": "ComponentName",
-      "path": "/html-modules/components/component-name.html",
+      "path": "/html-modules/modules/component-name.html",
       "dependencies": ["other-component"],
       "category": "ui",
       "description": "Description of the component"
@@ -152,8 +152,8 @@ In your HTML, use `data-i18n` attributes for static translations:
 
 ## Adding a New Component
 
-1. Create a new `.html` file in the `components/` directory.
-2. Use the `_component-template.html` as a starting point.
+1. Create a new `.html` file in the `modules/` directory.
+2. Use the `_module-template.html` as a starting point.
 3. Add your component to `manifest.json` with its dependencies.
 4. Implement the component's functionality following the architecture guidelines.
 5. Test the component in isolation and within the application.
